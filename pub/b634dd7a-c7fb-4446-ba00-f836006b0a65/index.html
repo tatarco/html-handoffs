@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>כרטיס משחק — מצבים · רקע מקורי / מתוח</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@500;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #070203; font-family: Heebo, system-ui; color: #e8dbd5; padding: .65rem .55rem 2rem; text-align: right; }
+    h1 { font-size: .95rem; margin: .25rem 0; text-align: center; }
+    .sub { font-size: .69rem; color: #887; margin: 0 auto .85rem; text-align: center; line-height: 1.42; max-width: 41rem; }
+    .leg {
+      margin: .6rem auto .5rem;
+      max-width: 50rem;
+      padding: .45rem .55rem;
+      border-radius: 8px;
+      border: 1px solid rgba(201,162,39,.38);
+      background: rgba(30,12,14,.74);
+      font-size: .66rem;
+      line-height: 1.43;
+      color: #dcb;
+    }
+    h2 {
+      margin: 1rem auto .45rem;
+      max-width: 50rem;
+      font-size: .78rem;
+      color: #e8bb6f;
+      text-align: center;
+      border-bottom: 1px solid rgba(201,162,39,.3);
+      padding-bottom: .2rem;
+    }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(154px, 1fr));
+      gap: .5rem .45rem;
+      max-width: 50rem;
+      margin-inline: auto;
+    }
+    @media (min-width: 880px) { .gallery { grid-template-columns: repeat(4, 1fr); } }
+
+    .cell { display: flex; flex-direction: column; gap: .22rem; }
+    .cap { font-size: .6rem; line-height: 1.38; color: #a98; min-height: 2.92em; }
+    .skin {
+      width: var(--mw);
+      margin-inline: auto;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 2px solid #b8933a;
+      box-shadow: 0 10px 28px rgba(0,0,0,.55);
+      background: #120709;
+      --mw: min(172px, 44vw);
+      --Bur: calc(var(--mw) * 516 / 1600);
+      --Grass: calc(var(--mw) * 278 / 1600);
+      --Mid: calc(var(--mw) * 260 / 1600);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .natural .cb { height: var(--Bur); overflow: hidden; position: relative; }
+    .natural .cb > img.bg { width: var(--mw); height: calc(var(--mw) * 794 / 1600); display: block; }
+    .natural .cg { height: var(--Grass); overflow: hidden; position: relative; flex: none; }
+    .natural .cg > img.bg { width: var(--mw); height: calc(var(--mw) * 794 / 1600); display: block; margin-top: calc(var(--mw) * -516 / 1600); }
+
+    .stretch .cb { height: var(--Bur); overflow: hidden; position: relative; flex: none; }
+    .stretch .cg { height: var(--Grass); overflow: hidden; position: relative; flex: none; }
+    .stretch .cb img.sf, .stretch .cg img.sf {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+    }
+    .stretch .cb img.sf { object-position: top center; }
+    .stretch .cg img.sf { object-position: bottom center; }
+
+    .ob {
+      inset: 0;
+      position: absolute;
+      padding: .2rem .3rem .22rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: .04rem;
+      color: #fef8f4;
+      font-size: clamp(7px, 1.92vw, 9px);
+      font-weight: 700;
+      line-height: 1.26;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, .65);
+      pointer-events: none;
+    }
+    .gw {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: .08rem;
+      padding: .08rem .28rem .1rem;
+    }
+    .og {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .12rem;
+      font-size: clamp(7px, 2.05vw, 9px);
+      font-weight: 800;
+      color: #ffeef0;
+      text-shadow: 0 2px 5px rgba(0,0,0,.85);
+      pointer-events: none;
+      min-height: .9em;
+    }
+    .pill { padding: .07rem .2rem .06rem; border-radius: 99px; background: rgba(10,92,62,.93); font-size: .58em;
+      white-space: nowrap; display: inline-flex; gap: .12rem; align-items: center; }
+    .pill span.dot { width: 4px; height: 4px; border-radius: 999px; background: #73ffc5; flex-shrink: 0; box-shadow: 0 0 4px #73ffc5; }
+    .midln { border-bottom: 1px dashed rgba(255,255,255,.07); padding-bottom: .04rem; }
+    .midln:last-child { border-bottom: 0; }
+    .r1 { display: flex; justify-content: space-between; align-items: center; gap: .2rem; flex-shrink: 0; }
+    .r4 { display: flex; justify-content: space-between; align-items: center; gap: .05rem;
+      margin-top: .02rem;
+      font-size: clamp(7.5px, 2.25vw, 10px); font-weight: 800; flex-shrink: 0; flex-wrap: nowrap; }
+    .vs { direction: ltr; unicode-bidi: isolate; opacity: .68; flex-shrink: 0; padding: 0 .04rem; }
+    .flg { width: 14px; height: 9px; border-radius: 1px; flex-shrink: 0; opacity: .92; vertical-align: middle; }
+    .kt { opacity: .9; font-weight: 600; font-size: .9em; flex-shrink: 0; direction: rtl; white-space: nowrap; margin-top:.04rem;text-align:start;}
+    .mid {
+      flex: none;
+      min-height: var(--Mid);
+      height: auto;
+      background: linear-gradient(180deg, #321018, #150608);
+      padding: .13rem .3rem .16rem;
+      font-size: clamp(6.5px, 1.95vw, 8px);
+      line-height: 1.35;
+      color: #eee8e0;
+      border-top: 1px solid rgba(201,162,39,.25);
+      border-bottom: 1px solid rgba(201,162,39,.13);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: .06rem;
+    }
+    .cta {
+      pointer-events: none;
+      flex: none;
+      margin: 0 auto;
+      padding: .1rem .45rem .08rem;
+      border-radius: 7px;
+      background: linear-gradient(180deg, #e4bb45, #9d7010);
+      color: #1a0804;
+      font-weight: 800;
+      font-size: clamp(6.5px, 1.85vw, 8px);
+      box-shadow: inset 0 1px rgba(255,255,250,.4), 0 2px 5px rgba(0,0,0,.5);
+      text-align: center;
+      width: calc(100% - .2rem);
+    }
+    .sq { background: rgba(168,26,41,.94); padding: .02rem .08rem; border-radius: 3px; direction: ltr; unicode-bidi: isolate;
+      display: inline-flex; align-items: center; justify-content: center; min-width: 1.05rem; font-weight: 900; }
+    .foot { font-size: .92em; flex: 1; min-width: 0; text-align: end; direction: rtl; line-height: 1.2; }
+    .foot.c { text-align: center; flex: 1.2; }
+    .tiles { direction: ltr; unicode-bidi: isolate; flex-shrink: 0; white-space: nowrap; display: inline-flex; align-items: center; gap: .05rem; }
+    footer { margin-top: 1.1rem; text-align: center; font-size: .6rem; color: #655; max-width: 44rem; margin-inline: auto; line-height: 1.4; }
+    .muted { opacity: .55; font-size: .93em;}
+  </style>
+</head>
+<body>
+  <h1>כרטיס משחק · כל המצבים</h1>
+  <p class="sub">שמונה מצבי כרטיס, ואז שוב אותם שמונה עם <strong>מתיחת JPG</strong> לכל רצועה (<span dir="ltr" style="unicode-bidi:isolate;font-size:.88em;"><code>object-fit: fill</code></span>). קובץ בסיס <span dir="ltr" style="unicode-bidi:isolate;font-size:.88em;">1600×794</span> שחלוקתו בלי מתיחה אצלנו: בורדו 516 · דשא 278.</p>
+
+  <div class="leg">
+    <strong>בורדו:</strong> סטטוס · שורת שלב/תאריך · שמות + דגלים · שעת שידור ונעילה.<br />
+    <strong>דשא:</strong> ניחוש / לפני ניחוש / CTA · כותרת כמו «הבחירה שלך».<br />
+    <strong>מורחב:</strong> פס אמצע <span dir="ltr" style="unicode-bidi:isolate;">260px</span> אפליקציה בלבד (לא חלק מה־JPG).
+  </div>
+
+  <h2>א׳ · רקע מקורי (חיתוך נכון)</h2>
+  <div class="gallery" id="nat"></div>
+
+  <h2>ב׳ · רקע מתוח (אותו JPG, מילוי מאולץ לרצועה)</h2>
+  <div class="gallery" id="str"></div>
+
+  <footer>מקור רקע: <code dir="ltr" style="unicode-bidi:isolate;">assets/bg-flames-glow.jpg</code> · סגור <span dir="ltr" style="unicode-bidi:isolate;">516+278=794</span> · מורחב <span dir="ltr" style="unicode-bidi:isolate;">516+260+278=1054</span></footer>
+
+  <script>
+    const SRC = 'assets/bg-flames-glow.jpg';
+    const arg = { flgA: 'linear-gradient(180deg,#74acdf,#fff,#74acdf)', flgB: 'linear-gradient(#009b3a,#fedf00,#002776)' };
+
+    function burgundyUI() {
+      return `<div class="ob">
+        <div class="r1"><span>שישי · בית&nbsp;א׳</span><span class="pill"><span class="dot" aria-hidden="true"></span>פתוח</span></div>
+        <div>
+          <div class="r4">
+            <span><span class="flg" style="background:${arg.flgA};margin-inline-end:.08rem;"></span>ארגנטינה</span>
+            <span class="vs">VS</span>
+            <span>ברזיל<span class="flg" style="background:${arg.flgB};margin-inline-start:.08rem;"></span></span>
+          </div>
+          <div class="kt">21:00 שעון ישראל · ננעל 20:55</div>
+        </div></div>`;
+    }
+
+    function midBefore(extraCtaInside) {
+      const lines = [
+        'טקסט פתיחה של כרטיס מורחב · מגיע מהשרת כשפותחים בפעם הראשונה.',
+        'אפשר לשבת כאן שורות נוספות מבלי לגעת בבורדו או בדשא.'
+      ];
+      if (extraCtaInside) lines.push('דוגמה ל־CTA משני בתוך האמצע: קישור לסטטיסטיקה או לשידור.');
+      return '<div class="mid">' + lines.map(t => '<div class="midln">' + t + '</div>').join('') + '</div>';
+    }
+
+    function midAfter() {
+      return `<div class="mid">
+        <div class="midln">שידור חי · דקה <strong dir="ltr" style="unicode-bidi:isolate;">62׳</strong> · תקציר שידור</div>
+        <div class="midln">מה שממשק המשחק מציג אחרי שסגרת הגשת ניחוש קצרה</div>
+      </div>`;
+    }
+
+    /** @param {'natural'|'stretch'} mode */
+    function card(mode, { closed, before, grassCta, midCta }) {
+      const stretched = mode === 'stretch';
+      let inner = '';
+
+      function wrapGrass(parts) {
+        return `<div class="gw">${parts.join('')}</div>`;
+      }
+
+      if (before) {
+        const parts = [`<div class="og"><span class="tiles muted">⋯</span>
+          <span class="foot c">לא נקבע ציון · משקל מתעדכן לפני הנעילה ב־20:58</span>
+          ${grassCta ? '' : '<span class="foot muted" style="flex:none;max-width:32%;font-size:.78em;line-height:1.2">סימון:<br />ללא CTA</span>'}</div>`];
+        if (grassCta) parts.push('<div class="cta">קבע ציון</div>');
+        inner = wrapGrass(parts);
+      } else {
+        const parts = [`<div class="og"><span class="tiles"><span>X</span><span class="sq">0</span><span>:</span><span class="sq">2</span><span aria-hidden="true">↑</span></span>
+          <span class="foot c">נשלח · עריכה עד המועד שמופיע לעיל</span>
+          <span class="foot">הבחירה שלך</span></div>`];
+        if (grassCta) parts.push('<div class="cta">קנה כרטיס רשמי ⌄</div>');
+        else parts.push('<div class="og" style="margin-top:-.04rem"><span class="foot muted" style="font-size:.78em;width:100%;text-align:center">ללא CTA משני</span></div>');
+        inner = wrapGrass(parts);
+      }
+
+      const grassHtml = inner;
+
+      let html;
+
+      if (closed) {
+        html = `<div class="skin ${stretched ? 'stretch' : 'natural'}">
+          <div class="cb">${stretched ? `<img class="sf" alt="" src="${SRC}"/>` : `<img class="bg" alt="" src="${SRC}"/>`}${burgundyUI()}</div>
+          <div class="cg">${stretched ? `<img class="sf" alt="" src="${SRC}"/>` : `<img class="bg" alt="" src="${SRC}"/>`}${grassHtml}</div>
+        </div>`;
+      } else {
+        const mid = before ? midBefore(midCta) : midAfter();
+        html = `<div class="skin ${stretched ? 'stretch' : 'natural'}">
+          <div class="cb">${stretched ? `<img class="sf" alt="" src="${SRC}"/>` : `<img class="bg" alt="" src="${SRC}"/>`}${burgundyUI()}</div>
+          ${mid}
+          <div class="cg">${stretched ? `<img class="sf" alt="" src="${SRC}"/>` : `<img class="bg" alt="" src="${SRC}"/>`}${grassHtml}</div>
+        </div>`;
+      }
+      return html;
+    }
+
+    const rows = [
+      { k: 'סגור · לפני ניחוש · בלי CTA', closed: true, before: true, grassCta: false, midCta: false },
+      { k: 'סגור · לפני ניחוש · עם CTA', closed: true, before: true, grassCta: true, midCta: false },
+      { k: 'סגור · אחרי ניחוש · בלי משני', closed: true, before: false, grassCta: false, midCta: false },
+      { k: 'סגור · אחרי ניחוש · משנה', closed: true, before: false, grassCta: true, midCta: false },
+      { k: 'מורחב · לפני · בלי CTA', closed: false, before: true, grassCta: false, midCta: false },
+      { k: 'מורחב · לפני · עם CTA', closed: false, before: true, grassCta: true, midCta: true },
+      { k: 'מורחב · אחרי · בלי משנה', closed: false, before: false, grassCta: false, midCta: false },
+      { k: 'מורחב · אחרי · עם משנה', closed: false, before: false, grassCta: true, midCta: false },
+    ];
+
+    function galleryHTML(mode) {
+      return rows.map(r => `
+        <div class="cell">
+          <div class="cap">${r.k}${r.closed ? '' : ' · רצועת אמצע 260&nbsp;פיקסל'}${mode === 'stretch' ? ' · מתיחת רצועות' : ''}</div>
+          ${card(mode, r)}
+        </div>`).join('');
+    }
+
+    document.getElementById('nat').innerHTML = galleryHTML('natural');
+    document.getElementById('str').innerHTML = galleryHTML('stretch');
+  </script>
+</body>
+</html>
