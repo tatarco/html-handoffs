@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Humondial — מפרט רקעי כרטיס משחק (Outer / Inner / סגור / פתוח)</title>
+  <style>
+    :root {
+      --w: 1600;
+      --h-master: 794;
+      --h-alt: 793;
+      --burgundy: calc(794 * 0.70);
+      --grass-master: calc(794 - var(--burgundy));
+      --inset-hard: 16px;
+      --safe-extra-flame: 12px;
+      --top-inner: 20px;
+      --bottom-inner: 28px;
+      --r-outer-est: clamp(72px, 14.85vmin, 118px);
+      --gold: #c9a227;
+      --ink: #1a0a0f;
+      --muted: #5c454d;
+      --danger: #b42318;
+      --ok: #0d6948;
+      --panel: rgba(255,248,246,0.92);
+      --code-bg: rgba(74, 0, 14, 0.06);
+      font-family: "Heebo", "Segoe UI", system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(1200px 800px at 50% -10%, #3a0814 0%, #120408 42%, #0a0305 100%);
+      color: var(--ink);
+      line-height: 1.45;
+      text-align: right;
+    }
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+    header.hero {
+      text-align: center;
+      padding: 2rem 1rem;
+      margin-bottom: 2rem;
+      border-radius: 24px;
+      background: linear-gradient(145deg, rgba(74, 0, 14, 0.92), rgba(20, 5, 8, 0.94));
+      color: #fff5ea;
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 40px rgba(201, 162, 39, 0.25);
+    }
+    header.hero h1 { margin: 0 0 .5rem; font-size: 1.65rem; line-height: 1.25; text-align: center; }
+    header.hero p { margin: 0; opacity: .9; font-size: .96rem; text-align: center; max-width: 52rem; margin-inline: auto; }
+    section.card {
+      background: var(--panel);
+      border-radius: 18px;
+      padding: 1.5rem 1.35rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(74, 0, 14, 0.12);
+    }
+    h2 { margin: 0 0 .75rem; color: #4a000e; font-size: 1.2rem; text-align: right; }
+    h3 { margin: 1.25rem 0 .5rem; font-size: 1.05rem; color: #5c0818; text-align: right; }
+    p, li { color: var(--muted); font-size: .93rem; }
+    ul { padding-inline-start: 1.35rem; }
+    table.spec {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .86rem;
+      margin: .75rem 0;
+      direction: rtl;
+    }
+    table.spec th, table.spec td {
+      border: 1px solid rgba(74, 0, 14, 0.15);
+      padding: .55rem .65rem;
+      text-align: right;
+      vertical-align: top;
+    }
+    table.spec th { background: rgba(74, 0, 14, 0.06); font-weight: 700; color: #4a000e; }
+    code.inline {
+      font-family: ui-monospace, monospace;
+      background: var(--code-bg);
+      padding: .12rem .38rem;
+      border-radius: 5px;
+      direction: ltr;
+      unicode-bidi: isolate;
+      text-align: left;
+      font-size: .84em;
+    }
+    pre {
+      direction: ltr;
+      unicode-bidi: embed;
+      text-align: left;
+      background: var(--code-bg);
+      padding: .85rem 1rem;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-size: .82rem;
+    }
+    .badge {
+      display: inline-block;
+      padding: .2rem .6rem;
+      border-radius: 999px;
+      font-size: .72rem;
+      font-weight: 700;
+      margin-inline-start: .35rem;
+    }
+    .badge-warn { background: #fdecc8; color: #7a3410; border: 1px solid #f5bf7a; }
+    .badge-ok { background: #dcf5e9; color: #0d4a34; border: 1px solid #94d9b8; }
+    .badge-bad { background: #fde2e2; color: var(--danger); border: 1px solid #f5a9a9; }
+
+    .grid-2 {
+      display: grid;
+      gap: 1.25rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr 1fr; }
+    }
+
+    figure.asset {
+      margin: 0;
+      padding: 0;
+    }
+    .asset-cap {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: .4rem .75rem;
+      justify-content: flex-end;
+      margin-bottom: .5rem;
+    }
+    .asset-cap strong { color: #4a000e; }
+
+    .stage {
+      position: relative;
+      width: min(100%, 720px);
+      margin-inline: auto;
+      margin-block: .75rem 1rem;
+      border-radius: var(--r-outer-est);
+      overflow: visible;
+      box-shadow: 0 22px 50px rgba(0, 0, 0, 0.45);
+    }
+    .stage-inner {
+      position: relative;
+      border-radius: var(--r-outer-est);
+      overflow: hidden;
+    }
+    .stage img.bg {
+      display: block;
+      width: 100%;
+      height: auto;
+      vertical-align: top;
+      border-radius: inherit;
+    }
+
+    /* overlay layers scaled with image via aspect-ratio box */
+    .measure-box {
+      position: relative;
+      width: min(100%, 720px);
+      margin-inline: auto;
+      aspect-ratio: 1600 / 794;
+    }
+    .measure-box.variant-793 { aspect-ratio: 1600 / 793; }
+    .measure-box.variant-794 { aspect-ratio: 1600 / 794; }
+    .ovl {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .split-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 0;
+      border-top: 3px dashed rgba(0, 200, 255, 0.85);
+      box-shadow: 0 0 8px rgba(0,200,255,0.35);
+      z-index: 2;
+    }
+    /* Integer splits align with PNG rows: @794 burgundy top 556 px; @793 burgundy top 555 px */
+    .variant-794 .split-line { top: calc(556 / 794 * 100%); }
+    .variant-793 .split-line { top: calc(555 / 793 * 100%); }
+    .variant-794 .split-label { top: calc(556 / 794 * 100% - 26px); }
+    .variant-793 .split-label { top: calc(555 / 793 * 100% - 26px); }
+    .split-label {
+      position: absolute;
+      left: 6px;
+      background: rgba(0,60,120,0.88);
+      color: #dcf6ff;
+      font-size: 10px;
+      padding: .2rem .45rem;
+      border-radius: 6px;
+      direction: ltr;
+      unicode-bidi: isolate;
+      z-index: 3;
+      font-family: ui-monospace, monospace;
+      white-space: nowrap;
+    }
+    .safe-rect {
+      position: absolute;
+      border: 2px solid rgba(230, 50, 80, 0.75);
+      background: rgba(230,50,80,0.06);
+      z-index: 2;
+      border-radius: calc(var(--r-outer-est) * 0.68);
+      /* percentage insets calibrated for 794 master */
+      top: calc(100% * 20 / 794);
+      left: calc(100% * 28 / 1600);
+      right: calc(100% * 28 / 1600);
+      bottom: calc(100% * 28 / 794);
+    }
+    .safe-flame-extra .safe-rect {
+      left: calc(100% * 40 / 1600);
+      right: calc(100% * 40 / 1600);
+    }
+    .corner-tag {
+      position: absolute;
+      font-size: 9px;
+      font-family: ui-monospace, monospace;
+      direction: ltr;
+      background: rgba(20,10,40,0.85);
+      color: #fcd34d;
+      padding: .15rem .4rem;
+      border-radius: 4px;
+      z-index: 4;
+    }
+
+    /* mock UI atop closed card */
+    .mock-shell {
+      position: relative;
+      width: min(100%, 360px);
+      margin-inline: auto;
+      margin-block: 1rem;
+    }
+    .mock-shell .backdrop {
+      position: relative;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 2px solid rgba(201, 162, 39, 0.55);
+      box-shadow: inset 0 0 34px rgba(0, 0, 0, 0.42);
+    }
+    .mock-ui {
+      position: absolute;
+      inset: 0;
+      padding: .55rem .7rem .5rem;
+      display: flex;
+      flex-direction: column;
+      z-index: 5;
+      color: #fdf5ef;
+      text-shadow: 0 2px 6px rgba(0,0,0,.55);
+    }
+    .row-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9px;
+      gap: .35rem;
+    }
+    .pill {
+      padding: .16rem .4rem;
+      border-radius: 999px;
+      background: rgba(14,96,62,0.82);
+      display: inline-flex;
+      align-items: center;
+      gap: .2rem;
+      font-weight: 700;
+    }
+    .dot-live { width: 6px; height: 6px; border-radius: 999px; background: #53ffb2; box-shadow: 0 0 6px #53ffb2; }
+
+    .row-mid {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: .25rem;
+      padding-inline: .1rem .1rem;
+    }
+    .team {
+      display: flex;
+      align-items: center;
+      gap: .25rem;
+      font-weight: 800;
+      font-size: 11px;
+    }
+    .flag {
+      width: 18px; height: 12px;
+      border-radius: 2px;
+      background: repeating-linear-gradient(90deg,#0057b8,#ffd700,#0057b8,#ffd700);
+      opacity: .95;
+    }
+    .vs { font-weight: 800; opacity: .7; font-size: 10px; }
+    .kick {
+      margin-top: .12rem;
+      font-size: 8px;
+      opacity: .88;
+      text-align: start;
+      direction: rtl;
+    }
+
+    .grass-row {
+      min-height: 28%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5rem;
+      padding-inline-start: .2rem;
+    }
+    .pred {
+      font-size: 9px;
+      font-weight: 800;
+      color: #fde8ea;
+      text-shadow: 0 2px 4px rgba(0,0,0,.85);
+      text-align: end;
+      direction: rtl;
+    }
+    .tile {
+      display: flex;
+      align-items: center;
+      gap: .28rem;
+      font-size: 10px;
+      font-weight: 800;
+      color: #fde8ea;
+    }
+    .sq {
+      min-width: 22px;
+      height: 22px;
+      background: rgba(180,35,39,0.96);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .expanded-demo {
+      position: relative;
+      width: min(100%, 360px);
+      margin-inline: auto;
+      margin-top: .75rem;
+    }
+    .expanded-demo .stretch {
+      position: relative;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 2px dashed rgba(201, 162, 39, 0.45);
+    }
+    .expanded-body {
+      background: rgba(18, 4, 8, 0.82);
+      color: #f5eae4;
+      padding: .75rem .7rem .65rem;
+      font-size: 10px;
+      border-top: 1px dashed rgba(201, 162, 39, 0.35);
+    }
+    .expanded-body ul { margin: .35rem 0 0; padding-inline-start: 1rem; }
+    .ribbon {
+      direction: ltr;
+      unicode-bidi: isolate;
+      text-align: center;
+      font-size: .78rem;
+      margin: .75rem 0;
+      padding: .65rem .8rem;
+      border-radius: 12px;
+      background: rgba(180,35,39,0.12);
+      border: 2px dashed var(--danger);
+      color: #7a3410;
+      font-family: ui-monospace, monospace;
+    }
+
+    .compare-strip {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: .5rem;
+      align-items: end;
+      margin-top: .75rem;
+    }
+    @media (max-width: 699px) {
+      .compare-strip { grid-template-columns: 1fr; justify-items: center; }
+    }
+    .tiny-frame {
+      width: 100%;
+      max-width: 240px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid #94a3b8;
+    }
+    .tiny-frame img { display: block; width: 100%; height: auto; }
+    .gap-arrow {
+      font-size: 1.75rem;
+      color: var(--danger);
+      font-weight: 900;
+    }
+    footer {
+      text-align: center;
+      color: rgba(255,238,226,0.55);
+      font-size: .78rem;
+      margin-top: 2rem;
+    }
+    .lang-note {
+      font-size: .75rem;
+      color: rgba(74, 0, 14, 0.72);
+      border-inline-start: 3px solid var(--gold);
+      padding-inline-start: .75rem;
+      margin-bottom: .75rem;
+      text-align: right;
+      direction: rtl;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header class="hero">
+    <h1>מפרט מידות רקע — כרטיס משחק סגור / מורחב</h1>
+    <p>
+      מאגד את קבצי ה־JPG מהוואטסאפ, מתאר אזורי תוכן, מציג התאמות/אי‑התאמות עם שכבות עזר (קו חלוקה — 70% / 30%),
+      מאזני שוליים פנימיים לאמנות עם / בלי להבות, ותרחיב מלאכותי למצב פתוח (אין פריים נוסף בקובץ).
+    </p>
+  </header>
+
+  <div class="wrap">
+    <p class="lang-note">
+      מזהים טכני (קבצים, פיקסלים, נוסחאות בבלוק קוד): <strong dir="ltr" style="unicode-bidi:isolate;">LTR</strong>
+      בתוך מסמך RTL.
+    </p>
+
+    <section class="card">
+      <h2>מקור הנכסים (מדידה אמיתית)</h2>
+      <table class="spec">
+        <thead>
+          <tr>
+            <th>קובץ</th>
+            <th>יעד שימוש</th>
+            <th>Outer (px)</th>
+            <th>הערה</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td dir="ltr" style="unicode-bidi:isolate; text-align:left;"><code class="inline">assets/bg-clean-gold-bezel.jpg</code></td>
+            <td>גרסת מסגרת זהב “שקטה” · יותר שטח לטקסט בצידים</td>
+            <td><strong>1600 × 793</strong></td>
+            <td>אחד מתוך <strong>556</strong>/555 בחלק העליון; דשא <strong>אותו סטאק גובה 238</strong>; ההפרש הוא בשורת בורדו (+1).</td>
+          </tr>
+          <tr>
+            <td dir="ltr" style="unicode-bidi:isolate; text-align:left;"><code class="inline">assets/bg-flames-glow.jpg</code></td>
+            <td>גרסת “דחיפה חזקה” עם להבות בצדי המסגרת</td>
+            <td><strong>1600 × 794</strong></td>
+            <td>מתווה מאסטר להנחיות (מומלץ לאחד ל־794)</td>
+          </tr>
+        </tbody>
+      </table>
+      <div>
+        <span class="badge badge-bad">אי‑התאמה #1</span>
+        ההפרש <code class="inline">793 vs 794</code> משמעותו שהבורדו העליון נחתך ב־<strong>פיקסל אחד</strong> בהשוואת מאסטר; שטח הדשא מקורי אותו גובה (238px) — עדיין מסוכן לערבב סקיילים שונים באותה רשימה.
+      </div>
+      <div style="margin-top:.75rem">
+        <span class="badge badge-warn">אי‑התאמה #2</span>
+        בשכבת הלהבות אין מה ליישר טקסט עד הקצה הפיזי — חובה <strong>לבלוע שוליים צדיים</strong> גדולים יותר מתוך <code class="inline">safe zone</code> (מתואר מתחת).
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>מפת אזורים (מה שיחיה בכל חלק)</h2>
+      <h3>פאנל בורדו עליון (~70% מגובה הקנבס)</h3>
+      <ul>
+        <li><strong>שורה עליונה</strong> · תצוגת סטטוס (למשל <code class="inline">פתוח</code>) ובצידה מתאר ארוע (בית · תאריך).</li>
+        <li><strong>מרכז</strong> · שני שמות קבוצות, דגלים,<span dir="ltr" style="unicode-bidi:isolate;"> VS</span>.</li>
+        <li><strong>תחתונה</strong> · שורת זמני שידור ונעילת ניחוש.</li>
+      </ul>
+      <h3>פאנל דשא תחתון (~30%)</h3>
+      <ul>
+        <li><strong>תוויות מצב הניחוש</strong> כמו <strong>«הבחירה שלך»</strong> ותצוגה קומפקטית של ציון שנבחר / חץ הרחבה.</li>
+        <li><strong>אל תנסו לפרוס כאן פס paragraphs ארוכים</strong> · זה שורת “רגל” בסגירה.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>מפרט מידות חיצוניות מול פנימיות — מאטר <code class="inline">794</code></h2>
+      <table class="spec">
+        <thead>
+          <tr>
+            <th>מדד</th>
+            <th>כרטיס סגור (collapsed)</th>
+            <th>כרטיס מורחב (expanded layout)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Outer רוחב × גובה (אמנות)</td>
+            <td><strong>1600 × 794</strong> פיקסלים (או ×793 אם SKU משני נשמר בכוונה)</td>
+            <td><strong>1600 × 1054</strong> לדוגמה: <span dir="ltr" style="unicode-bidi:isolate;">794 + Δ260</span> — <em>Δ אינו גלוי בקבצים</em>; בנייה בקומפוזיציה / הרחבה CSS</td>
+          </tr>
+          <tr>
+            <td>פרופורציית חלוקה אנכית (בקבצים הנוכחיים)</td>
+            <td colspan="2">קו מתאר קשיח בין בורדו לדשא: @794 ⇒ בורדו ‎<strong>556</strong>px · דשא ‎<strong>238</strong>px. @793 ⇒ ‎<strong>555</strong>‎ + ‎<strong>238</strong>.</td>
+          </tr>
+          <tr>
+            <td>Safe inner (טיפוגרפיה) — без להבות</td>
+            <td colspan="2">
+              מתוך שפת הקנבס: <strong>top 20px · bottom 28px · L/R −28px כל צד</strong><br/>
+              רוחב עבודה: <strong>1544 px</strong> · גובה פנוי כולל: <strong>746 px</strong> (מחולק למעלה/מטה לפי קו הקנבס)
+            </td>
+          </tr>
+          <tr>
+            <td>Safe inner + בליעת צדדים בשביל להבות</td>
+            <td colspan="2">
+              <strong>L/R −40px כל צד</strong> (מתוך 16 בסיס bezel + מרווח טקסט 12 מתוך “כיסוי להט”) → רוחב <strong>1520 px</strong>
+            </td>
+          </tr>
+          <tr>
+            <td>רדיוס זווית משוער (לאסירת מסגרת)</td>
+            <td colspan="2">
+              בסקייל מאסטר חשבו <strong>~118 px</strong> כ־<span dir="ltr" style="unicode-bidi:isolate;">floor(14.9% × 794)</span> או הרחיבו בסקלה לפני ייצוא
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <pre>W_outer = 1600
+H_closed = 794  // SKU alt: 793
+grass_px = H_closed - burgundy_top_px   // 794: 556+238 ; 793: 555+238
+
+s = width_on_screen / W_outer
+
+inner_L_R_no_flames = 16 bezel + 12 margin = 28px each side -> W_inner = 1544
+inner_L_R_flames = 16 + 12 + 12 flame eat = 40px each side -> W_inner = 1520
+
+H_outer_expanded = H_closed + delta   // delta 220-340 recommended; demo uses 260</pre>
+    </section>
+
+    <section class="card grid-2">
+      <figure class="asset">
+        <div class="asset-cap"><strong dir="ltr" style="unicode-bidi:isolate;">clean-gold bezel</strong> · 1600×793</div>
+        <div class="stage">
+          <div class="measure-box variant-793">
+            <img class="bg" alt="רקע אדום דשא מסגרת זהב" src="assets/bg-clean-gold-bezel.jpg" />
+            <div class="ovl">
+              <div class="split-line"></div>
+              <div class="split-label">555px burgundy · 238px grass @793</div>
+              <div class="safe-rect"></div>
+              <span class="corner-tag" style="top: 4px; inset-inline-start: 4px;">793×1600 px</span>
+            </div>
+          </div>
+        </div>
+        <figcaption>
+          הקו הכחול מסמן את <strong>70/30 הנגזר</strong>; המלבן האדום = safe פנימי בלי תוספת להבות;
+          בשכבה זו ההפרדה מוטמעת בקובץ בקירוב קשיח — קלטו לתוך מאטר אחיד.
+        </figcaption>
+      </figure>
+
+      <figure class="asset">
+        <div class="asset-cap"><strong dir="ltr" style="unicode-bidi:isolate;">flames+glow</strong> · 1600×794</div>
+        <div class="stage safe-flame-extra">
+          <div class="measure-box variant-794">
+            <img class="bg" alt="רקע עם להבות בצידי המסגרת" src="assets/bg-flames-glow.jpg" />
+            <div class="ovl">
+              <div class="split-line"></div>
+              <div class="split-label">≈556px burgundy · ≈238px grass @794</div>
+              <div class="safe-rect safe-flame-extra"></div>
+              <span class="corner-tag" style="top: 4px; inset-inline-end: 4px;">794 px tall ✓ master</span>
+            </div>
+          </div>
+        </div>
+        <figcaption>
+          אותה חלוקה אנכית; המלבן הפנימי הצר יותר <strong>מדגיש</strong> איפה הצדדים לא בטוחים לטיפוגרפיה (מסנכרן עם ההנחיות למעלה).
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="card">
+      <h2>דמו על המסך — סגור (composition)</h2>
+      <p style="margin-top:.25rem;">
+        שכבות UI מעל הרקע: אין בסיס מתוך הבסט לשגיאות — רק הגבלת מאסטר.
+      </p>
+      <div class="mock-shell">
+        <div class="backdrop aspect-hold">
+          <div style="aspect-ratio: 1600 / 794; position: relative;">
+            <img alt="" src="assets/bg-flames-glow.jpg" style="display:block;width:100%;height:100%;object-fit:cover;object-position:top center;" />
+            <div class="mock-ui">
+              <div class="row-top">
+                <span>בית A — שישי 14.6</span>
+                <span class="pill"><span class="dot-live"></span>פתוח</span>
+              </div>
+              <div style="flex: .78; display:flex; flex-direction:column; justify-content:center;">
+                <div class="row-mid">
+                  <div class="team"><span class="flag" style="background:linear-gradient(180deg,#74acdf,#ffffff,#74acdf)"></span>ארגנטינה</div>
+                  <span class="vs">VS</span>
+                  <div class="team">ברזיל<span class="flag" style="background:linear-gradient(#009b3a,#fedf00,#002776)"></span></div>
+                </div>
+                <div class="kick">21:00 שעון ישראל · ננעל ב‑20:55</div>
+              </div>
+              <div class="grass-row" style="flex: none; padding-top:.15rem;">
+                <div class="tile"><span aria-hidden="true">↓</span><span class="sq">2</span></div>
+                <div class="pred">הבחירה שלך</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>דמו על המסך — מורחב (אין אמנות נוספת)</h2>
+      <p style="margin-top:.25rem;">
+        <span class="badge badge-warn">אי‑התאמה אמיתית #3</span>
+        JPG הוא רק פריים בסיסי הגובה. המשך ההרחבה חייב panel נוסף, דשא מוארך בריצוף או משטח טקסט אחיד מתחת — אחרת הגזרה נחתך.
+      </p>
+      <div class="expanded-demo">
+        <div class="stretch">
+          <div style="aspect-ratio: 1600 / 794; width:100%; position:relative;">
+            <img alt="" src="assets/bg-flames-glow.jpg" style="display:block;width:100%;height:100%;object-fit:cover;" />
+          </div>
+          <div class="expanded-body" style="direction: rtl; unicode-bidi: isolate;">
+            <strong>Δ = +260px</strong> · אזור שמותאם בקוד אל:
+            <ul>
+              <li>פירוט שחקני מפתח או מאצ’אפ מתקפל לאחר הגעה אל קו הגילוח</li>
+              <li>סטיטיסטיקות מתקופלות / מאזן נקודות</li>
+              <li>cta משניות</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>מש/compare — אותה רוחב, גובה לא סטנדרטי</h2>
+      <div class="compare-strip">
+        <div>
+          <div class="tiny-frame"><img src="assets/bg-clean-gold-bezel.jpg" alt="" /></div>
+          <div style="text-align:center;margin-top:.35rem;font-size:.75rem;"><code class="inline">793</code></div>
+        </div>
+        <div class="gap-arrow">1pxΔ</div>
+        <div>
+          <div class="tiny-frame"><img src="assets/bg-flames-glow.jpg" alt="" /></div>
+          <div style="text-align:center;margin-top:.35rem;font-size:.75rem;"><code class="inline">794</code> master</div>
+        </div>
+      </div>
+      <div class="ribbon">
+        Recommendation: unify exports to ONE height (794) · bottom-align grass texture · regenerate the 793 SKU or pad +1 transparency row
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>RTL / הנחיות יישום קצרות</h2>
+      <ul>
+        <li><strong>start-of-line</strong> ב־RTL = ימין: סטטוס ומתאר בשורה העליונה בחרו מהכיוון ההפוך אם מתנגשים עם יחסי מתאר מתוך מאסטר צילום זר.</li>
+        <li><strong>LTR segments</strong> (<code class="inline">VS</code>, קוד משחק וכד') עטף ב־<code class="inline">dir=ltr unicode-bidi:isolate</code>.</li>
+        <li><strong class="badge badge-ok">בדיקות QC</strong> מדודות לפני ייצוא: קו הגילוח בדיוק ברוחב הקובץ במקום אחיד; הרדיוס אחיד בשלוש הפינות הגלויות.</li>
+      </ul>
+    </section>
+  </div>
+
+  <footer>
+    מסמך סטטי לשיתוף · נכון לקבצים המועתקים ל־assets · עדכנו מאסטר בעת החלפת קומפוזיציות
+  </footer>
+</body>
+</html>
