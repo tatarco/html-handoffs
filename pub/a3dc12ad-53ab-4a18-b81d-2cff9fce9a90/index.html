@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Humondial PWA — designer asset brief</title>
+  <style>
+    :root {
+      --hm-bg: #060202;
+      --red: #d63a36;
+      --gold: #f4c15d;
+      --green: #35d26f;
+      --text: #f8f3ea;
+      --muted: #9d8585;
+      --card: rgba(28, 6, 6, 0.94);
+      --border: rgba(214, 58, 54, 0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 1.25rem 1rem 3rem;
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      background: var(--hm-bg);
+      color: var(--text);
+      line-height: 1.55;
+      max-width: 980px;
+      margin-inline: auto;
+      font-size: 0.95rem;
+    }
+    h1 {
+      font-size: 1.5rem;
+      border-bottom: 3px solid var(--red);
+      padding-bottom: 0.35rem;
+      margin-top: 0;
+    }
+    h2 {
+      margin-top: 2.25rem;
+      font-size: 1.18rem;
+      color: var(--gold);
+      scroll-margin-top: 12px;
+    }
+    h3 { margin-top: 1.35rem; font-size: 1rem; color: #e8dfd8; }
+    .meta { color: var(--muted); font-size: 0.86rem; }
+    nav.toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin: 1rem 0 1.5rem;
+    }
+    nav.toc a {
+      color: var(--gold);
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.65rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.82rem;
+    }
+    nav.toc a:hover { background: rgba(244,193,93,0.08); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.805rem;
+      margin: 0.75rem 0;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.45rem;
+      vertical-align: top;
+      text-align: left;
+    }
+    th { background: rgba(214,58,54,0.14); color: var(--gold); }
+    code {
+      font-size: 0.76rem;
+      background: rgba(0,0,0,0.35);
+      padding: 0.12rem 0.28rem;
+      border-radius: 4px;
+      word-break: break-word;
+    }
+    hr { border: none; border-top: 1px solid var(--border); margin: 1.75rem 0; }
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.65rem;
+      margin: 0.85rem 0;
+    }
+    .swatch {
+      border-radius: 10px;
+      padding: 0.55rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      min-height: 84px;
+    }
+    .swatch span { font-size: 0.72rem; color: rgba(248,243,234,0.85); display: block; margin-top: 0.35rem; }
+    .swatch code { font-size: 0.68rem; background: rgba(0,0,0,0.4); display: inline-block; margin-top: 0.25rem; }
+    .tier-demo {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+      margin: 0.85rem 0;
+    }
+    .tier-demo figure {
+      margin: 0;
+      text-align: center;
+    }
+    .tier-disk {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      margin: 0 auto 4px;
+      border: 2px solid rgba(255,255,255,0.2);
+      box-shadow: inset 0 4px 12px rgba(0,0,0,0.35);
+    }
+    .tier-b { background: linear-gradient(135deg,#e8a76a,#6b4423); }
+    .tier-s { background: linear-gradient(135deg,#f0f0f0,#9ca3af); }
+    .tier-g { background: linear-gradient(135deg,#fcd34d,#b45309); }
+    .tier-l { background: linear-gradient(135deg,#fca5a5,#991b1b); }
+    .tier-c { background: linear-gradient(135deg,#c4b5fd,#6366f1); }
+    .tier-demo figcaption { font-size: 0.7rem; color: var(--muted); max-width: 92px; }
+    .mock-wrap {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(284px, 1fr));
+      gap: 1.25rem;
+      margin: 1rem 0;
+    }
+    .phone {
+      border: 2px solid var(--border);
+      border-radius: 28px;
+      padding: 12px;
+      background: linear-gradient(180deg, #151010 0%, #060202 100%);
+      aspect-ratio: 260 / 560;
+      max-height: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .phone h4 {
+      margin: 0;
+      font-size: 0.72rem;
+      color: var(--gold);
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+    .phone.rtl { direction: rtl; }
+    .zone {
+      flex: none;
+      border: 2px dashed rgba(244,193,93,0.55);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 0.58rem;
+      color: var(--muted);
+      min-height: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+      text-align: center;
+      gap: 2px;
+    }
+    .zone b { color: var(--gold); font-size: 0.62rem; }
+    .zone em { font-style: normal; font-size: 0.54rem; color: rgba(157,133,133,0.95); line-height: 1.35; }
+    .zone.grow { flex: 1; min-height: 48px; }
+    .splash-mock {
+      border-radius: 16px;
+      border: 2px solid rgba(244,193,93,0.7);
+      min-height: 200px;
+      display: grid;
+      place-items: center;
+      margin: 0.85rem 0;
+      background: radial-gradient(circle at 50% 30%, rgba(214,58,54,0.25), transparent 65%),
+        linear-gradient(180deg,#0a0909,#050303);
+    }
+    .splash-mock-inner {
+      padding: 1rem;
+      border: 2px dashed rgba(244,193,93,0.45);
+      border-radius: 10px;
+      text-align: center;
+      font-size: 0.76rem;
+      color: var(--gold);
+      max-width: 90%;
+    }
+    .folder {
+      font-family: ui-monospace, monospace;
+      font-size: 0.72rem;
+      background: rgba(0,0,0,0.45);
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      white-space: pre;
+      overflow-x: auto;
+      line-height: 1.45;
+    }
+    .note {
+      border-right: 3px solid var(--red);
+      background: rgba(255,255,255,0.03);
+      padding: 0.55rem 0.85rem;
+      margin: 0.75rem 0;
+      font-size: 0.84rem;
+      color: #ddd6ce;
+    }
+    .footnote { margin-top: 2.25rem; font-size: 0.78rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <article>
+    <h1>Humondial promo PWA — designer asset brief</h1>
+    <p class="meta"><strong>Audience:</strong> Graphic / motion / illustration / brand designers<br />
+    <strong>Repo:</strong> <code>humondial-promo</code> (Vite/React PWA, RTL Hebrew UI)<br />
+    <strong>Viewport baseline:</strong> Primary mobile widths <strong>390–430 CSS px</strong>. Export rasters <strong>@2×</strong> minimum; <strong>@3×</strong> optional for hero strips.</p>
+    <p>Stakeholder feedback is folded into actionable <strong>ART-##</strong> deliverables below. Sections marked engineering are behaviours, not new pixels—but listed so layout syncs.</p>
+
+    <nav class="toc">
+      <a href="#tokens">Tokens</a>
+      <a href="#examples">Examples</a>
+      <a href="#checklist">Master checklist</a>
+      <a href="#tier-pack">Tier pack</a>
+      <a href="#typography">Typography</a>
+      <a href="#splash">Splash/banner/video</a>
+      <a href="#mockups">Placement mocks</a>
+      <a href="#match-ux">Match UX briefing</a>
+      <a href="#achievements">Economy disclaimer</a>
+      <a href="#handoff">Handoff checklist</a>
+    </nav>
+
+    <h2 id="tokens">Brand / UI tokens (for alignment)</h2>
+    <table>
+      <thead><tr><th>Token</th><th>HEX / note</th></tr></thead>
+      <tbody>
+        <tr><td>Background</td><td><code>#060202</code> (<code>--hm-bg</code>), global dark</td></tr>
+        <tr><td>Primary red</td><td><code>#D63A36</code> (<code>--red</code>)</td></tr>
+        <tr><td>Gold</td><td><code>#F4C15D</code> (<code>--gold</code>)</td></tr>
+        <tr><td>Accent green</td><td><code>#35D26F</code> (<code>--green</code>)</td></tr>
+        <tr><td>Card fill</td><td><code>#1c0606</code> ~88% opaque feel over photo (<code>--card-bg</code>)</td></tr>
+        <tr><td>Typography today</td><td><strong>System stack only</strong> — headline webfont gap = <strong>ART-03</strong></td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="examples">Examples — palette &amp; tier stand-ins</h2>
+    <p class="meta">These disks are layout-only surrogates: final art must satisfy <strong>ART-04</strong> readability at ~16 px export.</p>
+    <div class="swatch-grid">
+      <div class="swatch" style="background:#060202"><span>Background</span><code>#060202</code></div>
+      <div class="swatch" style="background:#d63a36"><span>Primary red</span><code>#D63A36</code></div>
+      <div class="swatch" style="background:#f4c15d;color:#252525"><span>Gold</span><code>#F4C15D</code></div>
+      <div class="swatch" style="background:#35d26f;color:#082010"><span>Accent green</span><code>#35D26F</code></div>
+      <div class="swatch" style="background:#1c0606;border-color:#d63a36"><span>Card-ish</span><code>#1c0606</code></div>
+    </div>
+    <div class="tier-demo">
+      <figure><div class="tier-disk tier-b" title="bronze surrogate"></div><figcaption><code>hm-tier-bronze.svg</code></figcaption></figure>
+      <figure><div class="tier-disk tier-s" title="silver surrogate"></div><figcaption><code>hm-tier-silver.svg</code></figcaption></figure>
+      <figure><div class="tier-disk tier-g" title="gold surrogate"></div><figcaption><code>hm-tier-gold.svg</code></figcaption></figure>
+      <figure><div class="tier-disk tier-l" title="legend surrogate"></div><figcaption><code>hm-tier-legend.svg</code></figcaption></figure>
+      <figure><div class="tier-disk tier-c" title="custom surrogate"></div><figcaption><code>hm-tier-custom.svg</code></figcaption></figure>
+    </div>
+
+    <h2 id="checklist">Master checklist (what to ship)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Deliverable</th>
+          <th>Where in UI</th>
+          <th>Format / size</th>
+          <th>Variants</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>ART-01</strong></td><td>Opening splash video (new trophy)</td><td><code>SplashScreen</code> full-bleed <code>/assets/splash.mp4</code></td><td>MP4 H.264 (+ optional WebM); muted playsInline. ~1080×1920 vertical; compress (&lt;4–8 MB LTE target).</td><td>Poster ART-01b</td></tr>
+        <tr><td><strong>ART-01b</strong></td><td>Splash poster</td><td>Video buffer first frame</td><td>WebP @2× + JPG; ~1170×2532 9∶16 crop</td><td>One</td></tr>
+        <tr><td><strong>ART-02</strong></td><td>Campaign hero banner</td><td>Home: between header + <code>HeroCard</code>. Asset <code>public/assets/humondial-banner.jpeg</code> exists, <strong>not wired yet</strong>.</td><td>WebP + PNG; ~780 px × ~200–260 px (@2× of 390); SVG ok if flat</td><td>RTL-safe; bottom fade optional</td></tr>
+        <tr><td><strong>ART-03</strong></td><td>Headline Hebrew + Latin face</td><td>Global typography</td><td>WOFF2; Bold~900 + Regular ~400</td><td>Subset Hebrew+Latin digits; variable OK</td></tr>
+        <tr><td><strong>ART-04</strong></td><td>Tier medallions</td><td>Hero, Personal area ladders, Leaderboard podium/rows…</td><td><code>public/hm-tier-{slug}.svg</code>; see §tier pack</td><td><code>bronze,silver,gold,legend,custom</code></td></tr>
+        <tr><td><strong>ART-05</strong></td><td>Achievement badge art</td><td>Personal area (<code>b.badge</code> emoji today)</td><td>SVG 64² or PNG @2× textured</td><td>Locked vs muted; BA sync on points economy</td></tr>
+        <tr><td><strong>ART-06</strong></td><td>Info/help glyph scoring explainer</td><td><code>PersonalAreaScreen</code> trajectory “צפי סיום…”</td><td>SVG 24px (+20px)</td><td>44×44 tap target UI padding</td></tr>
+        <tr><td><strong>ART-07</strong></td><td>Premium match frame / glow</td><td><code>MatchCard</code>; <code>marquee_highlight</code> vs <code>live</code></td><td>CSS spec preferred; optional 9-slice PNG ~240 px tall min</td><td>Marquee / live halo / celebration</td></tr>
+        <tr><td><strong>ART-08</strong></td><td>Flags polish</td><td>Match rows + predictor expand</td><td>CDN when ISO—or local atlas WebP PNG 80×53 @1×, 160×106 @2×</td><td>Country code list coordinated</td></tr>
+        <tr><td><strong>ART-09</strong></td><td>Slider motif “football knob”</td><td>Tier rail home; Leaderboard “מסלול לשיפור”; What‑if sliders</td><td>SVG ~32² knob (+ optional track)</td><td>3 semantic colours predictions/table/delivery</td></tr>
+        <tr><td><strong>ART-10</strong></td><td>What‑if category icons</td><td><code>WhatIfCard</code> headings</td><td>SVG/PNG ~28–32px</td><td>3 icons replacing ⚽ 🍽️ 🛵</td></tr>
+        <tr><td><strong>ART-11</strong></td><td>Podium crown</td><td>Leaderboard #1 pillar</td><td>SVG ~40px gold</td><td>Optional</td></tr>
+        <tr><td><strong>ART-12</strong></td><td>Stadium background refresh</td><td><code>index.css</code> <code>.stadium-bg</code></td><td>JPG/WebP ≥1920×1080 widescreen</td><td>One</td></tr>
+        <tr><td><strong>ART-13</strong></td><td>Quick-action tile icons</td><td>Home 3‑tile chip row</td><td>Outline ~32px RTL-aware</td><td>Optional</td></tr>
+      </tbody>
+    </table>
+    <p class="note"><strong>Engineering footprint (no new graphic):</strong> Splash→home latency reduced via prefetch; further wins = caching/API, not raster.</p>
+
+    <h2 id="tier-pack">Tier icon pack (<strong>ART-04</strong>) — filenames &amp; QA</h2>
+    <ul>
+      <li><code>public/hm-tier-bronze.svg</code></li>
+      <li><code>public/hm-tier-silver.svg</code></li>
+      <li><code>public/hm-tier-gold.svg</code></li>
+      <li><code>public/hm-tier-legend.svg</code></li>
+      <li><code>public/hm-tier-custom.svg</code></li>
+    </ul>
+    <p><strong>Artboard:</strong> 512² vector (or equiv), inner margin safe area 40–60 px ring for legibility down to ~16 px renders. Avoid &lt;2 px hairlines after export squash.</p>
+    <table>
+      <thead><tr><th>Render (px CSS)</th><th>Location</th></tr></thead>
+      <tbody>
+        <tr><td>56</td><td>Home <code>HeroCard</code> TL</td></tr>
+        <tr><td>26</td><td>Home <code>HeroCard</code> tier row</td></tr>
+        <tr><td>28 / 22</td><td>Personal area tier strip</td></tr>
+        <tr><td>22</td><td>Personal area expanded tier header</td></tr>
+        <tr><td>18</td><td>Leaderboard podium</td></tr>
+        <tr><td>20</td><td>Leaderboard “me” card chip</td></tr>
+        <tr><td>16</td><td>Leaderboard scroll list</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="typography">Typography (<strong>ART-03</strong>)</h2>
+    <p>Stakeholder: missing headline personality because everything is system Sans. Deliver font name + licensed <strong>WOFF2</strong>; engineering wires via <code>tailwind.config.js</code> extend + <code>index.css</code> body.</p>
+
+    <h2 id="splash">Splash / banner / video (<strong>ART-01</strong>, <strong>01b</strong>, <strong>02</strong>)</h2>
+    <ul>
+      <li>Runtime path video: <code>/assets/splash.mp4</code> (<code>SplashScreen.jsx</code>)</li>
+      <li>New trophy reel = producer/motion ART-01; hold bitrate/aspect budgets above</li>
+      <li>Banner ART-02: preserve safe corners (“notch / curve phone” bleed)</li>
+    </ul>
+
+    <h2 id="mockups">Placement wire-mocks (labelled rectangles)</h2>
+    <p class="meta">RTL screens: treat <strong>right side</strong> as leading edge mentally (Hebrew flow).</p>
+
+    <h3>Splash viewport</h3>
+    <div class="splash-mock">
+      <div class="splash-mock-inner"><strong>ART-01</strong> full‑bleed 9∶16 cinematic video fills this frame (<code>splash.mp4</code>). <em>Poster ART-01b optional letterbox matte.</em></div>
+    </div>
+
+    <h3>Home (RTL)</h3>
+    <div class="mock-wrap">
+      <div class="phone rtl">
+        <h4>WIRE • HOME RTL</h4>
+        <div class="zone"><b>Top chrome</b><em>HUMONDIAL • ART‑03 typography on wordmark if brand applies</em></div>
+        <div class="zone"><b>ART‑02</b><em> Judah campaign ribbon / hero strip</em></div>
+        <div class="zone grow"><b>ART‑03 + ART‑04</b><em> Taglines RTL + medallion TL (hero). Tier rail + ART‑09 ball knob centred on ladder.</em></div>
+        <div class="zone"><b>ART‑13</b><em> Optional outline icons replacing emoji quick tiles ×3</em></div>
+        <div class="zone grow"><b>Matches stack</b><em> ART‑07 frame states • ART‑08 flags inline &amp; predictor expand repeats flags</em></div>
+      </div>
+      <div class="phone rtl">
+        <h4>WIRE • MATCH CARD ZOOM‑IN</h4>
+        <div class="zone grow" style="min-height:120px;"><b>CARD shell</b><em> Outer border states: marquee gold vs cyan live glow (.hm-match-marquee vs .hm-match-live-glow)</em></div>
+        <div class="zone"><b>HEADER row</b><em> status pill • broadcaster chip • ART‑08 ISO flags flank names</em></div>
+        <div class="zone"><b>EXPAND predictor</b><em> Bigger ART‑08 + green/red signalling for correctness vs ART‑tokens</em></div>
+      </div>
+    </div>
+
+    <h3>Personal area + Leaderboard snippets</h3>
+    <div class="mock-wrap">
+      <div class="phone rtl">
+        <h4>WIRE • PERSONAL</h4>
+        <div class="zone"><b>RANK + PTS</b><em> ART‑04 chip near tier label Hebrew</em></div>
+        <div class="zone"><b>TRAJECTORY ROW</b><em> PROJECTED PTS • slot for <strong>ART‑06</strong> inline ⓘ explainer popup</em></div>
+        <div class="zone grow"><b>TIERS ladders</b><em> ART‑04 at 28/22 sizing in strip + rows</em></div>
+        <div class="zone"><b>ACHIEVEMENT STRIP</b><em> ART‑05 future replacing emoji thumbnails</em></div>
+      </div>
+      <div class="phone rtl">
+        <h4>WIRE • LEADERBOARD</h4>
+        <div class="zone"><b>PODIUM</b><em> ART‑11 crown optional peak • ART‑04 @18 podium chips</em></div>
+        <div class="zone"><b>ME CARD</b><em> ART‑04 @20</em></div>
+        <div class="zone"><b>מסלול לשיפור</b><em> ART‑09 football/track motif along progress bar vs generic fill</em></div>
+        <div class="zone"><b>WHAT‑IF PANEL</b><em> ART‑10 category heads + sliders with ART‑09 knob</em></div>
+        <div class="zone"><b>List body</b><em> ART‑04 @16 per row avatar stack</em></div>
+      </div>
+    </div>
+
+    <h2 id="match-ux">Match UX briefing (guides microcopy/layout with design)</h2>
+    <table>
+      <thead><tr><th>Topic</th><th>Desired behaviour</th></tr></thead>
+      <tbody>
+        <tr><td>Live “חי”</td><td>Short copy; clarify score refresh policy (polling TBD engineering)</td></tr>
+        <tr><td>Phase line length</td><td>Live: compact phase-only; Open: fixture date/time stack</td></tr>
+        <tr><td>Guess drawer</td><td>Duplicate flags ART‑08 fidelity; amplified positive / negative contrasts using brand greens/reds</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="achievements">ACH / economy disclaimer (<strong>ART-05</strong>)</h2>
+    <p>More achievements / point pricing originates in campaign JSON (<code>promo_campaigns.achievement_templates</code>) — align badge inventory only after spreadsheet freeze.</p>
+
+    <h2 id="handoff">Handoff checklist</h2>
+    <ul>
+      <li>Raster bundles: suggested folder pattern <code>art/{ART-id}/name@2x.webp</code> (+ <code>@3x</code> optional)</li>
+      <li>SVG: flatten destructive filters → mobile perf</li>
+      <li>Optional Figma labelled frames ART-01…ART-13</li>
+    </ul>
+    <h3 id="delivery-tree">Example folder tree (delivery)</h3>
+    <div class="folder">art/ART-01/splash-master-h264.mp4
+art/ART-01/poster@2x.webp
+art/ART-02/banner@2x.webp
+art/ART-03/fonts/Heading-He-Regular.woff2
+art/ART-03/fonts/Heading-He-Bold.woff2
+public/hm-tier-bronze.svg          ← final drop into repo root public/
+public/hm-tier-silver.svg
+public/hm-tier-gold.svg
+public/hm-tier-legend.svg
+public/hm-tier-custom.svg
+art/ART-06/info-glyph.svg
+art/ART-07/marquee-9slice@2x.png   ← optional bitmap route
+art/ART-08/flag-atlas@2x.webp
+art/ART-09/slider-knob-football.svg
+art/ART-10/whatif-{pred,table,deliv}.svg
+art/ART-12/stadium-master@2x.webp</div>
+
+    <p class="footnote">Source parity: mirrored from <code>docs/DESIGNER_ASSET_BRIEF.md</code>. Open this HTML locally (<code>file://…</code>) or host as static artifact for designers.<br /><strong>Note:</strong> older draft referenced <code>designer-placement-mocks.html</code> separately — superseded by §mockups here.</p>
+  </article>
+</body>
+</html>
