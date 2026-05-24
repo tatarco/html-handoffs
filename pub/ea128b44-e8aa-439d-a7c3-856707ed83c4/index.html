@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Humondial promo — match card design gallery</title>
+  <style>
+    :root {
+      --bg: #0c0a0a;
+      --card: rgba(22, 8, 12, 0.96);
+      --border: rgba(255, 255, 255, 0.12);
+      --text: #f4f4f5;
+      --muted: rgba(245, 245, 245, 0.62);
+      --gold: #f4c15d;
+      --accent: #d63a36;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: clamp(16px, 4vw, 32px);
+      font-family: system-ui, sans-serif;
+      background: radial-gradient(1000px 600px at 50% -10%, rgba(214,58,54,0.15), transparent 50%), var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+    h1 {
+      margin: 0 0 0.35rem;
+      font-weight: 900;
+      font-size: clamp(1.35rem, 4vw, 1.75rem);
+      text-align: center;
+    }
+    .sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 40rem;
+      margin: 0 auto 2rem;
+    }
+    .summary {
+      max-width: 52rem;
+      margin: 0 auto 2rem;
+      padding: 1.25rem 1.35rem;
+      border-radius: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+    }
+    .summary h2 {
+      margin: 0 0 0.65rem;
+      font-size: 1rem;
+      color: var(--gold);
+      font-weight: 800;
+    }
+    .counts {
+      margin: 0;
+      padding: 0 0 0 1.25rem;
+    }
+    .counts li { margin-bottom: 0.35rem; }
+    .counts strong { color: #fff; }
+    .note {
+      margin: 1rem 0 0;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .grid {
+      display: grid;
+      gap: 1rem;
+      max-width: 52rem;
+      margin: 0 auto;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 620px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    a.card-link {
+      display: block;
+      padding: 1.1rem 1.25rem;
+      border-radius: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: inherit;
+      text-decoration: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    a.card-link:hover {
+      border-color: rgba(244,193,93,0.45);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+    }
+    a.card-link h3 {
+      margin: 0 0 0.35rem;
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--gold);
+    }
+    a.card-link .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: 0.03em;
+      margin-bottom: 0.35rem;
+    }
+    a.card-link p {
+      margin: 0;
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    footer {
+      margin-top: 2.25rem;
+      text-align: center;
+      font-size: 0.78rem;
+      color: rgba(245,245,245,0.38);
+      max-width: 40rem;
+      margin-inline: auto;
+      line-height: 1.5;
+    }
+    code {
+      direction: ltr;
+      unicode-bidi: isolate;
+      background: rgba(255,255,255,0.08);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 0.85em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Humondial — match card design gallery</h1>
+  <p class="sub">
+    Inventory of static HTML explorations for the promo PWA match card (team row, live header, guess strip).
+    Deployed next to the Vite build via <code>public/</code> — URL path <code>/match-card-design/</code> after Cloudflare Pages deploy.
+  </p>
+
+  <section class="summary" aria-labelledby="counts-h">
+    <h2 id="counts-h">How many &ldquo;permutations&rdquo;?</h2>
+    <p style="margin:0 0 0.85rem;color:var(--muted);font-size:0.92rem;">
+      These are separate design inventories, not one Cartesian grid. Combining them arbitrarily would multiply into layouts that were never mocked.
+    </p>
+    <ul class="counts">
+      <li><strong>10</strong> team + flag row faces (<code>#v01</code> … <code>#v10</code>)</li>
+      <li><strong>3</strong> shortlisted face directions (A/B/C)</li>
+      <li><strong>6</strong> live-match card shells</li>
+      <li><strong>6</strong> variants for showing the bingo guess during live broadcast</li>
+    </ul>
+    <p class="note">
+      <strong>Total distinct mock snapshots in this bundle:</strong> 10 + 3 + 6 + 6 = <strong>25</strong>, across <strong>4</strong> linked pages.<br />
+      Production <code>MatchCard</code> in <code>src/screens/HomeScreen.jsx</code> implements one cohesive layout with status-driven branches (open / locked / live / final, prediction, venue broadcast rim, etc.).
+    </p>
+  </section>
+
+  <nav class="grid" aria-label="Match card HTML mockups">
+    <a class="card-link" href="./match-card-face-options.html">
+      <span class="badge">10 variants</span>
+      <h3>Team row faces</h3>
+      <p>Rail, inline strip, panels, pitch halves, tilt duel, masthead, chips, neon spine, ribbons, lower-third.</p>
+    </a>
+    <a class="card-link" href="./match-card-top3-chooser.html">
+      <span class="badge">3 options</span>
+      <h3>Top face shortlist</h3>
+      <p>Puck VS, pitch halves, gold spine — with trade-off notes.</p>
+    </a>
+    <a class="card-link" href="./match-card-mocks.html">
+      <span class="badge">6 layouts</span>
+      <h3>Live match card mocks</h3>
+      <p>Broadcast band + score placement, ticker, arena strip, glass center + CTAs.</p>
+    </a>
+    <a class="card-link" href="./match-card-mocks-live-guess.html">
+      <span class="badge">6 modes</span>
+      <h3>Live bingo guess strip</h3>
+      <p>Ways to show broadcast score vs submitted prediction (“ניחוש בינגו”).</p>
+    </a>
+  </nav>
+
+  <footer>
+    Sources in repo also live under <code>docs/</code> and <code>design/</code>; copies here ship with production build for a stable public URL.<br />
+    After <code>npm run build</code>, assets are emitted under <code>dist/match-card-design/</code>.
+  </footer>
+</body>
+</html>
