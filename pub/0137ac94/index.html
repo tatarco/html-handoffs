@@ -38,11 +38,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .ratio-box { display: inline-flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px; margin-top: 8px; font-size: 12px; }
 .ratio-box .rn { font-weight: 700; font-size: 17px; }
 
-.tier-table { width: 100%; border-collapse: collapse; }
+.tier-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.tier-table col.col-tier { width: 26%; }
+.tier-table col.col-data { width: 24.6%; }
 .tier-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); font-weight: 600; padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
 .tier-table th.r { text-align: left; }
-.tier-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-.tier-table td.r { text-align: right; }
+.tier-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; overflow: hidden; }
 .tier-table tr:last-child td { border-bottom: none; }
 
 .chip { display: inline-flex; align-items: center; gap: 5px; border-radius: 6px; padding: 3px 9px; font-size: 12px; font-weight: 600; border: 1px solid transparent; }
@@ -159,6 +160,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 <div class="card" style="margin-bottom:14px;overflow-x:auto">
   <div class="card-title"><span class="dot v"></span>Define what a typical player at each tier looks like by campaign end</div>
   <table class="tier-table">
+    <colgroup><col class="col-tier"><col class="col-data"><col class="col-data"><col class="col-data"></colgroup>
     <thead>
       <tr>
         <th>Tier</th>
@@ -207,6 +209,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 <div class="card" style="margin-bottom:14px;overflow-x:auto">
   <div class="card-title"><span class="dot g"></span>Live-computed from inputs — primary path + bonus projections</div>
   <table class="tier-table">
+    <colgroup><col style="width:22%"><col style="width:18%"><col style="width:16%"><col style="width:16%"><col style="width:14%"><col style="width:14%"></colgroup>
     <thead>
       <tr>
         <th>Tier</th>
