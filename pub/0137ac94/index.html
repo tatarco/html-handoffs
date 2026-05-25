@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Humondial · Point Economy Designer</title>
+<style>
+:root {
+  --bg: #0f172a; --surface: #1e293b; --surface2: #273548; --border: #334155;
+  --text: #f1f5f9; --muted: #94a3b8;
+  --green: #22c55e; --amber: #f59e0b; --red: #ef4444; --blue: #3b82f6; --violet: #7c3aed;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.6; }
+.page { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
+
+.header { background: linear-gradient(135deg,#1e293b,#0f172a); border: 1px solid var(--border); border-radius: 12px; padding: 22px 26px; margin-bottom: 18px; display: flex; align-items: center; gap: 18px; }
+.header-badge { background: var(--violet); border-radius: 8px; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.header h1 { font-size: 19px; font-weight: 700; letter-spacing: -.3px; }
+.header p { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.tag { display: inline-flex; align-items: center; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; font-size: 11px; color: var(--muted); margin-top: 6px; margin-right: 5px; }
+.tag strong { color: var(--text); }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+@media(max-width:720px) { .grid2 { grid-template-columns: 1fr; } }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+.card-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 13px; display: flex; align-items: center; gap: 7px; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+.dot.g { background: var(--green); } .dot.a { background: var(--amber); } .dot.v { background: var(--violet); }
+
+.input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.input-row label { width: 148px; flex-shrink: 0; color: var(--muted); font-size: 12px; }
+.input-row input[type="range"] { flex: 1; accent-color: var(--blue); cursor: pointer; }
+.iv { width: 38px; text-align: right; font-weight: 700; font-size: 13px; }
+.iu { color: var(--muted); font-size: 11px; white-space: nowrap; width: 110px; }
+
+.ratio-box { display: inline-flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px; margin-top: 8px; font-size: 12px; }
+.ratio-box .rn { font-weight: 700; font-size: 17px; }
+
+.tier-table { width: 100%; border-collapse: collapse; }
+.tier-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); font-weight: 600; padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+.tier-table th.r { text-align: right; }
+.tier-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.tier-table tr:last-child td { border-bottom: none; }
+
+.chip { display: inline-flex; align-items: center; gap: 5px; border-radius: 6px; padding: 3px 9px; font-size: 12px; font-weight: 600; border: 1px solid transparent; }
+.copper { background:#3d2008; border-color:#c97c3a; color:#e8a060; }
+.mist   { background:#0f2535; border-color:#7da5c0; color:#a8cfe0; }
+.golden { background:#2d1f00; border-color:#d4a017; color:#f0c040; }
+.ruby   { background:#2d0515; border-color:#b91c5c; color:#f06090; }
+.violet { background:#1e0a3c; border-color:#7c3aed; color:#b08af0; }
+
+.ti { width: 60px; background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; color: var(--text); padding: 4px 6px; font-size: 13px; text-align: center; outline: none; }
+.ti:focus { border-color: var(--blue); }
+
+.threshold-pill { font-weight: 700; font-size: 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; padding: 3px 10px; display: inline-block; min-width: 56px; text-align: center; }
+
+.health-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.health-row:last-child { border-bottom: none; }
+.hi { font-size: 16px; width: 22px; text-align: center; }
+.hl { flex: 1; color: var(--muted); font-size: 12px; }
+.hv { font-weight: 600; font-size: 13px; }
+
+.ok   { color: var(--green); }
+.warn { color: var(--amber); }
+.bad  { color: var(--red); }
+
+.db-block { background: #020c1b; border: 1px solid var(--border); border-radius: 10px; padding: 18px; font-family: 'SF Mono','Fira Code',monospace; font-size: 12px; color: #7dd3fc; position: relative; white-space: pre; }
+.copy-btn { position: absolute; top: 12px; right: 12px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 4px 12px; font-size: 11px; cursor: pointer; }
+.copy-btn:hover { color: var(--text); background: var(--border); }
+
+.sec { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 18px 0 10px; display: flex; align-items: center; gap: 10px; }
+.sec::after { content:''; flex:1; height:1px; background: var(--border); }
+
+.note { background: #1a2235; border: 1px solid var(--border); border-left: 3px solid var(--amber); border-radius: 0 8px 8px 0; padding: 11px 15px; margin-bottom: 9px; font-size: 12px; color: var(--muted); }
+.note strong { color: var(--text); }
+.note.v { border-left-color: var(--violet); }
+.note.g { border-left-color: var(--green); }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="header">
+  <div class="header-badge">⚽</div>
+  <div>
+    <h1>Humondial Point Economy Designer</h1>
+    <p>Statistically calibrate tier thresholds so participation + visits drive progression — no hard commercial gates.</p>
+    <div style="margin-top:6px">
+      <span class="tag"><strong>104</strong> matches</span>
+      <span class="tag">Ends <strong>July 19 2026</strong></span>
+      <span class="tag">Join bonus <strong>50 pts</strong></span>
+      <span class="tag">Commercial gates <strong>OFF</strong></span>
+    </div>
+  </div>
+</div>
+
+<!-- LEVERS -->
+<div class="sec"><span>Point Value Levers — Inputs</span></div>
+<div class="grid2">
+
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Primary Interactions</div>
+    <div class="input-row">
+      <label>Participation (guess)</label>
+      <input type="range" id="sl_P" min="5" max="30" step="1" value="9" oninput="recompute()">
+      <span class="iv" id="iv_P">9</span>
+      <span class="iu">pts / prediction</span>
+    </div>
+    <div class="input-row">
+      <label>Visit or Delivery</label>
+      <input type="range" id="sl_V" min="10" max="120" step="1" value="55" oninput="recompute()">
+      <span class="iv" id="iv_V">55</span>
+      <span class="iu">pts / interaction</span>
+    </div>
+    <div class="ratio-box">
+      <span style="color:var(--muted)">V / P ratio</span>
+      <span class="rn" id="rn">6.1×</span>
+      <span id="rl" class="ok" style="font-size:11px">✓ target ≥ 6×</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot a"></span>Bonus Interactions — configurable accelerators</div>
+    <div class="input-row">
+      <label>Correct outcome (win)</label>
+      <input type="range" id="sl_W" min="0" max="80" step="1" value="14" oninput="recompute()">
+      <span class="iv" id="iv_W">14</span>
+      <span class="iu">pts extra on top</span>
+    </div>
+    <div class="input-row">
+      <label>Bullseye (exact score)</label>
+      <input type="range" id="sl_B" min="0" max="120" step="1" value="28" oninput="recompute()">
+      <span class="iv" id="iv_B">28</span>
+      <span class="iu">pts extra on top</span>
+    </div>
+    <div style="margin-top:13px;border-top:1px solid var(--border);padding-top:13px">
+      <div class="card-title" style="margin-bottom:10px"><span class="dot" style="background:#6b7280"></span>Expected rates — for projection only</div>
+      <div class="input-row">
+        <label>Win rate</label>
+        <input type="range" id="sl_WR" min="0" max="80" step="1" value="40" oninput="recompute()">
+        <span class="iv" id="iv_WR">40</span>
+        <span class="iu">% of guesses</span>
+      </div>
+      <div class="input-row">
+        <label>Bullseye rate</label>
+        <input type="range" id="sl_BR" min="0" max="30" step="1" value="10" oninput="recompute()">
+        <span class="iv" id="iv_BR">10</span>
+        <span class="iu">% of guesses</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TIER TARGETS -->
+<div class="sec"><span>Tier Behavior Targets — Inputs</span></div>
+<div class="card" style="margin-bottom:14px;overflow-x:auto">
+  <div class="card-title"><span class="dot v"></span>Define what a typical player at each tier looks like by campaign end</div>
+  <table class="tier-table">
+    <thead>
+      <tr>
+        <th>Tier</th>
+        <th class="r">Participation %<br><small style="font-weight:400;text-transform:none;letter-spacing:0">of 104 matches</small></th>
+        <th class="r">Predictions<br><small style="font-weight:400;text-transform:none;letter-spacing:0">auto-computed</small></th>
+        <th class="r">Commercial interactions<br><small style="font-weight:400;text-transform:none;letter-spacing:0">visits + deliveries combined</small></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="chip copper">🪙 Bench</span><div style="font-size:10px;color:var(--muted);margin-top:2px">שחקן ספסל</div></td>
+        <td class="r"><input class="ti" id="tp_bench_pct" type="number" min="0" max="100" value="0" oninput="recompute()"> %</td>
+        <td class="r"><span id="tc_bench" style="color:var(--muted)">0</span></td>
+        <td class="r"><input class="ti" id="tp_bench_com" type="number" min="0" max="50" value="0" oninput="recompute()"></td>
+      </tr>
+      <tr>
+        <td><span class="chip mist">🌫 Starter</span><div style="font-size:10px;color:var(--muted);margin-top:2px">פותח בהרכב</div></td>
+        <td class="r"><input class="ti" id="tp_starter_pct" type="number" min="0" max="100" value="15" oninput="recompute()"> %</td>
+        <td class="r"><span id="tc_starter" style="color:var(--muted)">16</span></td>
+        <td class="r"><input class="ti" id="tp_starter_com" type="number" min="0" max="50" value="1" oninput="recompute()"></td>
+      </tr>
+      <tr>
+        <td><span class="chip golden">✨ Striker</span><div style="font-size:10px;color:var(--muted);margin-top:2px">חלוץ חוד</div></td>
+        <td class="r"><input class="ti" id="tp_striker_pct" type="number" min="0" max="100" value="25" oninput="recompute()"> %</td>
+        <td class="r"><span id="tc_striker" style="color:var(--muted)">26</span></td>
+        <td class="r"><input class="ti" id="tp_striker_com" type="number" min="0" max="50" value="3" oninput="recompute()"></td>
+      </tr>
+      <tr>
+        <td><span class="chip ruby">💎 Top Scorer</span><div style="font-size:10px;color:var(--muted);margin-top:2px">מלך השערים</div></td>
+        <td class="r"><input class="ti" id="tp_topscore_pct" type="number" min="0" max="100" value="38" oninput="recompute()"> %</td>
+        <td class="r"><span id="tc_topscore" style="color:var(--muted)">40</span></td>
+        <td class="r"><input class="ti" id="tp_topscore_com" type="number" min="0" max="50" value="5" oninput="recompute()"></td>
+      </tr>
+      <tr>
+        <td><span class="chip violet">👑 Champion</span><div style="font-size:10px;color:var(--muted);margin-top:2px">אלוף HUMONDIAL</div></td>
+        <td class="r"><input class="ti" id="tp_champ_pct" type="number" min="0" max="100" value="50" oninput="recompute()"> %</td>
+        <td class="r"><span id="tc_champ" style="color:var(--muted)">52</span></td>
+        <td class="r"><input class="ti" id="tp_champ_com" type="number" min="0" max="50" value="7" oninput="recompute()"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- RESULTS -->
+<div class="sec"><span>Computed Results — Outputs</span></div>
+<div class="card" style="margin-bottom:14px;overflow-x:auto">
+  <div class="card-title"><span class="dot g"></span>Live-computed from inputs — primary path + bonus projections</div>
+  <table class="tier-table">
+    <thead>
+      <tr>
+        <th>Tier</th>
+        <th class="r">Base pts<br><small style="font-weight:400;text-transform:none;letter-spacing:0">join + guesses + visits</small></th>
+        <th class="r">+ Win bonus<br><small style="font-weight:400;text-transform:none;letter-spacing:0">at expected rate</small></th>
+        <th class="r">+ Bullseye<br><small style="font-weight:400;text-transform:none;letter-spacing:0">at expected rate</small></th>
+        <th class="r">Projected total</th>
+        <th class="r">Recommended<br><small style="font-weight:400;text-transform:none;letter-spacing:0">threshold</small></th>
+      </tr>
+    </thead>
+    <tbody id="results_tbody"></tbody>
+  </table>
+  <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)">
+    Threshold = base pts rounded down to nearest 25 — a player on the target profile lands above it using primary interactions alone.
+  </div>
+</div>
+
+<!-- HEALTH + ESCAPE -->
+<div class="grid2" style="margin-bottom:14px">
+  <div class="card">
+    <div class="card-title"><span class="dot g"></span>Economy Health</div>
+    <div class="health-row"><span class="hi">⚖️</span><span class="hl">Visit / Prediction ratio</span><span class="hv" id="hv_ratio">—</span></div>
+    <div class="health-row"><span class="hi">🎯</span><span class="hl">Win total (participation + bonus pts)</span><span class="hv" id="hv_win">—</span></div>
+    <div class="health-row"><span class="hi">🏹</span><span class="hl">Bullseye total (participation + bonus pts)</span><span class="hv" id="hv_bull">—</span></div>
+    <div class="health-row"><span class="hi">📅</span><span class="hl">Table booking bonus (not in model)</span><span class="hv" style="color:var(--muted)">+15 pts pending</span></div>
+    <div class="health-row"><span class="hi">📊</span><span class="hl">Max base pts (100% participation + 7 visits)</span><span class="hv" id="hv_maxbase">—</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot a"></span>Escape Hatch — Single-path players at Champion volume</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Where does a player land using only one interaction type?</div>
+    <div class="health-row"><span class="hi">📣</span><span class="hl">Predictions only (52 guesses, 0 visits)</span><span class="hv" id="hv_pred_only">—</span></div>
+    <div class="health-row"><span class="hi">🍔</span><span class="hl">Visits only (7 interactions, 0 guesses)</span><span class="hv" id="hv_visit_only">—</span></div>
+    <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;font-size:11px;color:var(--muted)">
+      Healthy when neither single path reaches Champion on its own.
+    </div>
+  </div>
+</div>
+
+<!-- DB CONFIG -->
+<div class="sec"><span>DB Config Output</span></div>
+<div class="db-block" id="db_out">
+  <button class="copy-btn" onclick="copyDb()">Copy</button>-- loading...
+</div>
+
+<!-- NOTES -->
+<div class="sec"><span>Model Notes</span></div>
+<div class="note">
+  <strong>📅 Table Booking (+15 pts pending)</strong> — not in the stat model. It's a confirmed bonus: rewarded at booking, finalized when the player arrives and scans. Its purpose is to encourage pre-commitment to visits — not to alter the tier math. Keep the value separate from visit points.
+</div>
+<div class="note v">
+  <strong>🎯 Wins &amp; Bullseye are accelerators.</strong> The base-pts column is what a tier player earns from the designed behavior profile alone. Wins and bullseye get them there faster. Setting the threshold to base pts means bonus performance pushes players clearly above the line — tier unlocks feel earned, not just expected.
+</div>
+<div class="note g">
+  <strong>⚙️ How to use:</strong> Adjust P (participation) and V (visit) sliders until the recommended thresholds produce a clean, evenly-spaced ladder and the V/P ratio reads ✓. Check the escape-hatch panel — neither single-path player should reach Champion. Copy the DB config block when satisfied.
+</div>
+
+</div>
+<script>
+const MATCHES = 104;
+const JOIN = 50;
+const TIER_IDS = ['bench','starter','striker','topscore','champ'];
+const TIER_META = [
+  { name:'Bench',      he:'שחקן ספסל',     chip:'copper', icon:'🪙', key:'bench'      },
+  { name:'Starter',    he:'פותח בהרכב',     chip:'mist',   icon:'🌫', key:'starter'    },
+  { name:'Striker',    he:'חלוץ חוד',       chip:'golden', icon:'✨', key:'striker'    },
+  { name:'Top Scorer', he:'מלך השערים',     chip:'ruby',   icon:'💎', key:'top_scorer' },
+  { name:'Champion',   he:'אלוף HUMONDIAL', chip:'violet', icon:'👑', key:'champion'   },
+];
+
+function n(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function setClass(id, cls) { const el = document.getElementById(id); if (el) el.className = cls; }
+function num(v) { return Math.round(v).toLocaleString(); }
+
+function tierLabel(pts, tiers) {
+  for (let i = tiers.length - 1; i >= 0; i--) {
+    if (pts >= tiers[i].threshold) return tiers[i].icon + ' ' + tiers[i].name;
+  }
+  return 'Below Bench';
+}
+
+function recompute() {
+  const P  = n('sl_P'), V = n('sl_V'), W = n('sl_W'), B = n('sl_B');
+  const WR = n('sl_WR') / 100, BR = n('sl_BR') / 100;
+
+  setText('iv_P', P); setText('iv_V', V); setText('iv_W', W); setText('iv_B', B);
+  setText('iv_WR', n('sl_WR')); setText('iv_BR', n('sl_BR'));
+
+  const ratio = P > 0 ? V / P : 0;
+  setText('rn', ratio.toFixed(1) + '×');
+  const rOk = ratio >= 6, rWarn = ratio >= 4;
+  document.getElementById('rn').className = 'rn ' + (rOk ? 'ok' : rWarn ? 'warn' : 'bad');
+  const rl = document.getElementById('rl');
+  rl.className = rOk ? 'ok' : rWarn ? 'warn' : 'bad';
+  rl.textContent = rOk ? '✓ target ≥ 6×' : rWarn ? '⚠ below target' : '✗ too low';
+
+  const tiers = TIER_IDS.map((id, i) => {
+    const pct   = n('tp_' + id + '_pct');
+    const com   = n('tp_' + id + '_com');
+    const preds = Math.round(pct / 100 * MATCHES);
+    setText('tc_' + id, preds);
+    const base  = JOIN + preds * P + com * V;
+    const winB  = preds * WR * W;
+    const bulB  = preds * BR * B;
+    const proj  = base + winB + bulB;
+    const thresh = id === 'bench' ? 0 : Math.floor(base / 25) * 25;
+    return { ...TIER_META[i], pct, com, preds, base, winB, bulB, proj, threshold: thresh };
+  });
+
+  // Results table — build with DOM to avoid innerHTML security concerns
+  const tbody = document.getElementById('results_tbody');
+  while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+
+  tiers.forEach(t => {
+    const tr = document.createElement('tr');
+
+    // Tier cell
+    const td0 = document.createElement('td');
+    const chip = document.createElement('span');
+    chip.className = 'chip ' + t.chip;
+    chip.textContent = t.icon + ' ' + t.name;
+    const sub = document.createElement('div');
+    sub.style.cssText = 'font-size:10px;color:var(--muted);margin-top:2px';
+    sub.textContent = t.he;
+    td0.appendChild(chip); td0.appendChild(sub);
+
+    // Base pts
+    const td1 = document.createElement('td'); td1.className = 'r';
+    const bStrong = document.createElement('strong');
+    bStrong.style.fontSize = '14px';
+    bStrong.textContent = num(t.base);
+    const bSub = document.createElement('div');
+    bSub.style.cssText = 'font-size:10px;color:var(--muted)';
+    bSub.textContent = t.preds + ' pred + ' + t.com + ' visits';
+    td1.appendChild(bStrong); td1.appendChild(bSub);
+
+    // Win bonus
+    const td2 = document.createElement('td'); td2.className = 'r';
+    const wSpan = document.createElement('span');
+    wSpan.style.color = 'var(--green)';
+    wSpan.textContent = '+' + num(t.winB);
+    const wSub = document.createElement('div');
+    wSub.style.cssText = 'font-size:10px;color:var(--muted)';
+    wSub.textContent = t.preds + '×' + Math.round(WR * 100) + '%×' + W + 'pt';
+    td2.appendChild(wSpan); td2.appendChild(wSub);
+
+    // Bullseye bonus
+    const td3 = document.createElement('td'); td3.className = 'r';
+    const buSpan = document.createElement('span');
+    buSpan.style.color = 'var(--green)';
+    buSpan.textContent = '+' + num(t.bulB);
+    const buSub = document.createElement('div');
+    buSub.style.cssText = 'font-size:10px;color:var(--muted)';
+    buSub.textContent = t.preds + '×' + Math.round(BR * 100) + '%×' + B + 'pt';
+    td3.appendChild(buSpan); td3.appendChild(buSub);
+
+    // Projected
+    const td4 = document.createElement('td'); td4.className = 'r';
+    const pSpan = document.createElement('span');
+    pSpan.style.cssText = 'font-weight:600;color:var(--blue)';
+    pSpan.textContent = num(t.proj);
+    td4.appendChild(pSpan);
+
+    // Threshold
+    const td5 = document.createElement('td'); td5.className = 'r';
+    const pill = document.createElement('span');
+    pill.className = 'threshold-pill';
+    pill.textContent = num(t.threshold);
+    td5.appendChild(pill);
+
+    tr.appendChild(td0); tr.appendChild(td1); tr.appendChild(td2);
+    tr.appendChild(td3); tr.appendChild(td4); tr.appendChild(td5);
+    tbody.appendChild(tr);
+  });
+
+  // Health panel
+  const champPreds = tiers[4].preds;
+  const champCom   = tiers[4].com;
+  const predOnly   = JOIN + champPreds * P;
+  const visitOnly  = JOIN + champCom * V;
+
+  const hRatio = document.getElementById('hv_ratio');
+  hRatio.textContent = ratio.toFixed(1) + '× ' + (ratio >= 6 ? '✓' : '⚠');
+  hRatio.className = 'hv ' + (ratio >= 6 ? 'ok' : ratio >= 4 ? 'warn' : 'bad');
+
+  setText('hv_win',     (P + W) + ' pts total');
+  setText('hv_bull',    (P + B) + ' pts total');
+  setText('hv_maxbase', num(JOIN + MATCHES * P + champCom * V) + ' pts');
+
+  const pOnlyLabel  = tierLabel(predOnly, tiers)  + ' (~' + num(predOnly)  + ' pts)';
+  const vOnlyLabel  = tierLabel(visitOnly, tiers) + ' (~' + num(visitOnly) + ' pts)';
+  const pEl = document.getElementById('hv_pred_only');
+  pEl.textContent = pOnlyLabel;
+  pEl.className = 'hv warn';
+  const vEl = document.getElementById('hv_visit_only');
+  vEl.textContent = vOnlyLabel;
+  vEl.className = 'hv warn';
+
+  // DB config — plain text, no HTML injection
+  const dbLines = [
+    '-- Point values (update promo_campaigns row)',
+    'participation_points:  ' + P,
+    'venue_visit_points:    ' + V + '  -- unified with delivery',
+    'delivery_points:       ' + V + '  -- same as visit (no distinction)',
+    'outcome_points:        ' + W + '  -- extra on top of participation',
+    'bullseye_points:       ' + B + '  -- extra on top of participation',
+    '',
+    '-- Tier min_points (update tiers JSONB)',
+    '-- require_commercial_for_tiers: FALSE',
+  ];
+  tiers.forEach((t, i) => {
+    const key = t.key.padEnd(12);
+    dbLines.push('  ' + key + ' ' + t.threshold + ' pts');
+  });
+  dbLines.push('');
+  dbLines.push('-- Fixed bonuses (unchanged)');
+  dbLines.push('join_points:           ' + JOIN);
+  dbLines.push('table_booking_points:  15   -- pending until arrival scan');
+  dbLines.push('draw_stripe_points:    10   -- extra on exact draw bullseye');
+  dbLines.push('');
+  dbLines.push('-- Economy summary');
+  dbLines.push('V/P ratio:             ' + ratio.toFixed(2) + '×');
+  dbLines.push('Champion profile:      ' + champPreds + ' predictions + ' + champCom + ' commercial interactions');
+  dbLines.push('Champion base pts:     ' + num(tiers[4].base) + '  (before bonuses)');
+
+  const dbEl = document.getElementById('db_out');
+  // set text content on the pre-existing text node, preserve copy button
+  const btn = dbEl.querySelector('.copy-btn');
+  while (dbEl.lastChild !== btn) dbEl.removeChild(dbEl.lastChild);
+  dbEl.appendChild(document.createTextNode(dbLines.join('\n')));
+}
+
+function copyDb() {
+  const dbEl = document.getElementById('db_out');
+  const text = dbEl.textContent.replace('Copy','').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = dbEl.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+  });
+}
+
+recompute();
+</script>
+</body>
+</html>
