@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Share Card Layout Options</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #111; color: #fff; font-family: system-ui, sans-serif; padding: 16px; }
+h1 { text-align: center; font-size: 18px; color: #f4c15d; margin-bottom: 4px; }
+.subtitle { text-align: center; font-size: 12px; color: #888; margin-bottom: 24px; }
+.options { display: flex; flex-direction: column; gap: 32px; }
+.option { background: #1a1a2e; border-radius: 16px; overflow: hidden; }
+.option-header { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+.badge { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; flex-shrink: 0; }
+.badge-ref { background: #374151; color: #9ca3af; }
+.badge-a   { background: #7c3aed; color: #fff; }
+.badge-b   { background: #dc2626; color: #fff; }
+.badge-c   { background: #d97706; color: #fff; }
+.badge-d   { background: #059669; color: #fff; }
+.opt-title { font-size: 14px; font-weight: 700; }
+.opt-desc  { font-size: 11px; color: #999; margin-top: 2px; }
+.canvases  { display: flex; gap: 12px; padding: 14px; overflow-x: auto; }
+.cv-wrap   { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
+.cv-label  { font-size: 10px; color: #aaa; text-align: center; }
+canvas     { border-radius: 12px; display: block; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+.notes     { padding: 10px 16px 14px; font-size: 11px; color: #aaa; line-height: 1.7; }
+.pro       { color: #4ade80; font-weight: 600; }
+.con       { color: #f87171; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>Share Card Layout Options</h1>
+<p class="subtitle">Left: Czech Republic vs Brazil (long) | Right: Brazil vs USA (short)</p>
+<div class="options" id="options"></div>
+<script>
+var CASES = [
+  { home:'Czech Republic', away:'Brazil',  hs:2, as:1, hf:'\u{1F1E8}\u{1F1FF}', af:'\u{1F1E7}\u{1F1F7}', label:'Czech Rep. vs Brazil' },
+  { home:'Brazil',         away:'USA',     hs:1, as:0, hf:'\u{1F1E7}\u{1F1F7}', af:'\u{1F1FA}\u{1F1F8}', label:'Brazil vs USA' }
+];
+
+var W = 360, H = 640;
+
+function makeCanvas() {
+  var c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  c.style.width  = (W/2)+'px';
+  c.style.height = (H/2)+'px';
+  return c;
+}
+
+function bg(ctx, c1, c2) {
+  var g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,c1); g.addColorStop(1,c2);
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(0,0,0,0.28)'; ctx.fillRect(0,0,W,H);
+}
+
+function brand(ctx, sub) {
+  ctx.save();
+  ctx.direction='rtl'; ctx.textAlign='right';
+  ctx.font='bold 20px Arial'; ctx.fillStyle='rgba(255,255,255,0.9)';
+  ctx.fillText('🌍 הומונדיאל', W-20, 44);
+  ctx.font='13px Arial'; ctx.fillStyle='rgba(255,255,255,0.45)';
+  ctx.fillText(sub, W-20, 64);
+  ctx.restore();
+}
+
+function footer(ctx) {
+  ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(20,H-88); ctx.lineTo(W-20,H-88); ctx.stroke();
+  ctx.direction='rtl'; ctx.textAlign='right';
+  ctx.font='bold 18px Arial'; ctx.fillStyle='#f4c15d';
+  ctx.fillText('#12 בדירוג · 340 נקודות', W-20, H-52);
+  ctx.font='14px Arial'; ctx.fillStyle='rgba(255,255,255,0.38)';
+  ctx.fillText('יומנגס — הומונדיאל 2026', W-20, H-28);
+}
+
+function fitText(ctx, text, maxW, spec) {
+  var m = spec.match(/^(.+?)(\d+)(px .+)$/);
+  if(!m){ctx.font=spec;return;}
+  var pre=m[1], sz=parseInt(m[2]), post=m[3];
+  ctx.font=pre+sz+post;
+  while(sz>10 && ctx.measureText(text).width>maxW){
+    sz-=2; ctx.font=pre+sz+post;
+  }
+}
+
+// REF — current broken
+function drawRef(canvas, d) {
+  var ctx=canvas.getContext('2d');
+  bg(ctx,'#0d2a50','#1a6bbf');
+  brand(ctx,'prediction share');
+  ctx.direction='ltr'; ctx.textAlign='center';
+  ctx.font='64px Arial'; ctx.fillStyle='#fff';
+  ctx.fillText('⚽',W/2,190);
+  var headline='אני מנחש '+d.hf+' '+d.home+' '+d.hs+':'+d.as+' '+d.away+' '+d.af;
+  ctx.direction='rtl'; ctx.textAlign='right';
+  ctx.font='bold 32px Arial'; ctx.fillStyle='#fff';
+  ctx.fillText(headline,W-18,280);
+  ctx.font='22px Arial'; ctx.fillStyle='rgba(255,255,255,0.75)';
+  ctx.fillText('מה אתם חושבים?',W-18,318);
+  ctx.font='bold 18px Arial'; ctx.fillStyle='#f4c15d';
+  ctx.fillText('הצטרפו לקמפיין!',W-18,354);
+  footer(ctx);
+}
+
+// A — Score centre, two columns
+function drawA(canvas, d) {
+  var ctx=canvas.getContext('2d');
+  bg(ctx,'#0d2a50','#1a3a60');
+  brand(ctx,'prediction share');
+  ctx.direction='ltr'; ctx.textAlign='center';
+  ctx.font='bold 80px Arial'; ctx.fillStyle='#fff';
+  ctx.shadowColor='rgba(100,180,255,0.4)'; ctx.shadowBlur=20;
+  ctx.fillText(d.hs+':'+d.as,W/2,222);
+  ctx.shadowBlur=0;
+  var col=W/2-8, maxNm=W/2-30;
+  ctx.font='44px Arial';
+  ctx.textAlign='right'; ctx.fillText(d.hf,col,300);
+  ctx.textAlign='left';  ctx.fillText(d.af,W-col,300);
+  ctx.fillStyle='#fff';
+  ctx.textAlign='right'; fitText(ctx,d.home,maxNm,'bold 22px Arial');
+  ctx.fillText(d.home,col,336);
+  ctx.textAlign='left';  fitText(ctx,d.away,maxNm,'bold 22px Arial');
+  ctx.fillText(d.away,W-col,336);
+  ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(W/2,268); ctx.lineTo(W/2,348); ctx.stroke();
+  ctx.direction='rtl'; ctx.textAlign='right';
+  ctx.font='18px Arial'; ctx.fillStyle='rgba(255,255,255,0.55)';
+  ctx.fillText('הניחוש שלי',W-20,392);
+  ctx.font='bold 15px Arial'; ctx.fillStyle='#f4c15d';
+  ctx.fillText('הצטרפו לקמפיין!',W-20,418);
+  ctx.font='13px Arial'; ctx.fillStyle='rgba(255,255,255,0.4)';
+  ctx.fillText('#הומונדיאל #ניחוש #יומנגס',W-20,440);
+  footer(ctx);
+}
+
+// B — Stacked cards
+function drawB(canvas, d) {
+  var ctx=canvas.getContext('2d');
+  bg(ctx,'#0a1628','#162040');
+  brand(ctx,'prediction share');
+  ctx.direction='rtl'; ctx.textAlign='right';
+  ctx.font='16px Arial'; ctx.fillStyle='rgba(255,255,255,0.5)';
+  ctx.fillText('אני מנחש…',W-20,100);
+  var cX=20,cW=W-40,cH=88,r=14;
+  function rr(x,y,w,h,fill){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+    ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+    ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+    ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+    ctx.fillStyle=fill; ctx.fill();
+  }
+  rr(cX,118,cW,cH,'rgba(255,255,255,0.07)');
+  ctx.direction='ltr'; ctx.textAlign='left';
+  ctx.font='40px Arial'; ctx.fillStyle='#fff'; ctx.fillText(d.hf,cX+16,178);
+  fitText(ctx,d.home,cW-120,'bold 24px Arial'); ctx.fillStyle='#fff';
+  ctx.fillText(d.home,cX+70,168);
+  ctx.font='13px Arial'; ctx.fillStyle='rgba(255,255,255,0.45)'; ctx.fillText('בית',cX+70,192);
+  ctx.direction='rtl'; ctx.textAlign='right';
+  ctx.font='bold 34px Arial'; ctx.fillStyle='#f4c15d'; ctx.fillText(d.hs,cX+cW-18,172);
+  ctx.direction='ltr'; ctx.textAlign='center';
+  ctx.font='bold 13px Arial'; ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fillText('VS',W/2,228);
+  rr(cX,238,cW,cH,'rgba(255,255,255,0.07)');
+  ctx.direction='ltr'; ctx.textAlign='left';
+  ctx.font='40px Arial'; ctx.fillStyle='#fff'; ctx.fillText(d.af,cX+16,298);
+  fitText(ctx,d.away,cW-120,'bold 24px Arial'); ctx.fillStyle='#fff';
+  ctx.fillText(d.away,cX+70,288);
+  ctx.font='13px Arial'; ctx.fillStyle='rgba(255,255,255,0.45)'; ctx.fillText('חוץ',cX+70,312);
+  ctx.direction='rtl'; ctx.textAlign='right';
+  ctx.font='bold 34px Arial'; ctx.fillStyle='#f4c15d'; ctx.fillText(d.as,cX+cW-18,292);
+  ctx.direction='rtl'; ctx.textAlign='right';
+  ctx.font='15px Arial'; ctx.fillStyle='rgba(255,255,255,0.5)';
+  ctx.fillText('מה אתם חושבים? הצטרפו!',W-20,368);
+  ctx.font='13px Arial'; ctx.fillStyle='#f4c15d';
+  ctx.fillText('#הומונדיאל #ניחוש',W-20,392);
+  footer(ctx);
+}
+
+// C — Adaptive font (same layout, shrink to fit)
+function drawC(canvas, d) {
+  var ctx=canvas.getContext('2d');
+  bg(ctx,'#0d2a50','#1a6bbf');
+  brand(ctx,'prediction share');
+  ctx.direction='ltr'; ctx.textAlign='center';
+  ctx.font='64px Arial'; ctx.fillStyle='#fff'; ctx.fillText('⚽',W/2,190);
+  var headline='אני מנחש '+d.hf+' '+d.home+' '+d.hs+':'+d.as+' '+d.away+' '+d.af;
+  ctx.direction='rtl'; ctx.textAlign='right';
+  fitText(ctx,headline,W-36,'bold 32px Arial');
+  ctx.fillStyle='#fff'; ctx.fillText(headline,W-18,280);
+  ctx.font='18px Arial'; ctx.fillStyle='rgba(255,255,255,0.75)';
+  ctx.fillText('מה אתם חושבים?',W-18,314);
+  ctx.font='bold 15px Arial'; ctx.fillStyle='#f4c15d';
+  ctx.fillText('הצטרפו לקמפיין!',W-18,344);
+  ctx.font='13px Arial'; ctx.fillStyle='rgba(255,255,255,0.4)';
+  ctx.fillText('#הומונדיאל #ניחוש',W-18,368);
+  footer(ctx);
+}
+
+// D — Flags big, names below, score pill bridge
+function drawD(canvas, d) {
+  var ctx=canvas.getContext('2d');
+  bg(ctx,'#1a0a08','#3d0c09');
+  brand(ctx,'prediction share');
+  ctx.direction='rtl'; ctx.textAlign='right';
+  ctx.font='15px Arial'; ctx.fillStyle='rgba(255,255,255,0.5)';
+  ctx.fillText('הניחוש שלי',W-20,100);
+  var mid=W/2, flagY=175, nameY=232, scoreY=188;
+  ctx.direction='ltr'; ctx.textAlign='center';
+  ctx.font='60px Arial'; ctx.fillStyle='#fff';
+  ctx.fillText(d.hf,mid-90,flagY);
+  ctx.fillText(d.af,mid+90,flagY);
+  fitText(ctx,d.home,148,'bold 18px Arial'); ctx.fillStyle='#fff';
+  ctx.fillText(d.home,mid-90,nameY);
+  fitText(ctx,d.away,148,'bold 18px Arial');
+  ctx.fillText(d.away,mid+90,nameY);
+  ctx.fillStyle='rgba(255,255,255,0.1)';
+  ctx.beginPath(); ctx.roundRect(mid-44,scoreY-30,88,46,12); ctx.fill();
+  ctx.font='bold 36px Arial'; ctx.fillStyle='#fff';
+  ctx.fillText(d.hs+':'+d.as,mid,scoreY+8);
+  ctx.direction='rtl'; ctx.textAlign='right';
+  ctx.font='17px Arial'; ctx.fillStyle='rgba(255,255,255,0.65)';
+  ctx.fillText('מה אתם חושבים? הצטרפו!',W-20,284);
+  ctx.font='bold 15px Arial'; ctx.fillStyle='#f4c15d';
+  ctx.fillText('הצטרפו לקמפיין!',W-20,310);
+  ctx.font='13px Arial'; ctx.fillStyle='rgba(255,255,255,0.4)';
+  ctx.fillText('#הומונדיאל #ניחוש',W-20,332);
+  footer(ctx);
+}
+
+var OPTS = [
+  { id:'ref', badge:'REF', bc:'badge-ref', title:'Current (broken)', desc:'Single fillText — no overflow guard', fn:drawRef,
+    notes:[
+      {t:'pro', s:'✓ מבנה מוכר'},
+      {t:'con', s:'✗ Czech Republic חורג מהקנבס'},
+      {t:'con', s:'✗ גופן 32px קבוע'}
+    ]},
+  { id:'a', badge:'A', bc:'badge-a', title:'Score Center', desc:'Big score, two flag columns, fitText', fn:drawA,
+    notes:[
+      {t:'pro', s:'✓ ניקוד גדול ובולט'},
+      {t:'pro', s:'✓ שמות לא יוצאים מהגבול'},
+      {t:'pro', s:'✓ fitText בכל רוחב עמודה'},
+      {t:'con', s:'✗ סידור RTL/LTR מורכב'}
+    ]},
+  { id:'b', badge:'B', bc:'badge-b', title:'Stacked Cards', desc:'One card per team, score on right edge', fn:drawB,
+    notes:[
+      {t:'pro', s:'✓ קריא ונקי'},
+      {t:'pro', s:'✓ אין חריגה של טקסט'},
+      {t:'pro', s:'✓ ניקוד מוצג בשתי שורות'},
+      {t:'con', s:'✗ פחות אינסטרגראמי'}
+    ]},
+  { id:'c', badge:'C', bc:'badge-c', title:'Adaptive Text', desc:'Same layout, font shrinks to fit', fn:drawC,
+    notes:[
+      {t:'pro', s:'✓ שינוי מינימלי בקוד'},
+      {t:'pro', s:'✓ משפט עברי מומשך'},
+      {t:'con', s:'✗ עם שמות ארוכים הגופן קטן מאוד'},
+      {t:'con', s:'✗ שורה אחת צפופה'}
+    ]},
+  { id:'d', badge:'D', bc:'badge-d', title:'Flag + Score Pill', desc:'Large flags, names below, score pill bridge', fn:drawD,
+    notes:[
+      {t:'pro', s:'✓ דגלים גדולים ובולטים'},
+      {t:'pro', s:'✓ fitText לרוחב עמודה'},
+      {t:'pro', s:'✓ ניקוד בין הקבוצות'},
+      {t:'con', s:'✗ רקע בורגונדי (שונה מהכחול)'}
+    ]}
+];
+
+var container = document.getElementById('options');
+
+OPTS.forEach(function(opt) {
+  var section = document.createElement('div');
+  section.className = 'option';
+
+  var hdr = document.createElement('div');
+  hdr.className = 'option-header';
+  var bdg = document.createElement('div');
+  bdg.className = 'badge ' + opt.bc;
+  bdg.textContent = opt.badge;
+  var txtWrap = document.createElement('div');
+  var titleEl = document.createElement('div');
+  titleEl.className = 'opt-title';
+  titleEl.textContent = opt.title;
+  var descEl = document.createElement('div');
+  descEl.className = 'opt-desc';
+  descEl.textContent = opt.desc;
+  txtWrap.appendChild(titleEl);
+  txtWrap.appendChild(descEl);
+  hdr.appendChild(bdg);
+  hdr.appendChild(txtWrap);
+  section.appendChild(hdr);
+
+  var row = document.createElement('div');
+  row.className = 'canvases';
+  CASES.forEach(function(c) {
+    var wrap = document.createElement('div');
+    wrap.className = 'cv-wrap';
+    var cv = makeCanvas();
+    opt.fn(cv, c);
+    var lbl = document.createElement('div');
+    lbl.className = 'cv-label';
+    lbl.textContent = c.label;
+    wrap.appendChild(cv);
+    wrap.appendChild(lbl);
+    row.appendChild(wrap);
+  });
+  section.appendChild(row);
+
+  var notesEl = document.createElement('div');
+  notesEl.className = 'notes';
+  opt.notes.forEach(function(n, i) {
+    var sp = document.createElement('span');
+    sp.className = n.t;
+    sp.textContent = n.s;
+    notesEl.appendChild(sp);
+    if (i < opt.notes.length - 1) {
+      notesEl.appendChild(document.createTextNode(' · '));
+    }
+  });
+  section.appendChild(notesEl);
+
+  container.appendChild(section);
+});
+</script>
+</body>
+</html>
