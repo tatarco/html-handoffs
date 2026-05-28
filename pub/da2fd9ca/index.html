@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Humondial 2026 — Screen Specs</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f0f0f; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 40px 20px; }
+  h1 { text-align: center; font-size: 22px; color: #fff; margin-bottom: 6px; letter-spacing: 1px; }
+  .subtitle { text-align: center; color: rgba(255,255,255,0.45); font-size: 13px; margin-bottom: 48px; }
+
+  .screens { display: flex; flex-wrap: wrap; gap: 60px; justify-content: center; }
+
+  .screen-block { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .screen-label { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Phone frame */
+  .phone { position: relative; width: 260px; background: #1a0505; border: 2px solid rgba(255,255,255,0.12); border-radius: 32px; overflow: visible; }
+
+  /* Annotation system */
+  .ann { position: absolute; display: flex; align-items: center; gap: 4px; pointer-events: none; }
+  .ann-line { background: rgba(255,180,0,0.7); }
+  .ann-label { background: rgba(255,180,0,0.9); color: #000; font-size: 9px; font-weight: 800; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
+
+  /* Arrow annotations on side */
+  .ann-h { /* horizontal measurement — shows width */
+    flex-direction: column;
+  }
+  .ann-v { /* vertical measurement — shows height */
+    flex-direction: row;
+  }
+
+  /* Simple callout box */
+  .callout {
+    position: absolute;
+    background: rgba(255,180,0,0.92);
+    color: #000;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  /* red dot marker */
+  .dot {
+    position: absolute;
+    width: 6px; height: 6px;
+    background: #f9b800;
+    border-radius: 50%;
+    z-index: 10;
+  }
+
+  /* ── ELEMENT STYLES (scaled from 390px canvas → 260px display = 0.667×) ── */
+  /* 390 → 260: scale = 0.667  */
+
+  .phone-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 8px;
+    background-size: cover; background-position: center;
+    background-color: #1c0808;
+    border-radius: 30px 30px 0 0;
+    min-height: 37px; /* 56px × 0.667 */
+    position: relative;
+  }
+  .icon-btn {
+    width: 29px; height: 29px; /* 44px × 0.667 */
+    border-radius: 50%;
+    background: rgba(255,50,50,0.2);
+    border: 1.5px solid rgba(255,50,50,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+  .brand-center {
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    font-size: 9px; font-weight: 900; color: #fff;
+    letter-spacing: 1px;
+  }
+  .brand-center span { color: #d63a36; }
+  .brand-center small { color: #f4c15d; font-size: 7px; letter-spacing: 2px; }
+
+  /* Background screens */
+  .bg-stadium {
+    background: linear-gradient(to bottom,
+      #0a1a2e 0%,
+      #1a2a0e 30%,
+      #0d1a08 60%,
+      #100505 100%
+    );
+    min-height: 400px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 12px;
+    position: relative;
+  }
+  .bg-trophy {
+    position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
+    font-size: 60px; opacity: 0.35;
+  }
+  .bg-title {
+    position: absolute; top: 14px; left: 0; right: 0;
+    text-align: center;
+  }
+  .bg-title .hm-big { font-size: 11px; font-weight: 900; color: #d63a36; letter-spacing: 1px; }
+  .bg-title .hm-med { font-size: 10px; font-weight: 900; color: #fff; }
+  .bg-title .hm-sub { font-size: 7px; color: #f4c15d; letter-spacing: 3px; }
+
+  .form-card {
+    background: rgba(20,5,5,0.92);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 11px;
+    padding: 10px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .welcome-card {
+    background: rgba(20,5,5,0.85);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 11px;
+    padding: 8px 10px;
+    text-align: center; margin-bottom: 8px;
+  }
+  .welcome-card p { font-size: 8px; color: #fff; font-weight: 700; }
+  .welcome-card small { font-size: 7px; color: rgba(255,255,255,0.5); }
+
+  .input-field {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    height: 32px; /* 48px × 0.667 */
+    display: flex; align-items: center; padding: 0 10px;
+    font-size: 8px; color: rgba(255,255,255,0.4);
+  }
+  .input-otp {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    height: 37px; /* 56px × 0.667 */
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: rgba(255,255,255,0.25); letter-spacing: 6px;
+  }
+  .btn-primary {
+    background: #d63a36;
+    border-radius: 8px;
+    height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 800; color: #fff;
+  }
+  .label-sm { font-size: 7px; color: #fff; font-weight: 600; text-align: right; }
+
+  /* Personal area / achievements */
+  .pa-screen {
+    background: #100505;
+    min-height: 420px;
+    border-radius: 0 0 30px 30px;
+    overflow: hidden;
+  }
+  .pa-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .back-btn {
+    font-size: 7px; color: rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 99px;
+    padding: 4px 7px;
+    min-height: 29px; display: flex; align-items: center; /* 44px × 0.667 */
+  }
+  .section-label {
+    font-size: 6px; font-weight: 800; color: rgba(255,255,255,0.4);
+    text-transform: uppercase; letter-spacing: 1px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 8px; margin: 8px 0 4px;
+  }
+  .show-all-btn {
+    font-size: 6px; color: rgba(255,255,255,0.4);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 99px; padding: 2px 5px;
+  }
+  .strip-scroll {
+    display: flex; gap: 5px; overflow: hidden;
+    padding: 0 8px 6px;
+  }
+  .strip-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 6px 8px; border-radius: 8px; min-width: 40px;
+    background: rgba(244,193,93,0.1); border: 1px solid rgba(244,193,93,0.25);
+  }
+  .strip-item.locked { opacity: 0.35; background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.07); }
+  .strip-badge { font-size: 14px; line-height: 1; }
+  .strip-name { font-size: 6px; font-weight: 700; color: #f4c15d; text-align: center; }
+  .strip-item.locked .strip-name { color: rgba(255,255,255,0.4); }
+
+  .ach-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 10px;
+    background: rgba(244,193,93,0.07);
+    border: 1px solid rgba(244,193,93,0.2);
+    border-radius: 10px;
+    margin: 0 8px 6px;
+  }
+  .ach-row.locked { opacity: 0.45; background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06); }
+  .ach-badge { font-size: 22px; line-height: 1; flex-shrink: 0; }
+  .ach-text { flex: 1; text-align: right; }
+  .ach-title { font-size: 8px; font-weight: 700; color: #f4c15d; }
+  .ach-row.locked .ach-title { color: rgba(255,255,255,0.4); }
+  .ach-desc { font-size: 6px; color: rgba(255,255,255,0.45); margin-top: 2px; line-height: 1.3; }
+  .ach-bonus { font-size: 6px; color: #f4c15d; font-weight: 700; margin-top: 2px; }
+  .ach-check { font-size: 10px; color: #f4c15d; flex-shrink: 0; }
+
+  /* Measurement annotations */
+  .specs-list {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 16px;
+    width: 260px;
+    font-size: 11px;
+    line-height: 1.9;
+    color: rgba(255,255,255,0.75);
+  }
+  .specs-list strong { color: #f9b800; }
+  .specs-list .section { color: rgba(255,255,255,0.35); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; display: block; }
+
+  /* global note */
+  .global-specs {
+    background: rgba(255,180,0,0.08);
+    border: 1px solid rgba(255,180,0,0.25);
+    border-radius: 12px;
+    padding: 20px 24px;
+    max-width: 900px;
+    margin: 0 auto 48px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .spec-item { display: flex; flex-direction: column; gap: 3px; }
+  .spec-item .key { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; }
+  .spec-item .val { font-size: 14px; font-weight: 800; color: #f9b800; }
+  .spec-item .note { font-size: 10px; color: rgba(255,255,255,0.45); }
+</style>
+</head>
+<body>
+
+<h1>HUMONDIAL 2026 — Screen Specs</h1>
+<p class="subtitle">Design reference · All sizes in CSS px (logical) · Export assets @2× minimum</p>
+
+<!-- Global specs bar -->
+<div class="global-specs">
+  <div class="spec-item">
+    <span class="key">Design Canvas</span>
+    <span class="val">390 × 844 px</span>
+    <span class="note">iPhone 14 standard (CSS logical px)</span>
+  </div>
+  <div class="spec-item">
+    <span class="key">Export Resolution</span>
+    <span class="val">@2× minimum</span>
+    <span class="note">780 × 1688 px for full-screen assets</span>
+  </div>
+  <div class="spec-item">
+    <span class="key">Safe Area</span>
+    <span class="val">16–24 px</span>
+    <span class="note">Left/right margin from screen edge</span>
+  </div>
+  <div class="spec-item">
+    <span class="key">Border Radius</span>
+    <span class="val">16 px / 12 px</span>
+    <span class="note">Cards = 16 px · Inputs/buttons = 12 px</span>
+  </div>
+</div>
+
+<div class="screens">
+
+  <!-- ── SCREEN 1: LOGIN ── -->
+  <div class="screen-block">
+    <div class="screen-label">Screen 1 — Login (Phone Entry)</div>
+    <div style="display:flex; gap:16px; align-items:flex-start;">
+      <div class="phone" style="border-radius:32px; overflow:hidden;">
+        <!-- BG -->
+        <div class="bg-stadium" style="min-height:363px; border-radius:30px 30px 0 0;">
+          <div class="bg-title">
+            <div class="hm-big">HUMONGOUS</div>
+            <div class="hm-med">HUMON<span style="color:#d63a36">DIAL</span></div>
+            <div class="hm-sub">2 0 2 6</div>
+          </div>
+          <div class="bg-trophy">🏆</div>
+          <!-- Form -->
+          <div class="form-card">
+            <div class="welcome-card">
+              <p>🏆 ברוך הבא, אלוף!</p>
+              <small>פרסים ראשונים: כרטיסים לגמר המונדיאל</small>
+            </div>
+            <div class="label-sm" style="text-align:right;">מספר טלפון</div>
+            <div class="input-field" style="justify-content:flex-end;"><span>05X-XXX-XXXX ⚽</span></div>
+            <div class="btn-primary">המשך</div>
+          </div>
+        </div>
+      </div>
+      <div class="specs-list">
+        <span class="section">Background</span>
+        <strong>Full screen:</strong> 390 × 844 px<br>
+        <strong>Export @2×:</strong> 780 × 1688 px<br>
+        <strong>Position:</strong> center top<br>
+        <span class="section">Welcome Card</span>
+        <strong>Width:</strong> 100% − 48 px margins<br>
+        <strong>Padding:</strong> 12 px all sides<br>
+        <strong>Radius:</strong> 16 px<br>
+        <span class="section">Phone Input</span>
+        <strong>Height:</strong> 48 px<br>
+        <strong>Radius:</strong> 12 px<br>
+        <strong>Padding:</strong> 16 px sides<br>
+        <strong>Font:</strong> 18 px, dir=ltr<br>
+        <span class="section">Continue Button</span>
+        <strong>Height:</strong> 48 px<br>
+        <strong>Width:</strong> 100%<br>
+        <strong>Radius:</strong> 12 px<br>
+        <strong>Font:</strong> 16 px bold<br>
+        <span class="section">Form Bottom Offset</span>
+        <strong>Padding bottom:</strong> 40 px from screen edge
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 2: OTP ── -->
+  <div class="screen-block">
+    <div class="screen-label">Screen 2 — OTP (Code Entry)</div>
+    <div style="display:flex; gap:16px; align-items:flex-start;">
+      <div class="phone" style="border-radius:32px; overflow:hidden;">
+        <div class="bg-stadium" style="min-height:363px; border-radius:30px 30px 0 0;">
+          <div class="bg-title">
+            <div class="hm-big">HUMONGOUS</div>
+            <div class="hm-med">HUMON<span style="color:#d63a36">DIAL</span></div>
+            <div class="hm-sub">2 0 2 6</div>
+          </div>
+          <div class="bg-trophy">🏆</div>
+          <div class="form-card">
+            <div style="font-size:6px;color:rgba(255,255,255,0.5);margin-bottom:2px;">← חזרה לשינוי מספר</div>
+            <div style="font-size:10px;font-weight:800;color:#fff;">הזן קוד אימות</div>
+            <div style="font-size:7px;color:rgba(255,255,255,0.5);">שלחנו קוד ב-WhatsApp למספר +972-****8536</div>
+            <div class="input-otp">– – – – – –</div>
+            <div class="btn-primary">אימות</div>
+          </div>
+        </div>
+      </div>
+      <div class="specs-list">
+        <span class="section">Background</span>
+        <strong>Same image as Screen 1</strong><br>
+        390 × 844 px @2×<br>
+        <span class="section">Back Link</span>
+        <strong>Font:</strong> 12 px<br>
+        <strong>Color:</strong> rgba white 40%<br>
+        <strong>Margin bottom:</strong> 32 px<br>
+        <span class="section">OTP Input</span>
+        <strong>Height:</strong> 56 px<br>
+        <strong>Radius:</strong> 12 px<br>
+        <strong>Font:</strong> 32 px, tracking 0.5em<br>
+        <strong>Align:</strong> center, dir=ltr<br>
+        <span class="section">Verify Button</span>
+        <strong>Height:</strong> 48 px<br>
+        <strong>Width:</strong> 100%<br>
+        <strong>Radius:</strong> 12 px<br>
+        <strong>Font:</strong> 16 px bold<br>
+        <span class="section">Form Bottom Offset</span>
+        <strong>Padding bottom:</strong> 40 px
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 3: PERSONAL AREA (mini achievements) ── -->
+  <div class="screen-block">
+    <div class="screen-label">Screen 3 — Personal Area (Achievements Strip)</div>
+    <div style="display:flex; gap:16px; align-items:flex-start;">
+      <div class="phone" style="border-radius:32px; overflow:hidden;">
+        <!-- Header with banner -->
+        <div class="phone-header">
+          <div class="icon-btn">↩</div>
+          <div class="brand-center">HUMON<span>DIAL</span><small>2026</small></div>
+          <div style="width:29px;"></div>
+        </div>
+        <div class="pa-screen">
+          <!-- Stats card -->
+          <div style="margin:8px; padding:10px; background:rgba(214,58,54,0.08); border:2px solid #d63a36; border-radius:10px;">
+            <div style="font-size:22px;font-weight:900;color:#d63a36;">#103</div>
+            <div style="font-size:7px;color:rgba(255,255,255,0.6);">דירוג מתוך 8,532 שחקנים</div>
+            <div style="font-size:8px;color:#fff;font-weight:700;margin-top:4px;">1,123 נקודות</div>
+          </div>
+          <!-- Achievements section -->
+          <div class="section-label">
+            <span>הישגים 🏅</span>
+            <span class="show-all-btn">הצג הכל ▼</span>
+          </div>
+          <div class="strip-scroll">
+            <div class="strip-item"><span class="strip-badge">🥇</span><span class="strip-name">הזמנה ראשונה</span></div>
+            <div class="strip-item"><span class="strip-badge">🔥</span><span class="strip-name">10 ניחושים</span></div>
+            <div class="strip-item locked"><span class="strip-badge">⚽</span><span class="strip-name">5 ניחושים</span></div>
+            <div class="strip-item locked"><span class="strip-badge">🥈</span><span class="strip-name">חבר סילבר</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="specs-list">
+        <span class="section">Header / Banner</span>
+        <strong>Height:</strong> 56 px<br>
+        <strong>BG image:</strong> humondial-banner.jpg<br>
+        <strong>Back button radius:</strong> 99 px (pill)<br>
+        <strong>Back button height:</strong> 44 px min<br>
+        <span class="section">Achievement Strip</span>
+        <strong>Layout:</strong> horizontal scroll<br>
+        <strong>Item min-width:</strong> 60 px<br>
+        <strong>Item padding:</strong> 8 px × 12 px<br>
+        <strong>Item radius:</strong> 12 px<br>
+        <strong>Badge font:</strong> 20 px emoji<br>
+        <strong>Label font:</strong> 10 px bold<br>
+        <strong>Unlocked bg:</strong> gold 10% opacity<br>
+        <strong>Locked opacity:</strong> 38%<br>
+        <span class="section">"Show All" Button</span>
+        <strong>Font:</strong> 10 px<br>
+        <strong>Radius:</strong> 99 px (pill)<br>
+        <strong>→ navigates to Screen 4</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 4: ACHIEVEMENTS FULL PAGE ── -->
+  <div class="screen-block">
+    <div class="screen-label">Screen 4 — Achievements (Full Page)</div>
+    <div style="display:flex; gap:16px; align-items:flex-start;">
+      <div class="phone" style="border-radius:32px; overflow:hidden;">
+        <div class="pa-header" style="background:#1a0505; border-radius:30px 30px 0 0;">
+          <div class="back-btn">← חזרה</div>
+          <div style="font-size:9px;font-weight:900;color:#fff;">הישגים 🏅</div>
+          <div style="width:40px;"></div>
+        </div>
+        <div style="background:#100505; min-height:363px; padding-top:6px;">
+          <div class="ach-row">
+            <div class="ach-badge">🥇</div>
+            <div class="ach-text">
+              <div class="ach-title">הזמנה ראשונה</div>
+              <div class="ach-desc">ביצעת הזמנת שולחן ראשונה — תתאורים!</div>
+              <div class="ach-bonus">+50 נ׳ בונוס</div>
+            </div>
+            <div class="ach-check">✓</div>
+          </div>
+          <div class="ach-row">
+            <div class="ach-badge">🔥</div>
+            <div class="ach-text">
+              <div class="ach-title">10 ניחושים</div>
+              <div class="ach-desc">שלחת 10 ניחושים — אתה המנחש הגדול כאן</div>
+            </div>
+            <div class="ach-check">✓</div>
+          </div>
+          <div class="ach-row locked">
+            <div class="ach-badge">⚽</div>
+            <div class="ach-text">
+              <div class="ach-title">5 ניחושים</div>
+              <div class="ach-desc">שלחת ניחוש ל-5 משחקים — אתה עוקב אחרי המונדיאל</div>
+            </div>
+          </div>
+          <div class="ach-row locked">
+            <div class="ach-badge">🥈</div>
+            <div class="ach-text">
+              <div class="ach-title">חבר סילבר</div>
+              <div class="ach-desc">צברת מספיק נקודות להגיע לדרגת סילבר</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="specs-list">
+        <span class="section">Screen Header</span>
+        <strong>Height:</strong> 56 px<br>
+        <strong>Back button:</strong> 44 px min-height, pill shape<br>
+        <strong>Title font:</strong> 16 px bold, centered<br>
+        <span class="section">Achievement Row</span>
+        <strong>Padding:</strong> 16 px all sides<br>
+        <strong>Radius:</strong> 16 px<br>
+        <strong>Gap between rows:</strong> 12 px<br>
+        <strong>Badge font:</strong> 36 px emoji<br>
+        <strong>Title font:</strong> 14 px bold<br>
+        <strong>Description:</strong> 11 px, opacity 65%<br>
+        <strong>Bonus label:</strong> 10 px, gold color<br>
+        <strong>✓ check:</strong> 18 px, gold, right side<br>
+        <span class="section">Row States</span>
+        <strong>Unlocked:</strong> gold border + bg<br>
+        <strong>Locked:</strong> 45% opacity, neutral bg<br>
+        <span class="section">Order</span>
+        Unlocked first (newest→oldest)<br>
+        Locked last (alphabetical)
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center;margin-top:60px;font-size:11px;color:rgba(255,255,255,0.2);">
+  Humondial 2026 · Screen Specs · Part A · Generated May 2026
+</p>
+
+</body>
+</html>
