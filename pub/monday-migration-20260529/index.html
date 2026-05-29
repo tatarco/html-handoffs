@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>דוח Dry Run — העברה מ-Monday ל-BizFlow</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Segoe UI', Arial, sans-serif; background: #f0f2f5; color: #1a1a2e; direction: rtl; }
+
+  header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 32px 40px; }
+  header h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  header p { opacity: 0.65; font-size: 14px; }
+  header .badge { display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 4px 14px; font-size: 12px; margin-top: 12px; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+  /* Summary cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .card { background: white; border-radius: 12px; padding: 20px 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .card .num { font-size: 36px; font-weight: 800; line-height: 1; }
+  .card .label { font-size: 12px; color: #666; margin-top: 6px; }
+  .card.green .num  { color: #22c55e; }
+  .card.blue .num   { color: #3b82f6; }
+  .card.orange .num { color: #f59e0b; }
+  .card.red .num    { color: #ef4444; }
+  .card.gray .num   { color: #6b7280; }
+  .card.purple .num { color: #8b5cf6; }
+
+  /* Sections */
+  section { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  section h2 { font-size: 17px; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+  section h2 .icon { font-size: 20px; }
+
+  /* Action items */
+  .action-list { list-style: none; }
+  .action-list li { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+  .action-list li:last-child { border-bottom: none; }
+  .action-list .tag { display: inline-block; border-radius: 6px; padding: 2px 10px; font-size: 11px; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+  .tag.critical { background: #fef2f2; color: #dc2626; }
+  .tag.warn { background: #fffbeb; color: #b45309; }
+  .tag.info { background: #eff6ff; color: #1d4ed8; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #f9fafb; text-align: right; padding: 10px 14px; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb; }
+  td { padding: 10px 14px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+
+  /* Bar chart */
+  .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; font-size: 13px; }
+  .bar-row .bar-label { width: 180px; text-align: right; flex-shrink: 0; }
+  .bar-row .bar-track { flex: 1; background: #f3f4f6; border-radius: 4px; height: 20px; overflow: hidden; }
+  .bar-row .bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+  .bar-row .bar-count { width: 40px; text-align: left; font-weight: 600; color: #374151; flex-shrink: 0; }
+
+  /* Status pill */
+  .pill { display: inline-block; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 600; }
+  .pill.green  { background: #dcfce7; color: #166534; }
+  .pill.red    { background: #fef2f2; color: #dc2626; }
+  .pill.orange { background: #fffbeb; color: #92400e; }
+  .pill.blue   { background: #eff6ff; color: #1e40af; }
+
+  /* Pipeline visual */
+  .pipeline { display: flex; align-items: stretch; gap: 0; margin-bottom: 32px; }
+  .pipe-step { flex: 1; background: white; padding: 16px 14px; text-align: center; border-radius: 0; position: relative; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .pipe-step:first-child { border-radius: 12px 0 0 12px; }
+  .pipe-step:last-child  { border-radius: 0 12px 12px 0; }
+  .pipe-step .ps-num { font-size: 28px; font-weight: 800; }
+  .pipe-step .ps-label { font-size: 11px; color: #6b7280; margin-top: 4px; }
+  .pipe-step .arrow { position: absolute; left: -10px; top: 50%; transform: translateY(-50%); font-size: 20px; color: #d1d5db; z-index: 1; }
+  .pipe-step:first-child .arrow { display: none; }
+  .pipe-step.dropped { opacity: 0.4; }
+
+  footer { text-align: center; padding: 24px; font-size: 12px; color: #9ca3af; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>דוח Dry Run — העברה מ-Monday ל-BizFlow ERP</h1>
+  <p>בדיקת היתכנות — לא בוצעה שום כתיבה לבסיס הנתונים</p>
+  <span class="badge">29.05.2026 · dry_run: true</span>
+</header>
+
+<div class="container">
+
+  <!-- Pipeline -->
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="ps-num" style="color:#3b82f6">1,205</div>
+      <div class="ps-label">תיקי קליטה<br>(intake board)</div>
+    </div>
+    <div class="pipe-step">
+      <div class="arrow">◀</div>
+      <div class="ps-num" style="color:#3b82f6">1,191</div>
+      <div class="ps-label">נמצאו בשני<br>הלוחות (join)</div>
+    </div>
+    <div class="pipe-step">
+      <div class="arrow">◀</div>
+      <div class="ps-num" style="color:#22c55e">802</div>
+      <div class="ps-label">יועברו<br>לBizFlow</div>
+    </div>
+    <div class="pipe-step dropped">
+      <div class="arrow">◀</div>
+      <div class="ps-num" style="color:#ef4444">381</div>
+      <div class="ps-label">חסומים<br>(צריך תיקון)</div>
+    </div>
+    <div class="pipe-step dropped">
+      <div class="arrow">◀</div>
+      <div class="ps-num" style="color:#f59e0b">8</div>
+      <div class="ps-label">דורשים<br>בדיקה</div>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="cards">
+    <div class="card blue">
+      <div class="num">1,618</div>
+      <div class="label">עובדים במצבה הפעילה</div>
+    </div>
+    <div class="card blue">
+      <div class="num">1,205</div>
+      <div class="label">תיקי קליטה</div>
+    </div>
+    <div class="card blue">
+      <div class="num">1,191</div>
+      <div class="label">נמצאו בשני הלוחות</div>
+    </div>
+    <div class="card green">
+      <div class="num">802</div>
+      <div class="label">יועברו (would create)</div>
+    </div>
+    <div class="card orange">
+      <div class="num">8</div>
+      <div class="label">קיימים ב-BizFlow (דגל)</div>
+    </div>
+    <div class="card red">
+      <div class="num">381</div>
+      <div class="label">חסומים</div>
+    </div>
+    <div class="card purple">
+      <div class="num">10,804</div>
+      <div class="label">קבצים יועלו</div>
+    </div>
+    <div class="card gray">
+      <div class="num">66</div>
+      <div class="label">ללא ת.ז במצבה</div>
+    </div>
+  </div>
+
+  <!-- Action Items -->
+  <section>
+    <h2><span class="icon">🔧</span> פעולות נדרשות לפני הרצה אמיתית</h2>
+    <ul class="action-list">
+      <li>
+        <span class="tag critical">חובה</span>
+        <div>
+          <strong>יצירת 12 תפקידים חסרים ב-BizFlow</strong> — 331 עובדים חסומים בגלל תפקיד שלא קיים.
+          ראו טבלת התפקידים למטה.
+        </div>
+      </li>
+      <li>
+        <span class="tag critical">חובה</span>
+        <div>
+          <strong>הגדרת <code>mondayBranchIndex: 9</code> לסניף "קרית מוצקין" ב-BizFlow</strong> — 48 עובדים חסומים בגלל סניף שלא ממופה.
+          כנסו ל-BizFlow → סניפים → קרית מוצקין → ערכו את mondayBranchIndex ל-9.
+        </div>
+      </li>
+      <li>
+        <span class="tag warn">בדיקה</span>
+        <div>
+          <strong>8 עובדים קיימים ב-BizFlow</strong> — ברירת המחדל היא דגל בלבד (לא עדכון). להוסיף <code>"force_merge": true</code> בהרצה אם רוצים לעדכן. ראו רשימה למטה.
+        </div>
+      </li>
+      <li>
+        <span class="tag warn">בדיקה</span>
+        <div>
+          <strong>2 עובדים ללא שדות חובה</strong> — יובל רמי לוי (חסר תאריך תחילת עבודה), דור רוזן (חסר שם פרטי). יש לתקן ידנית ב-Monday לפני ההעברה.
+        </div>
+      </li>
+      <li>
+        <span class="tag info">אזהרה</span>
+        <div>
+          <strong>740 עובדים ללא ימי עבודה</strong> — הוגדרו כברירת מחדל ל-5 ימים. ניתן לשנות לאחר ההעברה.
+        </div>
+      </li>
+      <li>
+        <span class="tag info">אזהרה</span>
+        <div>
+          <strong>473 עובדים ללא שכר שעתי</strong> — שדה ריק בשני הלוחות. ניתן להשלים ידנית לאחר ההעברה.
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- Blocked Positions -->
+  <section>
+    <h2><span class="icon">🚫</span> תפקידים חסרים ב-BizFlow — 331 עובדים חסומים</h2>
+    <div style="margin-bottom:20px">
+      <div class="bar-row" style="font-size:11px;color:#9ca3af;margin-bottom:6px">
+        <div style="width:180px;text-align:right">תפקיד</div>
+        <div style="flex:1"></div>
+        <div style="width:40px;text-align:left">עובדים</div>
+      </div>
+      <div class="bar-row"><div class="bar-label">מארח/ת</div><div class="bar-track"><div class="bar-fill" style="width:54%;background:#ef4444"></div></div><div class="bar-count">179</div></div>
+      <div class="bar-row"><div class="bar-label">מנהל/ת משמרת</div><div class="bar-track"><div class="bar-fill" style="width:19%;background:#f97316"></div></div><div class="bar-count">64</div></div>
+      <div class="bar-row"><div class="bar-label">שליח/ה</div><div class="bar-track"><div class="bar-fill" style="width:8%;background:#f59e0b"></div></div><div class="bar-count">27</div></div>
+      <div class="bar-row"><div class="bar-label">משלח/ת</div><div class="bar-track"><div class="bar-fill" style="width:5%;background:#eab308"></div></div><div class="bar-count">16</div></div>
+      <div class="bar-row"><div class="bar-label">מנהל/ת צוות</div><div class="bar-track"><div class="bar-fill" style="width:4%;background:#84cc16"></div></div><div class="bar-count">14</div></div>
+      <div class="bar-row"><div class="bar-label">עובד מטבח זר</div><div class="bar-track"><div class="bar-fill" style="width:3%;background:#22c55e"></div></div><div class="bar-count">10</div></div>
+      <div class="bar-row"><div class="bar-label">מנהל/ת מטבח</div><div class="bar-track"><div class="bar-fill" style="width:3%;background:#10b981"></div></div><div class="bar-count">9</div></div>
+      <div class="bar-row"><div class="bar-label">מנהל סניף</div><div class="bar-track"><div class="bar-fill" style="width:1%;background:#6366f1"></div></div><div class="bar-count">3</div></div>
+      <div class="bar-row"><div class="bar-label">מנהל/ת מסעדה</div><div class="bar-track"><div class="bar-fill" style="width:1%;background:#8b5cf6"></div></div><div class="bar-count">3</div></div>
+      <div class="bar-row"><div class="bar-label">ברמן/ית</div><div class="bar-track"><div class="bar-fill" style="width:1%;background:#a855f7"></div></div><div class="bar-count">2</div></div>
+      <div class="bar-row"><div class="bar-label">מנהל/ת המסעדה</div><div class="bar-track"><div class="bar-fill" style="width:1%;background:#d946ef"></div></div><div class="bar-count">2</div></div>
+      <div class="bar-row"><div class="bar-label">מנהל/ת אזור</div><div class="bar-track"><div class="bar-fill" style="width:1%;background:#ec4899"></div></div><div class="bar-count">1</div></div>
+      <div class="bar-row"><div class="bar-label">(ריק - אין תפקיד)</div><div class="bar-track"><div class="bar-fill" style="width:1%;background:#9ca3af"></div></div><div class="bar-count">1</div></div>
+    </div>
+    <p style="font-size:12px;color:#6b7280;padding:10px 14px;background:#f9fafb;border-radius:8px">
+      💡 לאחר יצירת התפקידים, הריצו Dry Run מחדש לאימות. ודאו שהשמות תואמים בדיוק (כולל /ת) — ההשוואה מנרמלת סיומות אבל לא שגיאות כתיב.
+    </p>
+  </section>
+
+  <!-- Blocked Branch -->
+  <section>
+    <h2><span class="icon">📍</span> סניף חסר — 48 עובדים חסומים</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>סניף</th>
+          <th>Monday Index</th>
+          <th>עובדים חסומים</th>
+          <th>פתרון</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>קרית מוצקין</strong></td>
+          <td><code>9</code></td>
+          <td><span class="pill red">48</span></td>
+          <td style="font-size:12px">BizFlow → סניפים → קרית מוצקין → הגדר <code>mondayBranchIndex = 9</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Flagged Existing -->
+  <section>
+    <h2><span class="icon">⚠️</span> קיימים ב-BizFlow — 8 עובדים לבדיקה</h2>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:16px">ברירת מחדל: מדוגלים בלבד, לא מועדכנים. להוסיף <code>"force_merge": true</code> לעדכון.</p>
+    <table>
+      <thead>
+        <tr><th>שם</th><th>ת.ז</th><th>סטטוס ב-BizFlow</th><th>הערה</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>שחר שובה</td><td>215403825</td><td><span class="pill blue">onboarding</span></td><td></td></tr>
+        <tr><td>ענבל כסיף</td><td>326392271</td><td><span class="pill blue">onboarding</span></td><td></td></tr>
+        <tr><td>גרמן סיץ׳</td><td>325511467</td><td><span class="pill blue">onboarding</span></td><td>מופיע פעמיים — כפילות בלוח המצבה</td></tr>
+        <tr><td>עידו רומנו</td><td>327554960</td><td><span class="pill blue">onboarding</span></td><td></td></tr>
+        <tr><td>יותם סלע</td><td>324060045</td><td><span class="pill blue">onboarding</span></td><td>שם שונה מעט: "סלע" vs "סלע מן"</td></tr>
+        <tr><td>שגיא רשף</td><td>325051761</td><td><span class="pill blue">onboarding</span></td><td></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Missing required fields -->
+  <section>
+    <h2><span class="icon">❌</span> חסרים שדות חובה — 2 עובדים</h2>
+    <table>
+      <thead>
+        <tr><th>שם</th><th>ת.ז</th><th>מה חסר</th><th>פתרון</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>יובל רמי לוי</td><td>325172336</td>
+          <td><span class="pill red">תאריך תחילת עבודה</span></td>
+          <td style="font-size:12px">עדכן ב-Monday intake board → date0</td>
+        </tr>
+        <tr>
+          <td>דור רוזן</td><td>308278456</td>
+          <td><span class="pill red">שם פרטי</span></td>
+          <td style="font-size:12px">עדכן ב-Monday intake board → text</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Warnings breakdown -->
+  <section>
+    <h2><span class="icon">💛</span> אזהרות על עובדים שיועברו (לא חוסמות)</h2>
+    <table>
+      <thead>
+        <tr><th>אזהרה</th><th>מספר עובדים</th><th>השפעה</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ימי עבודה לא צוינו — הוגדר ברירת מחדל 5 ימים</td>
+          <td><span class="pill orange">740</span></td>
+          <td style="font-size:12px">agreementType = "5-days" — ניתן לתיקון לאחר העברה</td>
+        </tr>
+        <tr>
+          <td>שכר שעתי חסר בשני הלוחות</td>
+          <td><span class="pill orange">473</span></td>
+          <td style="font-size:12px">agreedSalary יהיה ריק — ניתן לעדכן ב-BizFlow</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- How to run live -->
+  <section>
+    <h2><span class="icon">🚀</span> הרצה אמיתית — אחרי תיקון הבעיות</h2>
+    <p style="font-size:13px;color:#374151;margin-bottom:16px">לאחר יצירת התפקידים והגדרת הסניף, הריצו Dry Run נוסף לאימות אפס חסימות.</p>
+    <pre style="background:#1a1a2e;color:#e2e8f0;padding:20px;border-radius:10px;font-size:13px;overflow-x:auto;direction:ltr;text-align:left"># Dry run נוסף לאימות
+curl -X POST https://biz-flow-erp-6829504d.base44.app/api/functions/migrateFromMonday \
+  -H "api_key: 096bcb9b23504ccf8d23219552c64839" \
+  -H "Content-Type: application/json" \
+  -d '{"dry_run": true}' | jq '.summary'
+
+# הרצה אמיתית — בלי קבצים תחילה
+curl -X POST https://biz-flow-erp-6829504d.base44.app/api/functions/migrateFromMonday \
+  -H "api_key: 096bcb9b23504ccf8d23219552c64839" \
+  -H "Content-Type: application/json" \
+  -d '{"dry_run": false, "skip_files": true, "confirm_secret": "YOUR_SECRET"}'
+
+# העלאת קבצים — בבאצ'ים של 20 עובדים
+curl -X POST https://biz-flow-erp-6829504d.base44.app/api/functions/migrateFromMonday \
+  -H "api_key: 096bcb9b23504ccf8d23219552c64839" \
+  -H "Content-Type: application/json" \
+  -d '{"dry_run": false, "skip_files": false, "confirm_secret": "YOUR_SECRET", "filter_tz": ["211330188","205392186","..."]}'</pre>
+  </section>
+
+</div>
+
+<footer>BizFlow ERP · Monday Migration Dry Run · 29.05.2026</footer>
+</body>
+</html>
