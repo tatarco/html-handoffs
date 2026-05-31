@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>HUMONDIAL — Personal Area · Asset Spec</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#060202;color:#F8F3EA;font-family:Heebo,sans-serif;padding:24px;max-width:960px;margin:0 auto}
+  h1{font-size:28px;font-weight:900;color:#F4C15D;margin-bottom:4px}
+  .subtitle{color:#9D8585;font-size:14px;margin-bottom:36px}
+  section{margin-bottom:48px}
+  h2{font-size:18px;font-weight:900;color:#F4C15D;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(214,58,54,0.3)}
+  h3{font-size:14px;font-weight:700;color:#F8F3EA;margin-bottom:6px}
+
+  /* Phone mockup */
+  .phone{width:375px;background:#060202;border-radius:44px;border:2px solid rgba(214,58,54,0.4);overflow:hidden;box-shadow:0 0 60px rgba(214,58,54,0.15);margin:0 auto 32px}
+  .phone-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+  .back-pill{font-size:11px;color:#9D8585;border:1px solid rgba(214,58,54,0.28);border-radius:999px;padding:8px 12px}
+  .brand{text-align:center}
+  .brand-name{font-size:16px;font-weight:900;color:#F4C15D;letter-spacing:2px}
+  .brand-year{font-size:11px;color:#F4C15D;letter-spacing:6px;opacity:0.7}
+  .spacer{width:64px}
+  .cards{padding:0 16px;display:flex;flex-direction:column;gap:12px;padding-bottom:32px}
+
+  /* Hero card */
+  .hero-card{border-radius:22px;overflow:hidden;border:1.5px solid rgba(214,58,54,0.38);position:relative;min-height:190px}
+  .hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,rgba(6,2,2,0.88) 0%,rgba(90,8,8,0.65) 45%,rgba(6,2,2,0.92) 100%),url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="375" height="190"><defs><radialGradient id="rg" cx="60%" cy="40%" r="60%"><stop offset="0%" stop-color="%23ff2200" stop-opacity="0.25"/><stop offset="100%" stop-color="%23000" stop-opacity="0"/></radialGradient></defs><rect width="375" height="190" fill="%231a0202"/><rect width="375" height="190" fill="url(%23rg)"/></svg>') center/cover}
+  .hero-content{position:relative;z-index:1;padding:16px}
+  .hero-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+  .pts-block{display:flex;flex-direction:column;gap:2px}
+  .pts-label{font-size:11px;color:rgba(248,243,234,0.65)}
+  .pts-num{font-size:54px;font-weight:900;color:#F4C15D;line-height:1;font-variant-numeric:tabular-nums}
+  .pts-unit{font-size:14px;font-weight:700;color:rgba(248,243,234,0.75)}
+  .next-block{display:flex;flex-direction:column;align-items:center;flex:1;padding-top:12px;gap:2px}
+  .next-label{font-size:11px;color:rgba(248,243,234,0.65)}
+  .next-num{font-size:24px;font-weight:900;color:#D63A36}
+  .next-sub{font-size:11px;color:rgba(248,243,234,0.65);text-align:center;line-height:1.3}
+  /* Tier badge placeholder */
+  .tier-badge-slot{width:100px;height:100px;border-radius:12px;border:2px dashed rgba(244,193,93,0.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:rgba(244,193,93,0.05);flex-shrink:0}
+  .tier-badge-slot span{font-size:11px;color:#F4C15D;text-align:center;line-height:1.3}
+  .progress-bar{margin-top:12px}
+  .bar-track{height:6px;background:rgba(255,255,255,0.1);border-radius:999px;overflow:hidden}
+  .bar-fill{height:6px;background:linear-gradient(to left,#D63A36,#ff6b6b);border-radius:999px;width:12%}
+  .bar-label{font-size:11px;color:#9D8585;margin-top:4px;text-align:left}
+  .cta-btn{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:10px 16px;border-radius:999px;border:1.5px solid rgba(214,58,54,0.45);background:rgba(20,4,4,0.75);font-size:13px;font-weight:700;color:#F8F3EA;font-family:inherit}
+
+  /* Nav card */
+  .nav-card{border-radius:22px;overflow:hidden;border:1px solid rgba(214,58,54,0.22);background:linear-gradient(to right,rgba(28,6,6,0.97),rgba(22,4,4,0.92));display:flex;align-items:center;min-height:90px}
+  .nav-img-slot{width:110px;min-height:90px;align-self:stretch;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:0;overflow:hidden;position:relative}
+  .nav-img-slot.book{background:linear-gradient(135deg,#1a0a3a,#3a0b55,#12001f)}
+  .nav-img-slot.trophy{background:linear-gradient(135deg,#0a1530,#1a3a6b,#0a0f20)}
+  .nav-img-slot.chart{background:linear-gradient(135deg,#1a0800,#3d1f00,#2a0800)}
+  .nav-img-slot.ach{background:linear-gradient(135deg,#1a0800,#3d1200,#200800)}
+  .nav-img-slot.pie{background:rgba(18,4,4,0.95)}
+  .slot-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+  .slot-label .emoji{font-size:36px;filter:drop-shadow(0 0 10px rgba(255,255,255,0.3))}
+  .slot-label .placeholder-tag{font-size:9px;color:rgba(255,255,255,0.45);border:1px dashed rgba(255,255,255,0.25);border-radius:4px;padding:2px 5px;line-height:1.3;text-align:center}
+  .nav-text{flex:1;padding:12px 12px 12px 4px;display:flex;flex-direction:column;justify-content:center;min-width:0}
+  .nav-title{font-size:15px;font-weight:900;color:#F8F3EA;line-height:1.2}
+  .nav-title.gold{color:#F4C15D}
+  .nav-sub{font-size:12px;color:#9D8585;margin-top:4px;line-height:1.4}
+  .nav-arrow{width:36px;height:36px;border-radius:999px;background:rgba(214,58,54,0.12);border:1.5px solid rgba(214,58,54,0.45);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:12px;font-size:16px;font-weight:900;color:#D63A36}
+
+  /* Breakdown mini pie mock */
+  .pie-mock{width:72px;height:72px}
+
+  /* ── Asset spec table ── */
+  .spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .asset-card{background:rgba(28,6,6,0.9);border:1px solid rgba(214,58,54,0.25);border-radius:16px;overflow:hidden}
+  .asset-preview{height:140px;display:flex;align-items:center;justify-content:center;position:relative;font-size:52px}
+  .asset-preview.book{background:linear-gradient(135deg,#1a0a3a,#3a0b55,#12001f)}
+  .asset-preview.trophy{background:linear-gradient(135deg,#0a1530,#1a3a6b,#0a0f20)}
+  .asset-preview.chart{background:linear-gradient(135deg,#1a0800,#3d1f00,#2a0800)}
+  .asset-preview.ach{background:linear-gradient(135deg,#1a0800,#3d1200,#200800)}
+  .asset-preview .glow{position:absolute;inset:0;border-radius:0}
+  .asset-preview .glow.purple{background:radial-gradient(circle at 50%,rgba(120,0,255,0.35),transparent 70%)}
+  .asset-preview .glow.gold{background:radial-gradient(circle at 50%,rgba(244,193,93,0.25),transparent 70%)}
+  .asset-preview .glow.orange{background:radial-gradient(circle at 50% 70%,rgba(255,140,0,0.3),transparent 70%)}
+  .asset-preview .glow.red{background:radial-gradient(circle at 50%,rgba(214,58,54,0.3),transparent 70%)}
+  .asset-info{padding:16px}
+  .asset-name{font-size:14px;font-weight:900;color:#F4C15D;margin-bottom:10px}
+  .spec-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+  .spec-row:last-child{border-bottom:none}
+  .spec-key{color:#9D8585}
+  .spec-val{color:#F8F3EA;font-weight:700;text-align:left}
+  .note{font-size:11px;color:rgba(248,243,234,0.55);margin-top:8px;line-height:1.5;border-left:2px solid rgba(214,58,54,0.4);padding-left:8px}
+
+  /* Existing assets */
+  .existing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .existing-card{background:rgba(28,6,6,0.8);border:1px solid rgba(35,193,93,0.3);border-radius:12px;padding:14px}
+  .existing-name{font-size:12px;font-weight:900;color:#35D26F;margin-bottom:8px}
+  .existing-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0}
+  .existing-key{color:#9D8585}
+  .existing-val{color:#F8F3EA}
+
+  /* Status badge */
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;margin-bottom:8px}
+  .badge.new{background:rgba(214,58,54,0.2);color:#D63A36;border:1px solid rgba(214,58,54,0.4)}
+  .badge.existing{background:rgba(53,210,111,0.15);color:#35D26F;border:1px solid rgba(53,210,111,0.35)}
+  .badge.generated{background:rgba(244,193,93,0.15);color:#F4C15D;border:1px solid rgba(244,193,93,0.35)}
+
+  @media(max-width:640px){.spec-grid,.existing-grid{grid-template-columns:1fr}.phone{width:100%}}
+</style>
+</head>
+<body>
+
+<h1>HUMONDIAL Personal Area — Asset Spec</h1>
+<p class="subtitle">מסמך זה מתאר את כל ה-assets הנדרשים לעמוד ה-Personal Area החדש · שתפו עם המעצב</p>
+
+<!-- ─── Phone mockup ─────────────────────────────────────────────────────── -->
+<section>
+  <h2>תצוגה מקדימה — הדיזיין החדש</h2>
+
+  <div class="phone">
+    <div class="phone-header">
+      <div class="back-pill">← חזרה</div>
+      <div class="brand">
+        <div class="brand-name">HUMONDIAL</div>
+        <div class="brand-year">2 0 2 6</div>
+      </div>
+      <div class="spacer"></div>
+    </div>
+    <div class="cards">
+
+      <!-- Hero -->
+      <div class="hero-card">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+          <div class="hero-row">
+            <div class="pts-block">
+              <span class="pts-label">הנקודות שלי</span>
+              <span class="pts-num">30</span>
+              <span class="pts-unit">נקודות</span>
+            </div>
+            <div class="next-block">
+              <span class="next-label">עוד</span>
+              <span class="next-num">220</span>
+              <span class="next-sub">נקודות<br/>לפותח הרכב</span>
+            </div>
+            <div class="tier-badge-slot">
+              <span>🛡️</span>
+              <span>tier-1.png<br/>(100×100)</span>
+            </div>
+          </div>
+          <div class="progress-bar">
+            <div class="bar-track"><div class="bar-fill"></div></div>
+            <div class="bar-label">30 / 250</div>
+          </div>
+          <div class="cta-btn">⚽ מסלול ההתקדמות שלי ›</div>
+        </div>
+      </div>
+
+      <!-- Benefits -->
+      <div class="nav-card">
+        <div class="nav-img-slot book">
+          <div class="slot-label">
+            <span class="emoji">📖</span>
+            <span class="placeholder-tag">ASSET<br/>benefits-guide-book.png</span>
+          </div>
+        </div>
+        <div class="nav-text">
+          <div class="nav-title">מדריך ההטבות 📖</div>
+          <div class="nav-sub">גלה איך צוברים נקודות, עולים דרגות וזוכים בפרסים</div>
+        </div>
+        <div class="nav-arrow">›</div>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="nav-card">
+        <div class="nav-img-slot trophy">
+          <div class="slot-label">
+            <span class="emoji">🏆</span>
+            <span class="placeholder-tag">ASSET<br/>leaderboard-trophy.png</span>
+          </div>
+        </div>
+        <div class="nav-text">
+          <div class="nav-title gold">לוח האלופים 🏆</div>
+          <div class="nav-sub">בדוק איפה אתה ממוקם מול שחקני HUMONDIAL</div>
+        </div>
+        <div class="nav-arrow">›</div>
+      </div>
+
+      <!-- Trajectory -->
+      <div class="nav-card">
+        <div class="nav-img-slot chart">
+          <div class="slot-label">
+            <span class="emoji">📈</span>
+            <span class="placeholder-tag">ASSET<br/>progress-chart.png</span>
+          </div>
+        </div>
+        <div class="nav-text">
+          <div class="nav-title">קצב ההתקדמות שלי ⚡</div>
+          <div class="nav-sub">1500 נקודות החודש · בקצב הנוכחי תגיע לפגים להרכב בעוד 18 ימים</div>
+        </div>
+        <div class="nav-arrow">›</div>
+      </div>
+
+      <!-- Achievements -->
+      <div class="nav-card">
+        <div class="nav-img-slot ach">
+          <div class="slot-label">
+            <span class="emoji">🥇</span>
+            <span class="placeholder-tag">ASSET<br/>achievement-wreath.png</span>
+          </div>
+        </div>
+        <div class="nav-text">
+          <div class="nav-title">הישגים 🥇</div>
+          <div class="nav-sub">17 מתוך 84 הושלמו</div>
+        </div>
+        <div class="nav-arrow">›</div>
+      </div>
+
+      <!-- Breakdown -->
+      <div class="nav-card">
+        <div class="nav-img-slot pie" style="background:rgba(18,4,4,0.95)">
+          <svg viewBox="0 0 100 100" width="72" height="72">
+            <path d="M50,50 L50,6 A44,44 0 0,1 88.2,72 Z" fill="#D63A36"/>
+            <path d="M50,50 L88.2,72 A44,44 0 0,1 26.4,89.6 Z" fill="#F4C15D"/>
+            <path d="M50,50 L26.4,89.6 A44,44 0 0,1 11.8,28 Z" fill="#35D26F"/>
+            <path d="M50,50 L11.8,28 A44,44 0 0,1 50,6 Z" fill="#a855f7"/>
+          </svg>
+        </div>
+        <div class="nav-text">
+          <div class="nav-title">מאיפה הגיעו הנקודות שלי 📊</div>
+          <div class="nav-sub">ניחושים 620 · משלוחים 430 · ביקורים 210 · בונוסים 160</div>
+        </div>
+        <div class="nav-arrow">›</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── NEW assets needed ─────────────────────────────────────────────────── -->
+<section>
+  <h2>🆕 Assets חסרים — נדרשים מהמעצב</h2>
+  <div class="spec-grid">
+
+    <!-- Book -->
+    <div class="asset-card">
+      <div class="spec-badge" style="padding:12px 16px 0"><span class="badge new">NEW · נדרש</span></div>
+      <div class="asset-preview book">
+        <div class="glow purple"></div>
+        <span style="position:relative;font-size:56px;filter:drop-shadow(0 0 14px rgba(180,100,255,0.8))">📖</span>
+      </div>
+      <div class="asset-info">
+        <div class="asset-name">benefits-guide-book.png</div>
+        <div class="spec-row"><span class="spec-key">שם קובץ</span><span class="spec-val">benefits-guide-book.png</span></div>
+        <div class="spec-row"><span class="spec-key">גודל לתצוגה</span><span class="spec-val">110 × 90 px</span></div>
+        <div class="spec-row"><span class="spec-key">רזולוציית ייצוא</span><span class="spec-val">220 × 180 px @2x</span></div>
+        <div class="spec-row"><span class="spec-key">פורמט</span><span class="spec-val">PNG (רקע שקוף)</span></div>
+        <div class="spec-row"><span class="spec-key">background fill</span><span class="spec-val">linear-gradient #1a0a3a → #3a0b55</span></div>
+        <p class="note">ספר מסתורי בסגנון מונדיאל — עם גלובוס/כדור כחול-אדום על הכריכה, אפקט זוהר סגול. מתאים לנושא "מדריך ההטבות". הספר מהתמונה המקורית.</p>
+      </div>
+    </div>
+
+    <!-- Trophy -->
+    <div class="asset-card">
+      <div class="spec-badge" style="padding:12px 16px 0"><span class="badge new">NEW · נדרש</span></div>
+      <div class="asset-preview trophy">
+        <div class="glow gold"></div>
+        <span style="position:relative;font-size:56px;filter:drop-shadow(0 2px 14px rgba(244,193,93,0.9))">🏆</span>
+      </div>
+      <div class="asset-info">
+        <div class="asset-name">leaderboard-trophy.png</div>
+        <div class="spec-row"><span class="spec-key">שם קובץ</span><span class="spec-val">leaderboard-trophy.png</span></div>
+        <div class="spec-row"><span class="spec-key">גודל לתצוגה</span><span class="spec-val">110 × 90 px</span></div>
+        <div class="spec-row"><span class="spec-key">רזולוציית ייצוא</span><span class="spec-val">220 × 180 px @2x</span></div>
+        <div class="spec-row"><span class="spec-key">פורמט</span><span class="spec-val">PNG (רקע שקוף)</span></div>
+        <div class="spec-row"><span class="spec-key">background fill</span><span class="spec-val">linear-gradient #0a1530 → #1a3a6b</span></div>
+        <p class="note">גביע זהב "HUMONDIAL" עם אפקט אצטדיון כחול-כהה ברקע. הגביע מהתמונה המקורית — מלא, בסגנון 3D עם ניצוץ זהב. תוית "1" על הגביע.</p>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="asset-card">
+      <div class="spec-badge" style="padding:12px 16px 0"><span class="badge new">NEW · נדרש</span></div>
+      <div class="asset-preview chart">
+        <div class="glow orange"></div>
+        <svg viewBox="0 0 60 50" width="80" height="70" style="position:relative">
+          <rect x="4" y="30" width="10" height="18" rx="2" fill="#D63A36" opacity="0.9"/>
+          <rect x="18" y="20" width="10" height="28" rx="2" fill="#F4C15D" opacity="0.9"/>
+          <rect x="32" y="10" width="10" height="38" rx="2" fill="#F4C15D" opacity="0.9"/>
+          <rect x="46" y="2" width="10" height="46" rx="2" fill="#F4C15D" opacity="0.9"/>
+          <line x1="51" y1="2" x2="58" y2="0" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="51" y1="2" x2="55" y2="7" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="asset-info">
+        <div class="asset-name">progress-chart.png</div>
+        <div class="spec-row"><span class="spec-key">שם קובץ</span><span class="spec-val">progress-chart.png</span></div>
+        <div class="spec-row"><span class="spec-key">גודל לתצוגה</span><span class="spec-val">110 × 90 px</span></div>
+        <div class="spec-row"><span class="spec-key">רזולוציית ייצוא</span><span class="spec-val">220 × 180 px @2x</span></div>
+        <div class="spec-row"><span class="spec-key">פורמט</span><span class="spec-val">PNG (רקע שקוף)</span></div>
+        <div class="spec-row"><span class="spec-key">background fill</span><span class="spec-val">linear-gradient #1a0800 → #3d1f00</span></div>
+        <p class="note">גרף עמודות עם חץ כתום עולה למעלה בימין — מייצג "קצב עולה". רקע כתום-כהה עם ניצוצות. אנימטי/תלת-ממדי קל. מהתמונה המקורית.</p>
+      </div>
+    </div>
+
+    <!-- Achievement wreath -->
+    <div class="asset-card">
+      <div class="spec-badge" style="padding:12px 16px 0"><span class="badge new">NEW · נדרש</span></div>
+      <div class="asset-preview ach">
+        <div class="glow red"></div>
+        <span style="position:relative;font-size:56px;filter:drop-shadow(0 2px 14px rgba(214,58,54,0.8))">🥇</span>
+      </div>
+      <div class="asset-info">
+        <div class="asset-name">achievement-wreath.png</div>
+        <div class="spec-row"><span class="spec-key">שם קובץ</span><span class="spec-val">achievement-wreath.png</span></div>
+        <div class="spec-row"><span class="spec-key">גודל לתצוגה</span><span class="spec-val">110 × 90 px</span></div>
+        <div class="spec-row"><span class="spec-key">רזולוציית ייצוא</span><span class="spec-val">220 × 180 px @2x</span></div>
+        <div class="spec-row"><span class="spec-key">פורמט</span><span class="spec-val">PNG (רקע שקוף)</span></div>
+        <div class="spec-row"><span class="spec-key">background fill</span><span class="spec-val">linear-gradient #1a0800 → #3d1200</span></div>
+        <p class="note">גביע זהב עם עטרת דפנה ירוקה — מייצג הישגים. גוון אדום-כהה ברקע עם ניצוצות כתומים. מהתמונה המקורית — גביע מלא עם עיטורים.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── Existing assets in use ───────────────────────────────────────────── -->
+<section>
+  <h2>✅ Assets קיימים בשימוש — אין צורך ביצירה</h2>
+  <div class="existing-grid">
+
+    <div class="existing-card">
+      <span class="badge existing">קיים</span>
+      <div class="existing-name">stadium-bg.jpeg</div>
+      <div class="existing-row"><span class="existing-key">מיקום</span><span class="existing-val">/assets/stadium-bg.jpeg</span></div>
+      <div class="existing-row"><span class="existing-key">שימוש</span><span class="existing-val">רקע Hero Card</span></div>
+      <div class="existing-row"><span class="existing-key">overlay</span><span class="existing-val">gradient dark 88%</span></div>
+    </div>
+
+    <div class="existing-card">
+      <span class="badge existing">קיים</span>
+      <div class="existing-name">tier-hero/tier-N.png</div>
+      <div class="existing-row"><span class="existing-key">מיקום</span><span class="existing-val">/tier-hero/tier-1..5.png</span></div>
+      <div class="existing-row"><span class="existing-key">שימוש</span><span class="existing-val">Badge בכרטיס Hero (100×100)</span></div>
+      <div class="existing-row"><span class="existing-key">נבחר לפי</span><span class="existing-val">ladder slot (1–5)</span></div>
+    </div>
+
+    <div class="existing-card">
+      <span class="badge generated">נוצר בקוד</span>
+      <div class="existing-name">Pie Chart (breakdown)</div>
+      <div class="existing-row"><span class="existing-key">סוג</span><span class="existing-val">SVG inline</span></div>
+      <div class="existing-row"><span class="existing-key">גודל</span><span class="existing-val">72 × 72 px</span></div>
+      <div class="existing-row"><span class="existing-key">נתונים</span><span class="existing-val">getPlayerLedger API</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── Font & color spec ────────────────────────────────────────────────── -->
+<section>
+  <h2>🎨 טיפוגרפיה וצבעים</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div>
+      <h3 style="margin-bottom:12px">צבעים</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:8px;background:#D63A36"></div><div><div style="font-size:13px;font-weight:700">Red · --red</div><div style="font-size:11px;color:#9D8585">#D63A36</div></div></div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:8px;background:#F4C15D"></div><div><div style="font-size:13px;font-weight:700">Gold · --gold</div><div style="font-size:11px;color:#9D8585">#F4C15D</div></div></div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:8px;background:#F8F3EA"></div><div><div style="font-size:13px;font-weight:700">Text · --text</div><div style="font-size:11px;color:#9D8585">#F8F3EA</div></div></div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:8px;background:#060202;border:1px solid #333"></div><div><div style="font-size:13px;font-weight:700">Background</div><div style="font-size:11px;color:#9D8585">#060202</div></div></div>
+      </div>
+    </div>
+    <div>
+      <h3 style="margin-bottom:12px">פונטים</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+        <div><div style="font-weight:900;font-size:16px">Heebo 900 — כותרות ומספרים</div><div style="color:#9D8585">Points, nav titles, brand name</div></div>
+        <div><div style="font-weight:700;font-size:15px">Heebo 700 — כותרות משנה</div><div style="color:#9D8585">Labels, subtitles</div></div>
+        <div><div style="font-weight:400;font-size:13px;color:#9D8585">Heebo 400 — טקסט רגיל</div><div style="color:#9D8585">Body, descriptions</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Delivery notes ───────────────────────────────────────────────────── -->
+<section>
+  <h2>📦 הוראות אספקה למעצב</h2>
+  <div style="background:rgba(28,6,6,0.9);border:1px solid rgba(214,58,54,0.25);border-radius:16px;padding:20px;font-size:13px;line-height:2">
+    <div>✦ כל ה-PNG חייבים עם <strong>רקע שקוף</strong> (PNG-24, לא JPG)</div>
+    <div>✦ ייצוא ב-<strong>@2x</strong> — כפל המידות הרשומות (לרזולוציות Retina)</div>
+    <div>✦ שמות קבצים <strong>באנגלית, קווים תחתיים בלבד</strong>, כפי שמוגדר בעמודה "שם קובץ"</div>
+    <div>✦ תיקיית יעד בפרויקט: <code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px">public/assets/</code></div>
+    <div>✦ רזולוציית display ≈ 110×90px — האיורים מוצגים בתוך כרטיס גובה 90px רוחב 110px</div>
+    <div>✦ אפקט גוהר (glow/bokeh) בסגנון stadium — עקבי עם שאר האפליקציה</div>
+    <div>✦ ראו את ה<strong>reference image</strong> (צרוף) — כל ה-4 איורים הנדרשים מופיעים שם</div>
+  </div>
+</section>
+
+</body>
+</html>
