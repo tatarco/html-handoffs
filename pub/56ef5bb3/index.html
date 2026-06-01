@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lead Routing Matrix — Implementation Plan</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #273549;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --green: #22c55e;
+    --green-dim: #166534;
+    --green-bg: #052e16;
+    --amber: #f59e0b;
+    --amber-dim: #92400e;
+    --amber-bg: #1c1500;
+    --blue: #60a5fa;
+    --blue-dim: #1e40af;
+    --blue-bg: #0a1628;
+    --red: #f87171;
+    --red-bg: #1a0a0a;
+    --purple: #a78bfa;
+    --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #0f172a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 56px 48px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(99,102,241,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-label {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--purple);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .hero h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+    line-height: 1.15;
+    background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-goal {
+    font-size: 1.05rem;
+    color: var(--muted);
+    max-width: 680px;
+    margin-bottom: 24px;
+    line-height: 1.7;
+  }
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: var(--surface);
+  }
+  .badge.purple { border-color: var(--purple); color: var(--purple); background: rgba(167,139,250,0.08); }
+  .badge.blue   { border-color: var(--blue);   color: var(--blue);   background: rgba(96,165,250,0.08); }
+  .badge.green  { border-color: var(--green);  color: var(--green);  background: rgba(34,197,94,0.08);  }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .stat {
+    flex: 1;
+    padding: 18px 24px;
+    border-left: 1px solid var(--border);
+    text-align: center;
+  }
+  .stat:last-child { border-left: none; }
+  .stat-num {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-num.green  { color: var(--green); }
+  .stat-num.amber  { color: var(--amber); }
+  .stat-num.purple { color: var(--purple); }
+  .stat-num.blue   { color: var(--blue); }
+  .stat-label { font-size: 11px; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+
+  /* ── Layout ── */
+  .container { max-width: 1200px; margin: 0 auto; padding: 48px 32px; }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--purple);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Architecture flow ── */
+  .arch-flow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 48px;
+    overflow-x: auto;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-width: 700px;
+    justify-content: center;
+  }
+  .flow-node {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    text-align: center;
+    min-width: 160px;
+    position: relative;
+  }
+  .flow-node .node-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .flow-node .node-sub {
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .flow-node.highlight {
+    border-color: var(--purple);
+    background: rgba(167,139,250,0.08);
+  }
+  .flow-node.highlight .node-title { color: var(--purple); }
+  .flow-node.new-entity {
+    border-color: var(--green);
+    background: var(--green-bg);
+  }
+  .flow-node.new-entity .node-title { color: var(--green); }
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 4px;
+    color: var(--muted);
+    font-size: 18px;
+    min-width: 36px;
+  }
+  .flow-arrow-label {
+    font-size: 9px;
+    color: var(--muted);
+    white-space: nowrap;
+    margin-top: 2px;
+    text-align: center;
+  }
+  .flow-split {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .flow-split-node {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--muted);
+    min-width: 130px;
+  }
+  .flow-split-node.wa { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+  .flow-split-node.relay { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+
+  /* ── File map ── */
+  .file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+  .file-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-right-width: 3px;
+    border-radius: 8px;
+    padding: 14px 16px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: default;
+  }
+  .file-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .file-card.create { border-right-color: var(--green); }
+  .file-card.modify { border-right-color: var(--amber); }
+  .file-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .file-pill {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 10px;
+    text-transform: uppercase;
+  }
+  .file-pill.create { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-dim); }
+  .file-pill.modify { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-dim); }
+  .file-path {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+    word-break: break-all;
+    line-height: 1.5;
+  }
+  .file-layer {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ── Task timeline ── */
+  .timeline {
+    position: relative;
+    padding-right: 48px;
+    margin-bottom: 48px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    right: 19px;
+    top: 24px;
+    bottom: 24px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--purple), var(--blue));
+    opacity: 0.4;
+  }
+  .task-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 12px;
+    position: relative;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .task-card:hover {
+    transform: translateY(-2px) translateX(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    border-color: var(--purple);
+  }
+  .task-dot {
+    position: absolute;
+    right: -37px;
+    top: 22px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 2px solid var(--purple);
+  }
+  .task-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .task-num {
+    background: linear-gradient(135deg, var(--purple), var(--blue));
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .task-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    flex: 1;
+  }
+  .task-meta {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .step-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .task-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .task-files-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .task-file-item {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .task-file-item .dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .task-file-item .dot.create { background: var(--green); }
+  .task-file-item .dot.modify { background: var(--amber); }
+  .task-steps-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .task-steps-list li {
+    font-size: 11px;
+    color: var(--muted);
+    padding-right: 12px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .task-steps-list li::before {
+    content: '→';
+    position: absolute;
+    right: 0;
+    color: var(--purple);
+    opacity: 0.6;
+    font-size: 9px;
+    top: 2px;
+  }
+  .task-phase {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  .task-phase.entity  { background: rgba(34,197,94,0.12);  color: var(--green); border: 1px solid var(--green-dim); }
+  .task-phase.backend { background: rgba(96,165,250,0.12);  color: var(--blue);  border: 1px solid var(--blue-dim);  }
+  .task-phase.cleanup { background: rgba(245,158,11,0.12);  color: var(--amber); border: 1px solid var(--amber-dim); }
+  .task-phase.ui      { background: rgba(167,139,250,0.12); color: var(--purple);border: 1px solid #5b21b6; }
+
+  /* ── Gap warning ── */
+  .gap-box {
+    background: var(--red-bg);
+    border: 1px solid rgba(248,113,113,0.3);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 48px;
+  }
+  .gap-box-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .gap-item {
+    font-size: 13px;
+    color: #fca5a5;
+    line-height: 1.6;
+    padding-right: 16px;
+    position: relative;
+  }
+  .gap-item::before {
+    content: '⚠';
+    position: absolute;
+    right: 0;
+    color: var(--red);
+    font-size: 11px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .footer a { color: var(--purple); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .hero { padding: 32px 20px; }
+    .hero h1 { font-size: 1.6rem; }
+    .container { padding: 32px 16px; }
+    .task-body { grid-template-columns: 1fr; }
+    .stats-bar { flex-wrap: wrap; }
+    .stat { min-width: 50%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-label">Implementation Plan · 2026-06-01</div>
+  <h1>Lead Routing Matrix</h1>
+  <p class="hero-goal">
+    מחליפים את <code style="font-family:monospace;font-size:0.85em;background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px">responsibleEmployeeId</code> על FacebookFormConfig במטריצה אחת שמגדירה מי מקבל לידים לפי סניף × תפקיד —
+    עבור כל מקורות הלידים (Facebook, ידני, RecruitmentLink). הריליי הדו-כיווני ב-WhatsApp כבר בנוי; צינור הנתב הוא מה שחסר.
+  </p>
+  <div class="badges">
+    <span class="badge purple">Base44 Entities</span>
+    <span class="badge blue">Supabase Edge Functions</span>
+    <span class="badge green">React + shadcn/ui</span>
+    <span class="badge">@tanstack/react-query</span>
+    <span class="badge">Tailwind CSS RTL</span>
+    <span class="badge">@base44/sdk@0.8.23</span>
+  </div>
+</div>
+
+<!-- ── Stats ── -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num purple">14</div>
+    <div class="stat-label">Tasks</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num green">7</div>
+    <div class="stat-label">Files Created</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num amber">10</div>
+    <div class="stat-label">Files Modified</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num blue">4</div>
+    <div class="stat-label">Phases</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ── Architecture Flow ── -->
+  <div class="section-title">ארכיטקטורה — זרימת ניתוב</div>
+  <div class="arch-flow">
+    <div class="flow-row">
+      <div class="flow-node highlight">
+        <div class="node-title">Facebook Lead Webhook</div>
+        <div class="node-sub">handleFacebookLeadWebhook<br>handleFacebookLeads</div>
+      </div>
+      <div class="flow-arrow">→<div class="flow-arrow-label">formId</div></div>
+      <div class="flow-node">
+        <div class="node-title">FacebookFormConfig</div>
+        <div class="node-sub">formId → branchId<br>+ positionId</div>
+      </div>
+      <div class="flow-arrow">→<div class="flow-arrow-label">lookup</div></div>
+      <div class="flow-node new-entity">
+        <div class="node-title">⭐ LeadRoutingRule</div>
+        <div class="node-sub">branchId + positionId<br>→ assignedUserId</div>
+      </div>
+      <div class="flow-arrow">→<div class="flow-arrow-label">stamp</div></div>
+      <div class="flow-node highlight">
+        <div class="node-title">Candidate</div>
+        <div class="node-sub">assignedToUserId set</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-split">
+        <div class="flow-split-node wa">📱 WA → מועמד<br><span style="font-size:9px;opacity:0.7">עם חתימת האחראי</span></div>
+        <div class="flow-split-node relay">↩ תשובת מועמד → אחראי<br><span style="font-size:9px;opacity:0.7">ריליי קיים</span></div>
+      </div>
+    </div>
+    <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border);display:flex;gap:16px;justify-content:center;font-size:11px;color:var(--muted)">
+      <span>📋 <strong style="color:var(--green)">LeadRoutingHistory</strong> — רשומת ביקורת לכל שינוי אחראי</span>
+      <span>·</span>
+      <span>🔔 <strong style="color:var(--blue)">notifyManagerInboundWhatsApp</strong> — מנתב ע"פ assignedToUserId</span>
+    </div>
+  </div>
+
+  <!-- ── File Map ── -->
+  <div class="section-title">מפת קבצים</div>
+  <div class="file-grid">
+
+    <!-- Creates -->
+    <div class="file-card create">
+      <div class="file-card-header">
+        <span class="file-pill create">Create</span>
+      </div>
+      <div class="file-path">base44/entities/LeadRoutingRule.jsonc</div>
+      <div class="file-layer">Entity — branchId + positionId → assignedUserId</div>
+    </div>
+    <div class="file-card create">
+      <div class="file-card-header"><span class="file-pill create">Create</span></div>
+      <div class="file-path">base44/entities/LeadRoutingHistory.jsonc</div>
+      <div class="file-layer">Entity — audit trail for every assignment change</div>
+    </div>
+    <div class="file-card create">
+      <div class="file-card-header"><span class="file-pill create">Create</span></div>
+      <div class="file-path">supabase/functions/saveLeadRoutingRule/index.ts</div>
+      <div class="file-layer">Edge Function — atomic history write + rule upsert</div>
+    </div>
+    <div class="file-card create">
+      <div class="file-card-header"><span class="file-pill create">Create</span></div>
+      <div class="file-path">supabase/functions/saveLeadRoutingRule/function.jsonc</div>
+      <div class="file-layer">Function metadata</div>
+    </div>
+    <div class="file-card create">
+      <div class="file-card-header"><span class="file-pill create">Create</span></div>
+      <div class="file-path">src/pages/LeadRoutingMatrix.jsx</div>
+      <div class="file-layer">UI — page shell, data loading, tab routing</div>
+    </div>
+    <div class="file-card create">
+      <div class="file-card-header"><span class="file-pill create">Create</span></div>
+      <div class="file-path">src/components/routing/BranchMatrix.jsx</div>
+      <div class="file-layer">UI — branches × positions grid, bulk-select column/row</div>
+    </div>
+    <div class="file-card create">
+      <div class="file-card-header"><span class="file-pill create">Create</span></div>
+      <div class="file-path">src/components/routing/HQMatrix.jsx</div>
+      <div class="file-layer">UI — HQ positions (no branch column)</div>
+    </div>
+    <div class="file-card create">
+      <div class="file-card-header"><span class="file-pill create">Create</span></div>
+      <div class="file-path">src/components/routing/UserPickerModal.jsx</div>
+      <div class="file-layer">UI — searchable employee picker with bulk-scope label</div>
+    </div>
+    <div class="file-card create">
+      <div class="file-card-header"><span class="file-pill create">Create</span></div>
+      <div class="file-path">src/components/routing/RoutingAuditHistory.jsx</div>
+      <div class="file-layer">UI — filterable history table (branch × position)</div>
+    </div>
+
+    <!-- Modifies -->
+    <div class="file-card modify">
+      <div class="file-card-header"><span class="file-pill modify">Modify</span></div>
+      <div class="file-path">supabase/functions/sendRecruitmentWhatsApp/index.ts</div>
+      <div class="file-layer">Use candidate.assignedToUserId for lead_responsible + manager phone</div>
+    </div>
+    <div class="file-card modify">
+      <div class="file-card-header"><span class="file-pill modify">Modify</span></div>
+      <div class="file-path">supabase/functions/notifyManagerInboundWhatsApp/index.ts</div>
+      <div class="file-layer">Skip guard: no_branch → no_assigned_user</div>
+    </div>
+    <div class="file-card modify">
+      <div class="file-card-header"><span class="file-pill modify">Modify</span></div>
+      <div class="file-path">supabase/functions/handleFacebookLeadWebhook/index.ts</div>
+      <div class="file-layer">Stamp assignedToUserId from LeadRoutingRule after candidate create</div>
+    </div>
+    <div class="file-card modify">
+      <div class="file-card-header"><span class="file-pill modify">Modify</span></div>
+      <div class="file-path">supabase/functions/handleFacebookLeads/index.ts</div>
+      <div class="file-layer">Same stamp, before fire-and-forget WA send</div>
+    </div>
+    <div class="file-card modify">
+      <div class="file-card-header"><span class="file-pill modify">Modify</span></div>
+      <div class="file-path">base44/entities/FacebookFormConfig.jsonc</div>
+      <div class="file-layer">Remove responsibleEmployeeId field</div>
+    </div>
+    <div class="file-card modify">
+      <div class="file-card-header"><span class="file-pill modify">Modify</span></div>
+      <div class="file-path">src/pages/FacebookFormManagement.jsx</div>
+      <div class="file-layer">Remove EMPTY_FORM field + display + Select for responsibleEmployeeId</div>
+    </div>
+    <div class="file-card modify">
+      <div class="file-card-header"><span class="file-pill modify">Modify</span></div>
+      <div class="file-path">src/pages/HRSettings.jsx</div>
+      <div class="file-layer">Add routing link + missing-rules warning badge with tooltip</div>
+    </div>
+    <div class="file-card modify">
+      <div class="file-card-header"><span class="file-pill modify">Modify</span></div>
+      <div class="file-path">src/pages.config.js</div>
+      <div class="file-layer">Register LeadRoutingMatrix page</div>
+    </div>
+  </div>
+
+  <!-- ── Task Timeline ── -->
+  <div class="section-title">Tasks</div>
+  <div class="timeline">
+
+    <!-- Task 1 -->
+    <div class="task-card">
+      <div class="task-dot"></div>
+      <div class="task-header">
+        <div class="task-num">1</div>
+        <div>
+          <div class="task-title">Create LeadRoutingRule entity</div>
+          <div class="task-meta">
+            <span class="task-phase entity">Entity</span>
+            <span class="step-badge">3 steps</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-files-list">
+          <div class="task-file-item"><span class="dot create"></span>base44/entities/LeadRoutingRule.jsonc</div>
+        </div>
+        <ul class="task-steps-list">
+          <li>Write entity JSONC (branchId nullable, positionId + assignedUserId required)</li>
+          <li>Verify format matches FacebookFormConfig.jsonc</li>
+          <li>Commit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Task 2 -->
+    <div class="task-card">
+      <div class="task-dot"></div>
+      <div class="task-header">
+        <div class="task-num">2</div>
+        <div>
+          <div class="task-title">Create LeadRoutingHistory entity</div>
+          <div class="task-meta">
+            <span class="task-phase entity">Entity</span>
+            <span class="step-badge">2 steps</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-files-list">
+          <div class="task-file-item"><span class="dot create"></span>base44/entities/LeadRoutingHistory.jsonc</div>
+        </div>
+        <ul class="task-steps-list">
+          <li>Write entity JSONC (assignedAt, assignedByUserId, supersededAt?)</li>
+          <li>Commit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Task 3 -->
+    <div class="task-card">
+      <div class="task-dot"></div>
+      <div class="task-header">
+        <div class="task-num">3</div>
+        <div>
+          <div class="task-title">Create saveLeadRoutingRule edge function</div>
+          <div class="task-meta">
+            <span class="task-phase backend">Backend</span>
+            <span class="step-badge">3 steps</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-files-list">
+          <div class="task-file-item"><span class="dot create"></span>supabase/functions/saveLeadRoutingRule/index.ts</div>
+          <div class="task-file-item"><span class="dot create"></span>supabase/functions/saveLeadRoutingRule/function.jsonc</div>
+        </div>
+        <ul class="task-steps-list">
+          <li>Copy function.jsonc from adjacent function</li>
+          <li>Write index.ts: supersede history → new history → upsert rule</li>
+          <li>Commit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Task 4 -->
+    <div class="task-card">
+      <div class="task-dot"></div>
+      <div class="task-header">
+        <div class="task-num">4</div>
+        <div>
+          <div class="task-title">Update sendRecruitmentWhatsApp — use assignedToUserId</div>
+          <div class="task-meta">
+            <span class="task-phase backend">Backend</span>
+            <span class="step-badge">5 steps</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-files-list">
+          <div class="task-file-item"><span class="dot modify"></span>sendRecruitmentWhatsApp/index.ts</div>
+        </div>
+        <ul class="task-steps-list">
+          <li>Read current function, locate branch + phone + formConfig block</li>
+          <li>Replace with parallel [branch, responsibleEmployee] load from assignedToUserId</li>
+          <li>Change phone: isManagerNotification → responsibleEmployee.phone</li>
+          <li>Remove formConfigPromise + leadResponsible block; update roles.lead_responsible</li>
+          <li>Commit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Task 5 -->
+    <div class="task-card">
+      <div class="task-dot"></div>
+      <div class="task-header">
+        <div class="task-num">5</div>
+        <div>
+          <div class="task-title">Update notifyManagerInboundWhatsApp — fix skip guard</div>
+          <div class="task-meta">
+            <span class="task-phase backend">Backend</span>
+            <span class="step-badge">3 steps</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-files-list">
+          <div class="task-file-item"><span class="dot modify"></span>notifyManagerInboundWhatsApp/index.ts</div>
+        </div>
+        <ul class="task-steps-list">
+          <li>Find skip guard: !candidate.preferredBranchId</li>
+          <li>Replace with: !candidate.assignedToUserId</li>
+          <li>Commit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Task 6 -->
+    <div class="task-card">
+      <div class="task-dot"></div>
+      <div class="task-header">
+        <div class="task-num">6</div>
+        <div>
+          <div class="task-title">Update handleFacebookLeadWebhook — stamp assignedToUserId</div>
+          <div class="task-meta">
+            <span class="task-phase backend">Backend</span>
+            <span class="step-badge">3 steps</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-files-list">
+          <div class="task-file-item"><span class="dot modify"></span>handleFacebookLeadWebhook/index.ts</div>
+        </div>
+        <ul class="task-steps-list">
+          <li>Find line after candidate.create log (line ~215)</li>
+          <li>Insert: filter LeadRoutingRule → match branchId → update candidate.assignedToUserId</li>
+          <li>Commit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Task 7 -->
+    <div class="task-card">
+      <div class="task-dot"></div>
+      <div class="task-header">
+        <div class="task-num">7</div>
+        <div>
+          <div class="task-title">Update handleFacebookLeads — stamp before WA send</div>
+          <div class="task-meta">
+            <span class="task-phase backend">Backend</span>
+            <span class="step-badge">3 steps</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-files-list">
+          <div class="task-file-item"><span class="dot modify"></span>handleFacebookLeads/index.ts</div>
+        </div>
+        <ul class="task-steps-list">
+          <li>Find gap between candidate.create and fire-and-forget fetch</li>
+          <li>Insert: LeadRoutingRule lookup → candidate.update(assignedToUserId)</li>
+          <li>Commit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Task 8 -->
+    <div class="task-card">
+      <div class="task-dot"></div>
+      <div class="task-header">
+        <div class="task-num">8</div>
+        <div>
+          <div class="task-title">Remove responsibleEmployeeId from FacebookFormConfig</div>
+          <div class="task-meta">
+            <span class="task-phase cleanup">Cleanup</span>
+            <span class="step-badge">3 steps</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-files-list">
+          <div class="task-file-item"><span class="dot modify"></span>FacebookFormConfig.jsonc</div>
+          <div class="task-file-item"><span class="dot modify"></span>FacebookFormManagement.jsx</div>
+        </div>
+        <ul class="task-steps-list">
+          <li>Delete responsibleEmployeeId from entity JSONC</li>
+          <li>Remove from EMPTY_FORM, card display, edit form Select in JSX</li>
+          <li>Commit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Task 9 -->
+    <div class="task-card">
+      <div class="task-dot"></div>
+      <div class="task-header">
+        <div class="task-num">9</div>
+        <div>
+          <div class="task-title">Build LeadRoutingMatrix.jsx page shell</div>
+          <div class="task-meta">
+            <span class="task-phase ui">UI</span>
+            <span class="step-badge">2 steps</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-files-list">
+          <div class="task-file-item"><span class="dot create"></span>src/pages/LeadRoutingMatrix.jsx</div>
+        </div>
+        <ul class="task-steps-list">
+          <li>Write page: load branches/positions/employees/rules/currentUser; 3-tab layout; handleSave calls saveLeadRoutingRule for each (branchId, positionId)</li>
+          <li>Commit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Task 10 -->
+    <div class="task-card">
+      <div class="task-dot"></div>
+      <div class="task-header">
+        <div class="task-num">10</div>
+        <div>
+          <div class="task-title">Build BranchMatrix.jsx</div>
+          <div class="task-meta">
+            <span class="task-phase ui">UI</span>
+            <span class="step-badge">2 steps</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-files-list">
+          <div class="task-file-item"><span class="dot create"></span>src/components/routing/BranchMatrix.jsx</div>
+        </div>
+        <ul class="task-steps-list">
+          <li>Sticky position column; branch column headers clickable (bulk all positions); row headers clickable (bulk all branches); empty cell → red AlertCircle tooltip</li>
+          <li>Commit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Task 11 -->
+    <div class="task-card">
+      <div class="task-dot"></div>
+      <div class="task-header">
+        <div class="task-num">11</div>
+        <div>
+          <div class="task-title">Build HQMatrix.jsx</div>
+          <div class="task-meta">
+            <span class="task-phase ui">UI</span>
+            <span class="step-badge">2 steps</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-files-list">
+          <div class="task-file-item"><span class="dot create"></span>src/components/routing/HQMatrix.jsx</div>
+        </div>
+        <ul class="task-steps-list">
+          <li>Two-column table (position | responsible); click row → onOpenPicker with branchIds:[null]</li>
+          <li>Commit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Task 12 -->
+    <div class="task-card">
+      <div class="task-dot"></div>
+      <div class="task-header">
+        <div class="task-num">12</div>
+        <div>
+          <div class="task-title">Build UserPickerModal.jsx</div>
+          <div class="task-meta">
+            <span class="task-phase ui">UI</span>
+            <span class="step-badge">2 steps</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-files-list">
+          <div class="task-file-item"><span class="dot create"></span>src/components/routing/UserPickerModal.jsx</div>
+        </div>
+        <ul class="task-steps-list">
+          <li>Searchable employee list (filter: e.userId exists); scope label in title; save calls onSave(userId, target)</li>
+          <li>Commit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Task 13 -->
+    <div class="task-card">
+      <div class="task-dot"></div>
+      <div class="task-header">
+        <div class="task-num">13</div>
+        <div>
+          <div class="task-title">Build RoutingAuditHistory.jsx</div>
+          <div class="task-meta">
+            <span class="task-phase ui">UI</span>
+            <span class="step-badge">2 steps</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-files-list">
+          <div class="task-file-item"><span class="dot create"></span>src/components/routing/RoutingAuditHistory.jsx</div>
+        </div>
+        <ul class="task-steps-list">
+          <li>Load LeadRoutingHistory.list(); filter by branch + position dropdowns; table: branch, position, assigned, from, to, changed-by</li>
+          <li>Commit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Task 14 -->
+    <div class="task-card">
+      <div class="task-dot"></div>
+      <div class="task-header">
+        <div class="task-num">14</div>
+        <div>
+          <div class="task-title">Register page + add warning badge to HR Settings</div>
+          <div class="task-meta">
+            <span class="task-phase ui">UI</span>
+            <span class="step-badge">5 steps</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="task-files-list">
+          <div class="task-file-item"><span class="dot modify"></span>src/pages.config.js</div>
+          <div class="task-file-item"><span class="dot modify"></span>src/pages/HRSettings.jsx</div>
+        </div>
+        <ul class="task-steps-list">
+          <li>Register /LeadRoutingMatrix in pages.config.js</li>
+          <li>Add link to recruitment section of SETTINGS_CONFIG</li>
+          <li>Add useQuery for missingRulesCount (branches × branchPositions + hqPositions − rules.length)</li>
+          <li>Render red ! badge + tooltip on routing link when count > 0</li>
+          <li>Commit</li>
+        </ul>
+      </div>
+    </div>
+
+  </div><!-- /timeline -->
+
+  <!-- ── Known Gaps ── -->
+  <div class="section-title">פערים ידועים</div>
+  <div class="gap-box">
+    <div class="gap-box-title">⚠ Follow-up נדרש</div>
+    <div class="gap-item">
+      <strong>יצירת מועמד ידנית + RecruitmentLink</strong> — שני מסלולים אלה יוצרים מועמדים מצד הלקוח (client-side) ולא דרך פונקציית backend. כתוצאה, <code style="font-family:monospace;font-size:0.85em">assignedToUserId</code> לא יוגדר אוטומטית עבורם. פתרון עתידי: הוסף lookup ב-onCandidateCreated backend trigger, או בצד הממשק עם כתיבה ל-LeadRoutingRule בעת יצירה.
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="footer">
+  <span>Lead Routing Matrix · BizFlow ERP · 2026-06-01</span>
+  <span>14 tasks · 7 files created · 10 files modified</span>
+</div>
+
+</body>
+</html>
