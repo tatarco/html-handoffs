@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizFlow · Lead Routing & Responsible Person</title>
+<style>
+:root {
+  --bg: #0b1220;
+  --surface: #141c2e;
+  --surface2: #1a2540;
+  --border: #2a3654;
+  --text: #eef2ff;
+  --muted: #94a3b8;
+  --blue: #3b82f6;
+  --cyan: #22d3ee;
+  --green: #22c55e;
+  --amber: #f59e0b;
+  --orange: #f97316;
+  --red: #ef4444;
+  --violet: #8b5cf6;
+  --pink: #ec4899;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.page { max-width: 1180px; margin: 0 auto; padding: 28px 20px 80px; }
+
+.hero {
+  background: linear-gradient(135deg, #1a2540 0%, #0b1220 60%, #1e1035 100%);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -40%; left: -10%;
+  width: 50%; height: 140%;
+  background: radial-gradient(circle, rgba(59,130,246,.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-grid { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center; position: relative; }
+@media(max-width:720px) { .hero-grid { grid-template-columns: 1fr; } }
+.hero-icon {
+  width: 72px; height: 72px; border-radius: 18px;
+  background: linear-gradient(135deg, var(--orange), var(--violet));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 34px; box-shadow: 0 8px 32px rgba(249,115,22,.25);
+}
+.hero h1 { font-size: 26px; font-weight: 800; letter-spacing: -.4px; margin-bottom: 8px; }
+.hero p { color: var(--muted); max-width: 640px; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.tag {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 999px; padding: 4px 12px; font-size: 12px; color: var(--muted);
+}
+.tag strong { color: var(--text); }
+
+.sec {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px;
+  color: var(--muted); margin: 28px 0 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.sec::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
+@media(max-width:900px) { .grid3 { grid-template-columns: 1fr; } }
+@media(max-width:720px) { .grid2 { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px 20px;
+}
+.card-title {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .7px; color: var(--muted); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot.b { background: var(--blue); } .dot.g { background: var(--green); }
+.dot.a { background: var(--amber); } .dot.v { background: var(--violet); }
+.dot.o { background: var(--orange); }
+
+.note {
+  background: #121a2e; border: 1px solid var(--border);
+  border-right: 4px solid var(--amber);
+  border-radius: 10px 0 0 10px; padding: 14px 18px; margin-bottom: 16px;
+  color: var(--muted); font-size: 13px;
+}
+.note strong { color: var(--text); }
+.note.g { border-right-color: var(--green); }
+.note.r { border-right-color: var(--red); }
+
+/* Three layers */
+.layer-stack { display: flex; flex-direction: column; gap: 12px; }
+.layer {
+  border-radius: 12px; padding: 16px 18px; border: 1px solid var(--border);
+  display: grid; grid-template-columns: 48px 1fr; gap: 14px; align-items: start;
+}
+.layer-num {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 20px;
+}
+.layer.config { background: linear-gradient(90deg, rgba(59,130,246,.12), transparent); }
+.layer.config .layer-num { background: rgba(59,130,246,.2); color: var(--blue); }
+.layer.audit { background: linear-gradient(90deg, rgba(139,92,246,.12), transparent); }
+.layer.audit .layer-num { background: rgba(139,92,246,.2); color: var(--violet); }
+.layer.snapshot { background: linear-gradient(90deg, rgba(34,197,94,.12), transparent); }
+.layer.snapshot .layer-num { background: rgba(34,197,94,.2); color: var(--green); }
+.layer h3 { font-size: 15px; margin-bottom: 6px; }
+.layer p { color: var(--muted); font-size: 13px; }
+.field-pill {
+  display: inline-block; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 2px 8px; font-family: 'SF Mono', monospace;
+  font-size: 11px; color: var(--cyan); margin: 2px 0 2px 4px;
+}
+
+/* Flow diagram */
+.flow-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 24px; overflow-x: auto; margin-bottom: 16px;
+}
+.flow {
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+  min-width: 680px; padding: 8px 0;
+}
+.fnode {
+  background: var(--surface2); border: 2px solid var(--border);
+  border-radius: 12px; padding: 12px 20px; text-align: center;
+  min-width: 220px; max-width: 320px; position: relative;
+}
+.fnode.highlight { border-color: var(--orange); box-shadow: 0 0 24px rgba(249,115,22,.15); }
+.fnode.primary { border-color: var(--blue); }
+.fnode.success { border-color: var(--green); }
+.fnode.warn { border-color: var(--amber); }
+.fnode .fn-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+.fnode .fn-sub { font-size: 11px; color: var(--muted); }
+.farrow {
+  width: 2px; height: 28px; background: var(--border); position: relative;
+}
+.farrow::after {
+  content: ''; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%);
+  border: 6px solid transparent; border-top-color: var(--border);
+}
+.fbranch {
+  display: flex; gap: 24px; align-items: flex-start; justify-content: center;
+  width: 100%; margin: 8px 0;
+}
+.fbranch-line { display: flex; flex-direction: column; align-items: center; flex: 1; }
+.flabel {
+  font-size: 10px; color: var(--muted); background: var(--bg);
+  border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px;
+  margin: 4px 0;
+}
+
+/* Table */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: right; padding: 10px 12px; font-size: 11px;
+  text-transform: uppercase; letter-spacing: .6px; color: var(--muted);
+  border-bottom: 2px solid var(--border); background: var(--surface2);
+}
+td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,.02); }
+code {
+  font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11.5px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1px 6px; color: var(--cyan);
+  direction: ltr; display: inline-block;
+}
+.badge {
+  display: inline-block; border-radius: 6px; padding: 2px 8px;
+  font-size: 11px; font-weight: 600;
+}
+.badge.write { background: rgba(34,197,94,.15); color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+.badge.read { background: rgba(59,130,246,.15); color: var(--blue); border: 1px solid rgba(59,130,246,.3); }
+.badge.skip { background: rgba(148,163,184,.1); color: var(--muted); border: 1px solid var(--border); }
+
+/* Matrix visual */
+.matrix {
+  display: grid; grid-template-columns: 120px repeat(3, 1fr); gap: 4px;
+  font-size: 12px; margin-top: 8px;
+}
+.matrix-h, .matrix-r { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px; text-align: center; }
+.matrix-h { font-weight: 700; color: var(--muted); font-size: 11px; }
+.matrix-r { text-align: right; font-weight: 600; }
+.matrix-cell { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px; text-align: center; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+.matrix-cell.filled { background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.35); color: var(--green); }
+.matrix-cell.empty { background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.25); color: var(--red); font-size: 11px; }
+
+/* Timeline */
+.timeline { position: relative; padding-right: 28px; }
+.timeline::before {
+  content: ''; position: absolute; right: 8px; top: 8px; bottom: 8px;
+  width: 2px; background: var(--border);
+}
+.titem { position: relative; margin-bottom: 18px; padding-right: 8px; }
+.titem::before {
+  content: ''; position: absolute; right: -24px; top: 6px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--blue); border: 2px solid var(--bg);
+}
+.titem.done::before { background: var(--green); }
+.titem.warn::before { background: var(--amber); }
+.titem h4 { font-size: 14px; margin-bottom: 4px; }
+.titem p { color: var(--muted); font-size: 12px; }
+
+.footer {
+  margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);
+  color: var(--muted); font-size: 12px; text-align: center;
+}
+.ltr { direction: ltr; text-align: left; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <div class="hero-grid">
+      <div>
+        <h1>ניתוב לידים &amp; אחראי ליד</h1>
+        <p>מדריך ויזואלי: איך מוגדר האחראי במטריצה, מה נשמר ב-DB, ומה קורה בזמן ריצה כשנכנס ליד חדש או מועמד עונה ב-WhatsApp.</p>
+        <div class="tags">
+          <span class="tag">PR <strong>#301</strong> merged</span>
+          <span class="tag">Entity <strong>LeadRoutingRule</strong></span>
+          <span class="tag">Function <strong>createCandidate</strong></span>
+          <span class="tag">Field <strong>Candidate.assignedToUserId</strong></span>
+        </div>
+      </div>
+      <div class="hero-icon">🔀</div>
+    </div>
+  </div>
+
+  <div class="note g">
+    <strong>בקצרה:</strong> המטריצה מגדירה <em>כללים</em> (branch × position → manager).
+    ביצירת מועמד, המערכת מעתיקה את הכלל לשדה <code>assignedToUserId</code> על המועמד — זהו snapshot חד-פעמי.
+    שינוי במטריצה לא משנה מועמדים קיימים.
+  </div>
+
+  <!-- WHERE TO FIND -->
+  <div class="sec">איפה מגדירים</div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title"><span class="dot b"></span>ניווט במערכת</div>
+      <div class="timeline">
+        <div class="titem done">
+          <h4>הגדרות מערכת</h4>
+          <p>Admin Settings → משאבי אנוש וגיוס</p>
+        </div>
+        <div class="titem done">
+          <h4>ניהול תפקידים</h4>
+          <p>מבט טבלאי (HR Settings grid)</p>
+        </div>
+        <div class="titem done">
+          <h4>אייקון ניתוב לידים 🌐</h4>
+          <p>עמודת "גיוס" — tooltip: ניתוב לידים. badge אדום = כללים חסרים</p>
+        </div>
+        <div class="titem">
+          <h4>URL ישיר</h4>
+          <p class="ltr">/LeadRoutingMatrix</p>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot o"></span>מטריצה — דוגמה ויזואלית</div>
+      <p style="color:var(--muted);font-size:12px;margin-bottom:10px">כל תא = branch × position. לחיצה → בחירת Employee → שמירה</p>
+      <div class="matrix">
+        <div class="matrix-h"></div>
+        <div class="matrix-h">טבח</div>
+        <div class="matrix-h">מנהל מסעדה</div>
+        <div class="matrix-h">מלצר</div>
+        <div class="matrix-r">קריות</div>
+        <div class="matrix-cell filled">איציק</div>
+        <div class="matrix-cell filled">דנה</div>
+        <div class="matrix-cell empty">חסר !</div>
+        <div class="matrix-r">תל אביב</div>
+        <div class="matrix-cell filled">יוסי</div>
+        <div class="matrix-cell empty">חסר !</div>
+        <div class="matrix-cell filled">מיכל</div>
+        <div class="matrix-r">מטה</div>
+        <div class="matrix-cell filled">HR</div>
+        <div class="matrix-cell filled">BI</div>
+        <div class="matrix-cell empty">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THREE LAYERS -->
+  <div class="sec">שלוש שכבות נתונים — אל תבלבל ביניהן</div>
+  <div class="layer-stack">
+    <div class="layer config">
+      <div class="layer-num">1</div>
+      <div>
+        <h3>LeadRoutingRule — כלל פעיל</h3>
+        <p>המצב הנוכחי של המטריצה. מפתח: <span class="field-pill">positionId</span> + <span class="field-pill">branchId</span> (ריק = מטה)</p>
+        <p style="margin-top:6px">שדה מרכזי: <span class="field-pill">assignedUserId</span> = <strong>User.id</strong> של ה-Employee (לא Employee.id!)</p>
+      </div>
+    </div>
+    <div class="layer audit">
+      <div class="layer-num">2</div>
+      <div>
+        <h3>LeadRoutingHistory — היסטוריית שינויים</h3>
+        <p>כל שמירה: supersede לשורות ישנות (<span class="field-pill">supersededAt</span>) + שורה חדשה</p>
+        <p style="margin-top:6px">
+          <span class="field-pill">assignedUserId</span> מי הוקצה &nbsp;|&nbsp;
+          <span class="field-pill">assignedByUserId</span> מי שינה (User.id מה-session) &nbsp;|&nbsp;
+          <span class="field-pill">assignedAt</span>
+        </p>
+      </div>
+    </div>
+    <div class="layer snapshot">
+      <div class="layer-num">3</div>
+      <div>
+        <h3>Candidate.assignedToUserId — snapshot על המועמד</h3>
+        <p>נקבע <strong>פעם אחת</strong> ב-<code>createCandidate</code> לפי branch + position של המועמד. לא מתעדכן כשמשנים את המטריצה.</p>
+        <p style="margin-top:6px">תיאור ב-entity: "מנהל אחראי על הליד"</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN FLOW -->
+  <div class="sec">זרימה מלאה — מ-config עד WhatsApp</div>
+  <div class="flow-wrap">
+    <div class="flow">
+      <div class="fnode highlight">
+        <div class="fn-title">Lead Routing Matrix UI</div>
+        <div class="fn-sub">LeadRoutingMatrix.jsx → UserPickerModal</div>
+      </div>
+      <div class="farrow"></div>
+      <div class="fnode primary">
+        <div class="fn-title">saveLeadRoutingRule</div>
+        <div class="fn-sub">RBAC: recruitment.manage_settings · assignedByUserId מה-server</div>
+      </div>
+      <div class="farrow"></div>
+      <div class="fbranch">
+        <div class="fbranch-line">
+          <div class="fnode success" style="min-width:180px">
+            <div class="fn-title">LeadRoutingRule</div>
+            <div class="fn-sub">upsert כלל פעיל</div>
+          </div>
+        </div>
+        <div class="fbranch-line">
+          <div class="fnode" style="min-width:180px;border-color:var(--violet)">
+            <div class="fn-title">LeadRoutingHistory</div>
+            <div class="fn-sub">audit + supersede</div>
+          </div>
+        </div>
+      </div>
+      <div class="farrow"></div>
+      <div class="flabel">─── ליד חדש נכנס ───</div>
+      <div class="fbranch">
+        <div class="fbranch-line">
+          <div class="fnode" style="min-width:140px;font-size:11px">
+            <div class="fn-title">ידני / Referral</div>
+            <div class="fn-sub">useRecruitmentMutations</div>
+          </div>
+        </div>
+        <div class="fbranch-line">
+          <div class="fnode" style="min-width:140px;font-size:11px">
+            <div class="fn-title">Website</div>
+            <div class="fn-sub">handleWebsiteLeads</div>
+          </div>
+        </div>
+        <div class="fbranch-line">
+          <div class="fnode" style="min-width:140px;font-size:11px">
+            <div class="fn-title">Facebook</div>
+            <div class="fn-sub">handleFacebookLeads</div>
+          </div>
+        </div>
+        <div class="fbranch-line">
+          <div class="fnode" style="min-width:140px;font-size:11px">
+            <div class="fn-title">Public link</div>
+            <div class="fn-sub">handlePublicLinkLead</div>
+          </div>
+        </div>
+      </div>
+      <div class="farrow"></div>
+      <div class="fnode primary">
+        <div class="fn-title">createCandidate</div>
+        <div class="fn-sub">lookup LeadRoutingRule → stamp assignedToUserId</div>
+      </div>
+      <div class="farrow"></div>
+      <div class="fnode success">
+        <div class="fn-title">Candidate record</div>
+        <div class="fn-sub">preferredBranchId + desiredPositionId + assignedToUserId</div>
+      </div>
+      <div class="farrow"></div>
+      <div class="fbranch">
+        <div class="fbranch-line">
+          <div class="fnode" style="min-width:200px">
+            <div class="fn-title">sendRecruitmentWhatsApp</div>
+            <div class="fn-sub">trigger: new_lead → למועמד</div>
+            <div class="fn-sub">role: lead_responsible</div>
+          </div>
+        </div>
+        <div class="fbranch-line">
+          <div class="fnode warn" style="min-width:200px">
+            <div class="fn-title">מועמד עונה ב-WA</div>
+            <div class="fn-sub">receiveWhatsAppMessage</div>
+          </div>
+        </div>
+      </div>
+      <div class="farrow"></div>
+      <div class="fnode">
+        <div class="fn-title">notifyManagerInboundWhatsApp</div>
+        <div class="fn-sub">skip אם !assignedToUserId</div>
+      </div>
+      <div class="farrow"></div>
+      <div class="fnode highlight">
+        <div class="fn-title">WhatsApp → אחראי</div>
+        <div class="fn-sub">manager_inbound_notify → Employee.phone</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOOKUP LOGIC -->
+  <div class="sec">לוגיקת התאמה (createCandidate)</div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title"><span class="dot g"></span>resolveAssignedUserId</div>
+    <pre style="background:#020817;border:1px solid var(--border);border-radius:10px;padding:16px;overflow-x:auto;font-size:12px;color:#7dd3fc;direction:ltr;text-align:left;line-height:1.5">rules = LeadRoutingRule.filter({ positionId: candidate.desiredPositionId })
+rule = rules.find(r => (r.branchId || '') === (candidate.preferredBranchId || ''))
+candidate.assignedToUserId = rule?.assignedUserId || null</pre>
+    <p style="color:var(--muted);font-size:12px;margin-top:10px">
+      ⚠️ חייבים <strong>positionId</strong> — בלי תפקיד אין lookup. branch ריק = תפקידי מטה.
+      אין rule → <code>assignedToUserId = null</code> → התראות מנהל מדולגות.
+    </p>
+  </div>
+
+  <!-- READ/WRITE TABLE -->
+  <div class="sec">כל המקומות שכותבים / קוראים assignedToUserId</div>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>מיקום</th>
+          <th>סוג</th>
+          <th>מה קורה</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>createCandidate/entry.ts</code></td>
+          <td><span class="badge write">WRITE</span></td>
+          <td>ה唯一 מקום ש<strong>מגדיר</strong> <code>assignedToUserId</code> על מועמד חדש</td>
+        </tr>
+        <tr>
+          <td><code>saveLeadRoutingRule/entry.ts</code></td>
+          <td><span class="badge write">WRITE</span></td>
+          <td>כותב <code>LeadRoutingRule</code> + <code>LeadRoutingHistory</code> (לא נוגע ב-Candidate)</td>
+        </tr>
+        <tr>
+          <td><code>sendRecruitmentWhatsApp/entry.ts</code></td>
+          <td><span class="badge read">READ</span></td>
+          <td>Employee.filter({ userId: assignedToUserId }) → <code>roles.lead_responsible</code> + טלפון למנהל ב-inbound notify</td>
+        </tr>
+        <tr>
+          <td><code>notifyManagerInboundWhatsApp/entry.ts</code></td>
+          <td><span class="badge read">READ</span></td>
+          <td>Guard: skip עם <code>no_assigned_user</code> אם אין assignedToUserId</td>
+        </tr>
+        <tr>
+          <td><code>receiveWhatsAppMessage/entry.ts</code></td>
+          <td><span class="badge read">READ</span></td>
+          <td>הודעה נכנסת ממועמד → קורא notifyManagerInboundWhatsApp</td>
+        </tr>
+        <tr>
+          <td><code>CandidateDetailsSheet.jsx</code></td>
+          <td><span class="badge read">READ</span></td>
+          <td>UI: "מנהל אחראי" — getAllUsers → full_name</td>
+        </tr>
+        <tr>
+          <td><code>RecruitmentAutomationTab.jsx</code></td>
+          <td><span class="badge read">READ</span></td>
+          <td>תבניות WA: מקור <code>lead_responsible_attr</code> (שם, טלפון אחראי)</td>
+        </tr>
+        <tr>
+          <td colspan="3" style="color:var(--muted);font-size:12px">
+            ❌ אין עדכון assignedToUserId אחרי יצירה · ❌ אין סינון RBAC לפי אחראי · ❌ שינוי מטריצה לא משנה מועמדים קיימים
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- WHAT RESPONSIBLE MEANS -->
+  <div class="sec">מה זה "אחראי ליד" בפועל?</div>
+  <div class="grid3">
+    <div class="card">
+      <div class="card-title"><span class="dot g"></span>ב-WhatsApp תבניות</div>
+      <p style="color:var(--muted);font-size:13px">
+        Role <code>lead_responsible</code> מאפשר slots כמו שם וטלפון של המנהל בתוך הודעות למועמד
+        (new_lead, interview_scheduled, rejected, וכו').
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot a"></span>הודעה נכנסת ממועמד</div>
+      <p style="color:var(--muted);font-size:13px">
+        Trigger <code>manager_inbound_notify</code> שולח WhatsApp ל-<strong>טלפון ה-Employee</strong>
+        של האחראי — לא למועמד. דורש assignedToUserId + Employee.phone.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot v"></span>ב-UI גיוס</div>
+      <p style="color:var(--muted);font-size:13px">
+        CandidateDetailsSheet מציג "מנהל אחראי" — לקריאה בלבד.
+        אין UI לשינוי אחראי על מועמד קיים.
+      </p>
+    </div>
+  </div>
+
+  <!-- LEGACY -->
+  <div class="sec">מה הוסר / legacy</div>
+  <div class="note r">
+    <strong>FacebookFormConfig.responsibleEmployeeId</strong> — הוסר מה-entity.
+    לפני PR #301 האחראי הגיע מטופס פייסבוק; עכשיו הכל דרך LeadRoutingRule → createCandidate.
+  </div>
+
+  <!-- CALLERS -->
+  <div class="sec">מי קורא ל-createCandidate</div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title"><span class="dot b"></span>Backend (webhooks)</div>
+      <ul style="color:var(--muted);padding-right:20px;font-size:13px">
+        <li><code>handleWebsiteLeads</code></li>
+        <li><code>handleFacebookLeads</code></li>
+        <li><code>handleFacebookLeadWebhook</code></li>
+        <li><code>handlePublicLinkLead</code></li>
+        <li><code>publicApplicationForm</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot o"></span>Frontend (session)</div>
+      <ul style="color:var(--muted);padding-right:20px;font-size:13px">
+        <li><code>useRecruitmentMutations</code> — יצירה ידנית + sendNewLeadWhatsApp</li>
+        <li><code>EmployeeProfile</code> — הפניה (referral)</li>
+      </ul>
+      <p style="color:var(--muted);font-size:12px;margin-top:10px">Session callers: RBAC <code>recruitment.cru_candidate</code></p>
+    </div>
+  </div>
+
+  <!-- HISTORY FIX -->
+  <div class="sec">תיקון עמודת "שונה על ידי"</div>
+  <div class="note g">
+    <strong>באג שתוקן:</strong> <code>assignedByUserId</code> הוא User.id (מ-session), לא Employee.
+    ההיסטוריה חיפשה ב-Employee → הציגה ID גולמי.
+    תיקון: <code>RoutingAuditHistory.jsx</code> טוען <code>getAllUsers</code> ומציג <code>full_name</code>.
+  </div>
+
+  <div class="footer">
+    BizFlow ERP · Lead Routing Matrix · Generated 2026-06-01 · PR #301
+  </div>
+</div>
+</body>
+</html>
