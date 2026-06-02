@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizFlow — Staging Entity Gateway</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; line-height: 1.55; }
+  h1 { font-size: 1.75rem; font-weight: 700; color: #f8fafc; }
+  h2 { font-size: 1rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
+  h3 { font-size: .95rem; font-weight: 600; color: #f1f5f9; margin-bottom: 8px; }
+  p, li { font-size: .86rem; color: #94a3b8; }
+  strong { color: #e2e8f0; }
+  a { color: #7dd3fc; }
+  .page { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+  .header { text-align: center; margin-bottom: 40px; }
+  .header p { margin-top: 10px; font-size: .95rem; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin: 2px; }
+  .badge.green { background: #052e16; color: #4ade80; border: 1px solid #16a34a55; }
+  .badge.blue { background: #0c1445; color: #60a5fa; border: 1px solid #1d4ed855; }
+  .badge.purple { background: #160b2e; color: #a78bfa; border: 1px solid #7c3aed55; }
+  .badge.amber { background: #1c1400; color: #fbbf24; border: 1px solid #ca8a0455; }
+  .section { margin-bottom: 40px; }
+  .section-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #475569; border-bottom: 1px solid #1e293b; padding-bottom: 6px; margin-bottom: 18px; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 14px; }
+  .card.green { border-color: #16a34a33; background: #052e16; }
+  .card.blue { border-color: #1d4ed833; background: #0c1445; }
+  .card.purple { border-color: #7c3aed33; background: #160b2e; }
+  .card.red { border-color: #dc262633; background: #1c0000; }
+  .card.amber { border-color: #ca8a0433; background: #1c1400; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media (max-width: 800px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+  .code { font-family: Menlo, Monaco, monospace; background: #0f1117; border: 1px solid #1e293b; border-radius: 8px; padding: 12px 14px; font-size: .76rem; color: #7dd3fc; margin-top: 10px; white-space: pre-wrap; overflow-x: auto; line-height: 1.5; }
+  .code.json { color: #a5f3fc; }
+  .code.path { color: #86efac; }
+  table { width: 100%; border-collapse: collapse; font-size: .8rem; margin-top: 10px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #334155; }
+  th { color: #64748b; font-weight: 600; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; }
+  td { color: #cbd5e1; }
+  td code { font-family: Menlo, monospace; font-size: .75rem; color: #7dd3fc; }
+  .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 14px 0; }
+  .flow-node { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; font-size: .78rem; font-weight: 600; color: #f1f5f9; text-align: center; min-width: 110px; }
+  .flow-node.highlight { border-color: #7c3aed88; background: #160b2e; color: #c4b5fd; }
+  .flow-node.db { border-color: #16a34a88; background: #052e16; color: #86efac; }
+  .flow-arrow { color: #475569; font-size: 1.1rem; padding: 0 4px; }
+  .flow-label { display: block; font-size: .62rem; font-weight: 400; color: #64748b; margin-top: 3px; }
+  .warn { background: #1c1400; border: 1px solid #ca8a0455; border-radius: 10px; padding: 14px 16px; font-size: .82rem; color: #fbbf24; margin-top: 12px; }
+  .answer { background: #052e16; border: 1px solid #16a34a55; border-radius: 10px; padding: 14px 16px; font-size: .82rem; color: #86efac; margin-top: 12px; }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 700px) { .compare { grid-template-columns: 1fr; } }
+  .compare h4 { font-size: .8rem; color: #f87171; margin-bottom: 8px; }
+  .compare .after h4 { color: #4ade80; }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; font-size: .85rem; font-weight: 600; color: #cbd5e1; padding: 8px 0; }
+  summary:hover { color: #f1f5f9; }
+  .phase { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+  .phase-num { width: 26px; height: 26px; border-radius: 50%; background: #334155; color: #f8fafc; font-size: .72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .phase.done .phase-num { background: #15803d; }
+  .phase.active .phase-num { background: #1d4ed8; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag { background: #0f1117; border: 1px solid #334155; border-radius: 6px; padding: 3px 9px; font-size: .7rem; color: #94a3b8; font-family: Menlo, monospace; }
+  .tag.new { border-color: #16a34a55; color: #4ade80; }
+  hr { border: none; border-top: 1px solid #1e293b; margin: 32px 0; }
+  .toc { columns: 2; column-gap: 24px; font-size: .82rem; }
+  .toc a { display: block; padding: 3px 0; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>BizFlow ERP — Staging Frontend &amp; Entity Gateway</h1>
+    <p>How we get the real ERP UI working on <strong>bizflow-erp-staging.pages.dev</strong> without Base44 in the browser.</p>
+    <p style="margin-top:12px">
+      <span class="badge green">MVP slice B</span>
+      <span class="badge blue">Supabase + RLS</span>
+      <span class="badge purple">entityGateway</span>
+      <span class="badge amber">Recruitment first</span>
+    </p>
+    <p style="margin-top:10px;font-size:.78rem;color:#64748b">As of 2026-06-01 · Repo: bizflow-erp · Doc: docs/staging-entity-gateway.md</p>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Contents</div>
+    <div class="card">
+      <div class="toc">
+        <a href="#problem">1 — The problem</a>
+        <a href="#goal">2 — What “done” means</a>
+        <a href="#architecture">3 — Architecture</a>
+        <a href="#two-channels">4 — Two API channels</a>
+        <a href="#contract">5 — entityGateway contract</a>
+        <a href="#security">6 — Security layers</a>
+        <a href="#allowlist">7 — Allowlist bundles</a>
+        <a href="#frontend">8 — Frontend wiring</a>
+        <a href="#auth">9 — Auth on staging</a>
+        <a href="#mvp">10 — MVP: Recruitment</a>
+        <a href="#rollout">11 — Rollout phases</a>
+        <a href="#deploy">12 — CI &amp; deploy</a>
+        <a href="#files">13 — Key files</a>
+        <a href="#why">14 — Why not browser → Supabase?</a>
+        <a href="#test">15 — How to verify</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="problem">
+    <div class="section-label">1 — The problem</div>
+    <div class="compare">
+      <div class="card red">
+        <h4>Before (broken on staging)</h4>
+        <ul style="margin-left:18px;margin-top:8px">
+          <li>User logs in via <strong>Supabase</strong> (impersonation / invite works).</li>
+          <li>SPA still calls <strong>Base44</strong>: <code>base44.entities.*</code>, <code>/api/apps/public</code>, <code>base44.auth.me()</code>.</li>
+          <li>Those endpoints do not exist on <code>*.pages.dev</code> → blank screen or <strong>StagingShell</strong> placeholder.</li>
+        </ul>
+      </div>
+      <div class="card green after">
+        <h4>After (target)</h4>
+        <ul style="margin-left:18px;margin-top:8px">
+          <li>Same React screens and <code>@/api/entities</code> imports.</li>
+          <li>On staging, entities go through <strong>entityGateway</strong> edge function.</li>
+          <li>Business logic stays in <strong>named</strong> functions (<code>createCandidate</code>, etc.).</li>
+          <li>Real app shell + <strong>/Recruitment</strong> loads tenant data under RLS.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="warn">
+      <strong>Important:</strong> Backend staging (DB, migrations, seed, RLS, admin) was largely ready. The gap was <strong>frontend data-access wiring</strong>, not missing tables.
+    </div>
+  </div>
+
+  <div class="section" id="goal">
+    <div class="section-label">2 — What “done” means (CONTEXT.md — MVP slice B)</div>
+    <div class="answer">
+      <strong>Staging slice B succeeds when:</strong> authenticated tenant/session context works, the UI shell loads on production-class infra, <strong>RLS rejects cross-tenant access</strong>, and at least <strong>one real ERP stripe</strong> does list + create/update end-to-end — not auth-only scaffolding.
+      <br><br>
+      First stripe: <strong>Recruitment</strong> (<code>/Recruitment</code>) — existing BizFlow subsystem, not a throwaway demo.
+    </div>
+  </div>
+
+  <div class="section" id="architecture">
+    <div class="section-label">3 — Architecture (end-to-end)</div>
+    <div class="card">
+      <p>On <code>bizflow-erp-staging.pages.dev</code>, the browser never calls PostgREST directly for entity CRUD.</p>
+      <div class="flow">
+        <div class="flow-node">React UI<br><span class="flow-label">Recruitment, etc.</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node"><code>resolveEntity()</code><br><span class="flow-label">src/api/entities.js</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node highlight">entityGateway<br><span class="flow-label">Edge Function</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node"><code>buildEntityClient</code><br><span class="flow-label">@bizflow/client</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node db">Postgres<br><span class="flow-label">JSONB + RLS</span></div>
+      </div>
+      <p style="margin-top:14px">Named functions (side effects, RBAC-heavy work) use a parallel bridge:</p>
+      <div class="flow">
+        <div class="flow-node">React</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node"><code>invokeBizflow()</code></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node highlight">/functions/v1/{name}</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node db">Postgres + RLS</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="two-channels">
+    <div class="section-label">4 — Two API channels (when to use which)</div>
+    <div class="grid2">
+      <div class="card purple">
+        <h3>Channel A — <code>entityGateway</code></h3>
+        <p>Generic CRUD with the <strong>same shape</strong> as Base44 entities.</p>
+        <table>
+          <tr><th>Ops</th><td><code>list</code>, <code>get</code>, <code>filter</code>, <code>create</code>, <code>update</code>, <code>delete</code></td></tr>
+          <tr><th>Use for</th><td>Loading lists, patching fields, simple creates</td></tr>
+          <tr><th>Examples</th><td><code>Candidate.list()</code>, <code>Branch.filter({ isActive: true })</code></td></tr>
+        </table>
+      </div>
+      <div class="card blue">
+        <h3>Channel B — Named functions</h3>
+        <p>Domain logic, webhooks, notifications, complex validation.</p>
+        <table>
+          <tr><th>Invoke</th><td><code>invokeBizflow('createCandidate', payload)</code></td></tr>
+          <tr><th>Use for</th><td>Anything that was a Base44 Deno function</td></tr>
+          <tr><th>Examples</th><td><code>createCandidate</code>, <code>resolvePermissions</code>, <code>getAllUsers</code></td></tr>
+        </table>
+        <p style="margin-top:10px;font-size:.78rem">Base44 functions are <strong>transformed</strong> to Supabase edge functions in CI (<code>scripts/transform-functions.mjs</code>).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="contract">
+    <div class="section-label">5 — entityGateway HTTP contract</div>
+    <div class="card">
+      <p><strong>POST</strong> <code>{SUPABASE_URL}/functions/v1/entityGateway</code></p>
+      <p><strong>Header:</strong> <code>Authorization: Bearer &lt;supabase_access_token&gt;</code></p>
+      <div class="code json">{
+  "entity": "Candidate",
+  "op": "list",
+  "id": "uuid-only-for-get-update-delete",
+  "query": { "status": "new" },
+  "data": { "fullName": "..." },
+  "limit": 500,
+  "order": { "column": "created_at", "ascending": false }
+}</div>
+      <table style="margin-top:16px">
+        <tr><th>Field</th><th>Required</th><th>Notes</th></tr>
+        <tr><td><code>entity</code></td><td>yes</td><td>PascalCase (<code>Candidate</code>) or snake (<code>candidate</code>)</td></tr>
+        <tr><td><code>op</code></td><td>yes</td><td><code>list | get | filter | create | update | delete</code></td></tr>
+        <tr><td><code>id</code></td><td>get, update, delete</td><td>Row UUID</td></tr>
+        <tr><td><code>query</code></td><td>filter</td><td>JSONB <code>@&gt;</code> containment on <code>doc</code></td></tr>
+        <tr><td><code>data</code></td><td>create, update</td><td>Update uses <code>jsonb_patch</code> merge RPC</td></tr>
+        <tr><td><code>limit</code></td><td>optional</td><td>Default 1000, max 5000</td></tr>
+        <tr><td><code>order</code></td><td>optional</td><td><code>created_at</code> or <code>id</code></td></tr>
+      </table>
+      <details>
+        <summary>Success &amp; error responses</summary>
+        <div class="code json">// Success
+{ "ok": true, "data": [ { "id": "...", "fullName": "..." } ] }
+
+// Error
+{ "ok": false, "code": "ENTITY_NOT_ALLOWED", "error": "Entity not allowed: Foo" }</div>
+        <p style="margin-top:8px">HTTP: <code>401</code> bad/missing JWT · <code>403</code> allowlist · <code>400</code> bad op · <code>500</code> server</p>
+      </details>
+    </div>
+  </div>
+
+  <div class="section" id="security">
+    <div class="section-label">6 — Security layers (defense in depth)</div>
+    <div class="grid2">
+      <div class="card">
+        <h3>1. JWT validation</h3>
+        <p><code>getUserFromJwt</code> — reject unauthenticated requests.</p>
+      </div>
+      <div class="card">
+        <h3>2. User-scoped Supabase client</h3>
+        <p>Anon key + forwarded Bearer. <strong>Not</strong> service role for gateway traffic.</p>
+      </div>
+      <div class="card green">
+        <h3>3. RLS (real tenant boundary)</h3>
+        <p>Every row has <code>company_id</code>. Policies check <code>auth.jwt()-&gt;'app_metadata'-&gt;&gt;'company_id'</code>. Set server-side on impersonation — users cannot forge it.</p>
+      </div>
+      <div class="card purple">
+        <h3>4. Entity allowlist</h3>
+        <p>Gateway only accepts tables in configured <strong>slice bundles</strong>. Blocks arbitrary table names even if RLS were misconfigured.</p>
+      </div>
+      <div class="card amber" style="grid-column:1/-1">
+        <h3>5. RBAC on gateway (phase 2 — planned)</h3>
+        <p>Map <code>entity + op</code> → permission keys; consult <code>sessionRbacContext</code> before execute (same keys as <code>resolvePermissions</code>).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="allowlist">
+    <div class="section-label">7 — Allowlist bundles</div>
+    <div class="card">
+      <p>Configured in <code>supabase/native-functions/entityGateway/allowlist.ts</code>. Override slices via env <code>ENTITY_GATEWAY_SLICES=recruitment,core</code>.</p>
+      <table>
+        <tr><th>Bundle</th><th>Tables (snake_case)</th><th>MVP</th></tr>
+        <tr>
+          <td><code>recruitment</code></td>
+          <td>candidate, candidate_note, candidate_status_history, interview, contact_attempt, rejection_reason, branch, position, position_recruitment_stages, recruitment_settings, employee</td>
+          <td>yes</td>
+        </tr>
+        <tr>
+          <td><code>core</code></td>
+          <td>company, user, user_role_assignment, permission_set, permission_catalog</td>
+          <td>permissions</td>
+        </tr>
+      </table>
+      <p style="margin-top:12px">PascalCase entity names from the app are converted automatically (<code>Candidate</code> → <code>candidate</code>).</p>
+    </div>
+  </div>
+
+  <div class="section" id="frontend">
+    <div class="section-label">8 — Frontend wiring (no screen rewrites)</div>
+    <div class="card">
+      <table>
+        <tr><th>Module</th><th>Role</th></tr>
+        <tr><td><code>src/lib/stagingRuntime.js</code></td><td><code>isStagingDataRuntime()</code> — <code>*.pages.dev</code> + Supabase env vars</td></tr>
+        <tr><td><code>src/api/entityRuntime.js</code></td><td><code>resolveEntity('Candidate')</code> → gateway or Base44 client</td></tr>
+        <tr><td><code>src/api/entities.js</code></td><td>All exports use <code>resolveEntity(...)</code></td></tr>
+        <tr><td><code>src/api/invokeEntityGateway.js</code></td><td>Low-level POST to <code>entityGateway</code></td></tr>
+        <tr><td><code>src/api/invokeBizflowFunction.js</code></td><td>Staging function HTTP with session JWT</td></tr>
+        <tr><td><code>src/api/bizflowInvoke.js</code></td><td><code>invokeBizflow(name, body)</code> — staging vs Base44 switch</td></tr>
+      </table>
+      <div class="code path" style="margin-top:14px">// App code stays the same:
+import { Candidate, Branch } from '@/api/entities';
+const rows = await Candidate.list();
+
+// On Base44 dev → base44.entities
+// On pages.dev staging → entityGateway</div>
+    </div>
+  </div>
+
+  <div class="section" id="auth">
+    <div class="section-label">9 — Auth &amp; permissions on staging</div>
+    <div class="grid2">
+      <div class="card">
+        <h3>AuthProvider branch</h3>
+        <p>When <code>isStagingDataRuntime()</code>, <code>AuthProvider</code> reads the <strong>Supabase session</strong> (no <code>/api/apps/public</code>, no <code>base44.auth.me()</code>).</p>
+        <p style="margin-top:8px">Maps JWT user → <code>{ id, email, role, company_id }</code> for components that expect <code>useAuth()</code>.</p>
+      </div>
+      <div class="card">
+        <h3>AppEntry</h3>
+        <p>After login: wraps children with <code>AuthProvider</code> + <code>PermissionsProvider</code> + <code>NavigationTracker</code> + full <code>AuthenticatedApp</code> routes.</p>
+        <p style="margin-top:8px"><strong>StagingShell</strong> removed from the happy path.</p>
+      </div>
+      <div class="card" style="grid-column:1/-1">
+        <h3>Permissions</h3>
+        <p><code>PermissionsProvider</code> calls <code>invokeBizflow('resolvePermissions')</code> on staging → Supabase <code>resolvePermissions</code> edge function → <code>sessionRbacContext</code>.</p>
+        <p style="margin-top:8px">Recruitment page checks <code>can('recruitment.cru_candidate')</code>. Admins (<code>isAdmin: true</code>) bypass permission checks in the UI.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="mvp">
+    <div class="section-label">10 — MVP vertical slice: Recruitment</div>
+    <div class="card green">
+      <p><strong>Route:</strong> <code>/Recruitment</code> (existing page)</p>
+      <div class="grid2" style="margin-top:14px">
+        <div>
+          <h3>Reads (entityGateway)</h3>
+          <div class="tag-list">
+            <span class="tag">Candidate</span>
+            <span class="tag">Branch</span>
+            <span class="tag">Position</span>
+            <span class="tag">Interview</span>
+            <span class="tag">CandidateNote</span>
+            <span class="tag">CandidateStatusHistory</span>
+            <span class="tag">ContactAttempt</span>
+            <span class="tag">RejectionReason</span>
+            <span class="tag">RecruitmentSettings</span>
+            <span class="tag">PositionRecruitmentStages</span>
+          </div>
+        </div>
+        <div>
+          <h3>Writes</h3>
+          <p><strong>Gateway:</strong> <code>Candidate.update</code>, status history, notes, interviews, etc.</p>
+          <p style="margin-top:6px"><strong>Named fn:</strong> <code>createCandidate</code> (WhatsApp / lead side effects stay in server code).</p>
+          <p style="margin-top:6px"><strong>Also:</strong> <code>getAllUsers</code>, <code>listEmployeesForUser</code>, <code>calculateManagerScore</code> via <code>invokeBizflow</code>.</p>
+        </div>
+      </div>
+      <div class="warn" style="margin-top:14px">
+        <strong>Out of scope for first landing:</strong> WhatsApp sends, Meta conversion events, interview PDF — may fail until those functions are verified on staging. Core list/edit path is the bar.
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="rollout">
+    <div class="section-label">11 — Rollout phases</div>
+    <div class="card">
+      <div class="phase done"><div class="phase-num">1</div><div><strong>Design + gateway function</strong> — entityGateway, allowlist, shared handler in @bizflow/client</div></div>
+      <div class="phase done"><div class="phase-num">2</div><div><strong>FE adapter</strong> — resolveEntity, invokeBizflow, entities.js, AuthProvider branch</div></div>
+      <div class="phase active"><div class="phase-num">3</div><div><strong>Deploy + smoke</strong> — merge to main, CI deploys function + SPA, test /Recruitment</div></div>
+      <div class="phase"><div class="phase-num">4</div><div><strong>RBAC on gateway</strong> — server-side permission checks per entity/op</div></div>
+      <div class="phase"><div class="phase-num">5</div><div><strong>More slices</strong> — HR dashboard, documents, payroll bundles in allowlist</div></div>
+    </div>
+  </div>
+
+  <div class="section" id="deploy">
+    <div class="section-label">12 — CI &amp; deploy</div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Supabase (<code>supabase-staging.yml</code>)</h3>
+        <ol style="margin-left:18px;margin-top:8px">
+          <li>Codegen migrations from <code>base44/entities/*.jsonc</code></li>
+          <li><code>supabase db push</code></li>
+          <li>Transform Base44 functions → <code>supabase/functions/*</code></li>
+          <li>Copy <code>supabase/native-functions/*</code> (includes <strong>entityGateway</strong>)</li>
+          <li>Deploy all functions in manifest</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>SPA (<code>spa-staging-cloudflare-pages.yml</code>)</h3>
+        <p>Build with:</p>
+        <div class="tag-list">
+          <span class="tag">VITE_SUPABASE_URL</span>
+          <span class="tag">VITE_SUPABASE_ANON_KEY</span>
+        </div>
+        <p style="margin-top:10px">Deploy to <code>bizflow-erp-staging.pages.dev</code></p>
+      </div>
+    </div>
+    <div class="answer" style="margin-top:14px">
+      <strong>Native functions are committed</strong> under <code>supabase/native-functions/</code> (not generated). They are copied into the transient deploy folder alongside transformed Base44 functions — same pattern as <code>bizflow-admin</code>.
+    </div>
+  </div>
+
+  <div class="section" id="files">
+    <div class="section-label">13 — Key files in the repo</div>
+    <div class="card">
+      <div class="code path">docs/staging-entity-gateway.md          ← markdown spec
+packages/bizflow-client/src/
+  entities.ts                           ← buildEntityClient (list/get/filter/CRUD)
+  entityGateway.ts                      ← executeEntityGatewayOp (shared logic)
+supabase/native-functions/entityGateway/
+  index.ts                              ← Deno.serve HTTP handler
+  allowlist.ts                          ← recruitment + core bundles
+src/api/
+  entityRuntime.js                      ← resolveEntity + gateway client
+  invokeEntityGateway.js
+  invokeBizflowFunction.js
+  bizflowInvoke.js
+  entities.js                           ← all entities → resolveEntity
+src/lib/
+  stagingRuntime.js
+  AuthContext.jsx                       ← Supabase branch for staging
+src/components/AppEntry.jsx             ← real app after login
+src/hooks/useRecruitmentQueries.js      ← MVP slice wired
+src/hooks/useRecruitmentMutations.js</div>
+    </div>
+  </div>
+
+  <div class="section" id="why">
+    <div class="section-label">14 — Why not browser → Supabase directly?</div>
+    <div class="card slate" style="background:#111827">
+      <ul style="margin-left:18px">
+        <li><strong>Single choke point</strong> for allowlist, auditing, and future RBAC.</li>
+        <li><strong>Hides</strong> PostgREST table layout from the client.</li>
+        <li><strong>Matches Base44</strong> “entities behind API” — one import path in <code>entities.js</code>.</li>
+        <li><strong>RLS still does the real work</strong> — gateway is policy + ergonomics, not a replacement for tenant isolation in the database.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section" id="test">
+    <div class="section-label">15 — How to verify after deploy</div>
+    <div class="card blue">
+      <ol style="margin-left:18px">
+        <li>Admin → impersonate tenant user → lands on <code>bizflow-erp-staging.pages.dev</code></li>
+        <li>Open <strong>/Recruitment</strong> — candidate list loads (empty or seeded data)</li>
+        <li>Add or edit a candidate — create via <code>createCandidate</code>, patch via gateway</li>
+        <li>Second tenant (Rival Co) — same flow, must not see Humongous rows (RLS E2E)</li>
+      </ol>
+      <p style="margin-top:12px">Probe gateway directly:</p>
+      <div class="code">curl -X POST "$STAGING_SUPABASE_URL/functions/v1/entityGateway" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"entity":"Candidate","op":"list","limit":5}'</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Data model reminder (JSONB)</div>
+    <div class="grid2">
+      <div class="card slate" style="background:#111827">
+        <div class="code">CREATE TABLE candidate (
+  id         UUID PRIMARY KEY,
+  company_id UUID NOT NULL,
+  doc        JSONB NOT NULL,  -- all fields
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ
+);</div>
+      </div>
+      <div class="card slate" style="background:#111827">
+        <p>168 Base44 entities → 168 Postgres tables. <code>@bizflow/client</code> unwraps <code>{ id, doc }</code> into flat objects <code>{ id, ...fields }</code> so React code unchanged.</p>
+        <p style="margin-top:8px"><code>update()</code> uses <code>jsonb_patch</code> RPC — merge patch, never wipes unmentioned fields.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+  <p style="text-align:center;font-size:.78rem;color:#64748b">
+    BizFlow ERP · Staging entity gateway handoff ·
+    <a href="pipeline-visual.html">Pipeline overview</a> ·
+    <a href="https://tatarco.github.io/html-handoffs/">Published handoffs</a>
+  </p>
+
+</div>
+</body>
+</html>
