@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Task E — «כמה נקודות אני יכול להרוויח היום?»</title>
+  <style>
+    :root {
+      --bg: #0a0404;
+      --card: rgba(15, 3, 3, 0.85);
+      --gold: #f4c15d;
+      --text: #f6eceb;
+      --muted: rgba(246, 236, 237, 0.65);
+      --green: #4ade80;
+      --red: #d63a36;
+      --border-gold: rgba(220, 180, 0, 0.55);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #120606, var(--bg));
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+    h1 { color: var(--gold); font-size: 1.6rem; margin: 0 0 8px; }
+    h2 { color: var(--gold); font-size: 1.15rem; margin: 32px 0 12px; border-bottom: 1px solid rgba(244,193,93,0.25); padding-bottom: 6px; }
+    h3 { font-size: 1rem; margin: 20px 0 8px; color: #fff; }
+    p, li { color: var(--muted); }
+    .lead { font-size: 1.05rem; color: var(--text); }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 24px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; align-items: start; }
+    .panel {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .panel h3 { margin-top: 0; }
+    .tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    .tag-wa { background: rgba(37, 211, 102, 0.18); color: #86efac; }
+    .tag-code { background: rgba(80, 160, 255, 0.18); color: #93c5fd; }
+    .tag-bug { background: rgba(214, 58, 54, 0.25); color: #fca5a5; }
+    .tag-plan { background: rgba(244, 193, 93, 0.18); color: var(--gold); }
+
+    /* Mini replica of the in-app card */
+    .points-card {
+      margin-top: 8px;
+      border-radius: 12px;
+      padding: 14px 16px;
+      background: rgba(0,0,0,0.45);
+      border: 2px solid var(--border-gold);
+      box-shadow: 0 0 12px rgba(220,180,0,0.2);
+    }
+    .points-card-title {
+      color: var(--gold);
+      font-weight: 900;
+      font-size: 1rem;
+      margin: 0 0 12px;
+      text-align: right;
+    }
+    .bullet {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.88rem;
+      margin: 8px 0;
+      text-align: right;
+    }
+    .check {
+      width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px;
+      filter: drop-shadow(0 0 4px #4ade80);
+    }
+    .removed { opacity: 0.45; text-decoration: line-through; color: #f87171; }
+    .added { color: #bbf7d0; }
+    .unchanged { color: var(--text); }
+    .footnote { font-size: 0.68rem; opacity: 0.6; text-align: right; margin-top: 10px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin: 12px 0;
+    }
+    th, td {
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 8px 10px;
+      text-align: right;
+      vertical-align: top;
+    }
+    th { background: rgba(255,255,255,0.04); color: var(--gold); }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.82rem;
+    }
+    pre {
+      background: #050101;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 12px;
+      overflow-x: auto;
+      direction: ltr;
+      text-align: left;
+      color: #e5e7eb;
+    }
+    .wa-quote {
+      background: rgba(37, 211, 102, 0.06);
+      border-right: 3px solid #25d366;
+      padding: 12px 14px;
+      border-radius: 0 10px 10px 0;
+      margin: 12px 0;
+    }
+    .wa-quote p { margin: 6px 0; color: var(--text); }
+    .issue {
+      background: rgba(214, 58, 54, 0.08);
+      border: 1px solid rgba(214, 58, 54, 0.35);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 12px 0;
+    }
+    .open-q {
+      background: rgba(244, 193, 93, 0.06);
+      border: 1px solid rgba(244, 193, 93, 0.3);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .screenshot-note {
+      border: 1px dashed rgba(255,255,255,0.2);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      color: var(--muted);
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .hero-context {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Task E — «כמה נקודות אני יכול להרוויח היום?»</h1>
+    <p class="meta">Brief for review · WhatsApp screenshot #4 in thread · Not implemented yet · Generated 2026-06-03</p>
+    <p class="lead">
+      This card lives inside <strong>HeroCard</strong> on the home screen (<code>HomeScreen.jsx</code>).
+      It is a <em>copy + config wiring</em> change only — no new designer JPG/PNG was attached for this card.
+    </p>
+
+    <h2>1. Source — WhatsApp (Itzik → Gal, screenshot #4)</h2>
+    <div class="panel">
+      <span class="tag tag-wa">Primary source</span>
+      <p>Thread message (translated): <em>«Attaching a fix required on the main page»</em></p>
+      <div class="screenshot-note">
+        <div>📱 Embedded in WhatsApp chat — not a separate file in Downloads</div>
+        <div style="font-size:0.8rem">Shows the gold-bordered card on stadium background + mock bullet list</div>
+      </div>
+      <div class="wa-quote">
+        <p><strong>Instruction 1:</strong> יש למחוק את הבולט «הזמנת מקום?»</p>
+        <p><strong>Instruction 2:</strong> יש להוסיף את הבולטים הבאים:</p>
+        <ul style="color:var(--text); margin:8px 0 0 0;">
+          <li>צדקת בכיוון התוצאה? קיבלת 15 נקודות.</li>
+          <li>צדקת בול בתוצאה? קיבלת 30 נקודות</li>
+          <li>הזמנת משלוח? קיבלת 65 נקודות <em>(מתחת ל«הגעת למסעדה»)</em></li>
+        </ul>
+      </div>
+      <p><strong>Mock visible in screenshot</strong> (before edits) showed these bullets with checkmarks:</p>
+      <ul>
+        <li>ניחשת משחק? קיבלת <strong>10</strong> נקודות</li>
+        <li>הזמנת מקום? קיבלת <strong>15</strong> נקודות ← <strong>delete</strong></li>
+        <li>הגעת למסעדה? קיבלת <strong>65</strong> נקודות ← <strong>keep</strong></li>
+      </ul>
+      <p><strong>Media files for this task:</strong> none. Numbers in the screenshot are examples; you asked for live values from campaign config where applicable.</p>
+    </div>
+
+    <h2>2. Three states side-by-side</h2>
+    <div class="grid-3">
+      <div class="panel">
+        <span class="tag tag-code">A · Production today</span>
+        <div class="hero-context">HomeScreen.jsx lines 551–573</div>
+        <div class="points-card">
+          <p class="points-card-title">כמה נקודות אני יכול להרוויח היום?</p>
+          <div class="bullet unchanged"><svg class="check" viewBox="0 0 24 24"><polyline points="3,13 9,19 21,5" fill="none" stroke="#86efac" stroke-width="3"/></svg><span>ניחשת משחק? קיבלת {participation_points} נקודות</span></div>
+          <div class="bullet removed"><svg class="check" viewBox="0 0 24 24"><polyline points="3,13 9,19 21,5" fill="none" stroke="#86efac" stroke-width="3"/></svg><span>הזמנת מקום? קיבלת {table_booking_points} נקודות</span></div>
+          <div class="bullet"><svg class="check" viewBox="0 0 24 24"><polyline points="3,13 9,19 21,5" fill="none" stroke="#86efac" stroke-width="3"/></svg><span class="removed">הגעת למסעדה? קיבלת {delivery_points} נקודות</span></div>
+          <p class="footnote">בכפוף לתקנון</p>
+        </div>
+        <div class="issue">
+          <span class="tag tag-bug">Bug in prod</span>
+          <p style="margin:8px 0 0;color:#fca5a5">Line 416 sets <code>delivPts = config.delivery_points</code> but the label says «הגעת למסעדה» — should use <code>visit_points</code>.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <span class="tag tag-wa">B · WhatsApp mock (example numbers)</span>
+        <div class="points-card">
+          <p class="points-card-title">כמה נקודות אני יכול להרוויח היום?</p>
+          <div class="bullet unchanged"><svg class="check" viewBox="0 0 24 24"><polyline points="3,13 9,19 21,5" fill="none" stroke="#86efac" stroke-width="3"/></svg><span>ניחשת משחק? קיבלת 10 נקודות</span></div>
+          <div class="bullet added"><svg class="check" viewBox="0 0 24 24"><polyline points="3,13 9,19 21,5" fill="none" stroke="#86efac" stroke-width="3"/></svg><span>צדקת בכיוון התוצאה? קיבלת 15 נקודות.</span></div>
+          <div class="bullet added"><svg class="check" viewBox="0 0 24 24"><polyline points="3,13 9,19 21,5" fill="none" stroke="#86efac" stroke-width="3"/></svg><span>צדקת בול בתוצאה? קיבלת 30 נקודות</span></div>
+          <div class="bullet unchanged"><svg class="check" viewBox="0 0 24 24"><polyline points="3,13 9,19 21,5" fill="none" stroke="#86efac" stroke-width="3"/></svg><span>הגעת למסעדה? קיבלת 65 נקודות</span></div>
+          <div class="bullet added"><svg class="check" viewBox="0 0 24 24"><polyline points="3,13 9,19 21,5" fill="none" stroke="#86efac" stroke-width="3"/></svg><span>הזמנת משלוח? קיבלת 65 נקודות</span></div>
+          <p class="footnote">בכפוף לתקנון</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <span class="tag tag-plan">C · Planned implementation (config-driven)</span>
+        <div class="points-card">
+          <p class="points-card-title">כמה נקודות אני יכול להרוויח היום?</p>
+          <div class="bullet unchanged"><svg class="check" viewBox="0 0 24 24"><polyline points="3,13 9,19 21,5" fill="none" stroke="#86efac" stroke-width="3"/></svg><span>ניחשת משחק? קיבלת {participation_points} נקודות</span></div>
+          <div class="bullet added"><svg class="check" viewBox="0 0 24 24"><polyline points="3,13 9,19 21,5" fill="none" stroke="#86efac" stroke-width="3"/></svg><span>צדקת בכיוון התוצאה? קיבלת {outcome_points} נקודות.</span></div>
+          <div class="bullet added"><svg class="check" viewBox="0 0 24 24"><polyline points="3,13 9,19 21,5" fill="none" stroke="#86efac" stroke-width="3"/></svg><span>צדקת בול בתוצאה? קיבלת {bullseye_points} נקודות</span></div>
+          <div class="bullet unchanged"><svg class="check" viewBox="0 0 24 24"><polyline points="3,13 9,19 21,5" fill="none" stroke="#86efac" stroke-width="3"/></svg><span>הגעת למסעדה? קיבלת {visit_points} נקודות</span></div>
+          <div class="bullet added"><svg class="check" viewBox="0 0 24 24"><polyline points="3,13 9,19 21,5" fill="none" stroke="#86efac" stroke-width="3"/></svg><span>הזמנת משלוח? קיבלת {delivery_points} נקודות</span></div>
+          <p class="footnote">בכפוף לתקנון</p>
+        </div>
+        <p style="font-size:0.82rem;margin-top:10px">With test fixture values → 10 / 15 / 30 / 10 / 20 (prod campaign config may show 65 for visit &amp; delivery).</p>
+      </div>
+    </div>
+
+    <h2>3. Config key mapping (how I decided what connects to what)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Hebrew bullet (planned)</th>
+          <th>Config key</th>
+          <th>Fixture value</th>
+          <th>WhatsApp example</th>
+          <th>Also used elsewhere in app</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ניחשת משחק?</td>
+          <td><code>participation_points</code></td>
+          <td>10</td>
+          <td>10</td>
+          <td>Match cards: «שמירה: +X נ׳» on guess submit</td>
+        </tr>
+        <tr>
+          <td>צדקת בכיוון התוצאה?</td>
+          <td><code>outcome_points</code></td>
+          <td>15</td>
+          <td>15</td>
+          <td>Match cards: «✓ ניחוש נכון! +{outcome_points}»</td>
+        </tr>
+        <tr>
+          <td>צדקת בול בתוצאה?</td>
+          <td><code>bullseye_points</code></td>
+          <td>30</td>
+          <td>30</td>
+          <td>Match cards: «🎯 ניחוש מדויק! +{bullseye_points}»</td>
+        </tr>
+        <tr>
+          <td>הגעת למסעדה?</td>
+          <td><code>visit_points</code></td>
+          <td>10</td>
+          <td>65</td>
+          <td>Venue code screen, booking strip (already wired)</td>
+        </tr>
+        <tr>
+          <td>הזמנת משלוח?</td>
+          <td><code>delivery_points</code></td>
+          <td>20</td>
+          <td>65</td>
+          <td>Ledger reason <code>delivery</code>, leaderboard what-if</td>
+        </tr>
+        <tr class="removed">
+          <td style="text-decoration:line-through;color:#f87171">הזמנת מקום?</td>
+          <td><code>table_booking_points</code></td>
+          <td>15</td>
+          <td>15 (remove)</td>
+          <td>Still used for booking flow / pending points — only removed from this card</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Keys are required in <code>campaignConfigStrict.js</code> — server campaign config is the source of truth for live numbers.</p>
+
+    <h2>4. Code location (exact edit target)</h2>
+    <pre>// src/screens/HomeScreen.jsx — HeroCard component
+
+const delivPts = config.delivery_points;   // ← bug: wrong field for «הגעת למסעדה»
+
+{/* Today's Snapshot */}
+&lt;div className="mx-5 mb-4 rounded-xl px-4 py-3" ...&gt;
+  &lt;p&gt;כמה נקודות אני יכול להרוויח היום?&lt;/p&gt;
+  • ניחשת משחק?        → participation_points
+  • הזמנת מקום?         → table_booking_points   ← DELETE block
+  • הגעת למסעדה?       → delivery_points (wrong) ← FIX to visit_points
+  // MISSING:
+  // • צדקת בכיוון…     → outcome_points
+  // • צדקת בול…         → bullseye_points
+  // • הזמנת משלוח?      → delivery_points (new, after visit)
+&lt;/div&gt;</pre>
+
+    <h2>5. Decisions already agreed in chat</h2>
+    <ul>
+      <li><strong>Numbers are config-driven</strong>, not hardcoded 65 — UI shows whatever the campaign returns.</li>
+      <li><strong>visit_points</strong> is the field for «הגעת למסעדה» (same as booking strip).</li>
+      <li><strong>table_booking_points</strong> stays in the app for booking logic — only removed from this summary card.</li>
+    </ul>
+
+    <h2>6. Open questions (why E was held back)</h2>
+    <div class="open-q">
+      <ol style="margin:0;padding-right:20px;color:var(--text)">
+        <li><strong>Order:</strong> WhatsApp lists new guess-outcome bullets before visit. Confirm: participation → outcome → bullseye → visit → delivery?</li>
+        <li><strong>Conditional display:</strong> Today booking bullet shows only if <code>table_booking_points &gt; 0</code>. Should outcome/bullseye/visit/delivery bullets also hide when their config value is 0?</li>
+        <li><strong>«צדקת בול» vs «בינגו»:</strong> Match UI uses «ניחוש מדויק / בינגו» internally. Card copy follows WhatsApp literally — OK?</li>
+        <li><strong>Punctuation:</strong> WhatsApp has a period after the outcome line only («15 נקודות.») — match exactly or normalize?</li>
+        <li><strong>Same-day framing:</strong> Title says «היום» but outcome/bullseye apply after final whistle — informational only, or reword?</li>
+      </ol>
+    </div>
+
+    <h2>7. Proposed diff (pseudocode)</h2>
+    <pre>// Remove table_booking_points block entirely
+
+const visitPts = config.visit_points;
+const deliveryPts = config.delivery_points;
+const outcomePts = config.outcome_points;
+const bullseyePts = config.bullseye_points;
+
+// Render order:
+show if participation_points &gt; 0  → ניחשת משחק?
+show if outcome_points &gt; 0        → צדקת בכיוון התוצאה?
+show if bullseye_points &gt; 0       → צדקת בול בתוצאה?
+show if visit_points &gt; 0          → הגעת למסעדה?
+show if delivery_points &gt; 0       → הזמנת משלוח?</pre>
+
+    <h2>8. Related but out of scope for E</h2>
+    <ul>
+      <li>Hero tier badge, progress bar, CTAs below the card — unchanged.</li>
+      <li>Personal area «מאיפה הגיעו הנקודות שלי» breakdown — separate component, different purpose.</li>
+      <li>Table booking still earns <code>table_booking_points</code> in backend — just not advertised on this card.</li>
+    </ul>
+
+    <p class="meta" style="margin-top:40px">Open this file locally: <code>docs/task-e-points-today-card.html</code></p>
+  </div>
+</body>
+</html>
