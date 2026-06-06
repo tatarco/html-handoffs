@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizFlow — Staging File Strategy</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; line-height: 1.55; }
+  h1 { font-size: 1.75rem; font-weight: 700; color: #f8fafc; }
+  h2 { font-size: 1rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
+  h3 { font-size: .95rem; font-weight: 600; color: #f1f5f9; margin-bottom: 8px; }
+  h4 { font-size: .85rem; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; }
+  p, li { font-size: .86rem; color: #94a3b8; }
+  strong { color: #e2e8f0; }
+  a { color: #7dd3fc; }
+  .page { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+  .header { text-align: center; margin-bottom: 40px; }
+  .header p { margin-top: 10px; font-size: .95rem; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin: 2px; }
+  .badge.green { background: #052e16; color: #4ade80; border: 1px solid #16a34a55; }
+  .badge.blue { background: #0c1445; color: #60a5fa; border: 1px solid #1d4ed855; }
+  .badge.purple { background: #160b2e; color: #a78bfa; border: 1px solid #7c3aed55; }
+  .badge.amber { background: #1c1400; color: #fbbf24; border: 1px solid #ca8a0455; }
+  .badge.red { background: #1c0000; color: #f87171; border: 1px solid #dc262655; }
+  .section { margin-bottom: 40px; }
+  .section-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #475569; border-bottom: 1px solid #1e293b; padding-bottom: 6px; margin-bottom: 18px; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 14px; }
+  .card.green { border-color: #16a34a33; background: #052e16; }
+  .card.blue { border-color: #1d4ed833; background: #0c1445; }
+  .card.purple { border-color: #7c3aed33; background: #160b2e; }
+  .card.red { border-color: #dc262633; background: #1c0000; }
+  .card.amber { border-color: #ca8a0433; background: #1c1400; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media (max-width: 800px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+  .code { font-family: Menlo, Monaco, monospace; background: #0f1117; border: 1px solid #1e293b; border-radius: 8px; padding: 12px 14px; font-size: .76rem; color: #7dd3fc; margin-top: 10px; white-space: pre-wrap; overflow-x: auto; line-height: 1.5; }
+  .code.json { color: #a5f3fc; }
+  .code.path { color: #86efac; }
+  table { width: 100%; border-collapse: collapse; font-size: .8rem; margin-top: 10px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #334155; vertical-align: top; }
+  th { color: #64748b; font-weight: 600; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; }
+  td { color: #cbd5e1; }
+  td code { font-family: Menlo, monospace; font-size: .75rem; color: #7dd3fc; }
+  .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 14px 0; }
+  .flow-node { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; font-size: .78rem; font-weight: 600; color: #f1f5f9; text-align: center; min-width: 110px; }
+  .flow-node.highlight { border-color: #7c3aed88; background: #160b2e; color: #c4b5fd; }
+  .flow-node.db { border-color: #16a34a88; background: #052e16; color: #86efac; }
+  .flow-node.warn { border-color: #dc262688; background: #1c0000; color: #fca5a5; }
+  .flow-arrow { color: #475569; font-size: 1.1rem; padding: 0 4px; }
+  .flow-label { display: block; font-size: .62rem; font-weight: 400; color: #64748b; margin-top: 3px; }
+  .warn { background: #1c1400; border: 1px solid #ca8a0455; border-radius: 10px; padding: 14px 16px; font-size: .82rem; color: #fbbf24; margin-top: 12px; }
+  .danger { background: #1c0000; border: 1px solid #dc262655; border-radius: 10px; padding: 14px 16px; font-size: .82rem; color: #fca5a5; margin-top: 12px; }
+  .answer { background: #052e16; border: 1px solid #16a34a55; border-radius: 10px; padding: 14px 16px; font-size: .82rem; color: #86efac; margin-top: 12px; }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 700px) { .compare { grid-template-columns: 1fr; } }
+  .compare h4 { font-size: .8rem; color: #f87171; margin-bottom: 8px; }
+  .compare .after h4 { color: #4ade80; }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; font-size: .85rem; font-weight: 600; color: #cbd5e1; padding: 8px 0; }
+  summary:hover { color: #f1f5f9; }
+  .phase { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+  .phase-num { width: 26px; height: 26px; border-radius: 50%; background: #334155; color: #f8fafc; font-size: .72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .phase.done .phase-num { background: #15803d; }
+  .phase.active .phase-num { background: #1d4ed8; }
+  .phase.blocked .phase-num { background: #b91c1c; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag { background: #0f1117; border: 1px solid #334155; border-radius: 6px; padding: 3px 9px; font-size: .7rem; color: #94a3b8; font-family: Menlo, monospace; }
+  .tag.new { border-color: #16a34a55; color: #4ade80; }
+  .tag.risk { border-color: #dc262655; color: #f87171; }
+  hr { border: none; border-top: 1px solid #1e293b; margin: 32px 0; }
+  .toc { columns: 2; column-gap: 24px; font-size: .82rem; }
+  .toc a { display: block; padding: 3px 0; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  ul { padding-left: 18px; margin-top: 8px; }
+  ul li { margin-bottom: 4px; }
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li { padding: 6px 0 6px 28px; position: relative; border-bottom: 1px solid #1e293b; }
+  .checklist li::before { content: '☐'; position: absolute; left: 0; color: #64748b; }
+  .diagram-box { background: #0f1117; border: 1px solid #334155; border-radius: 10px; padding: 20px; margin-top: 12px; }
+  .diagram-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0; align-items: center; }
+  .diagram-col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .diagram-title { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #64748b; margin-bottom: 8px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>BizFlow ERP — Staging File Strategy</h1>
+    <p>Database migrated. Files did not. How single-tenant handles blobs today, what staging lacks, and a leak-safe plan to close the gap.</p>
+    <p style="margin-top:12px">
+      <span class="badge red">Leak risk</span>
+      <span class="badge blue">Supabase Storage</span>
+      <span class="badge purple">fileGateway</span>
+      <span class="badge amber">RBAC + RLS</span>
+      <span class="badge green">Backfill</span>
+    </p>
+    <p style="margin-top:10px;font-size:.78rem;color:#64748b">As of 2026-06-06 · Repo: bizflow-erp · delivery/ + supabase/functions/</p>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Contents</div>
+    <div class="card">
+      <div class="toc">
+        <a href="#summary">1 — Executive summary</a>
+        <a href="#single-tenant">2 — Single-tenant file model</a>
+        <a href="#staging-gaps">3 — Staging gaps today</a>
+        <a href="#leaks">4 — Active leak vectors</a>
+        <a href="#target">5 — Target architecture</a>
+        <a href="#file-gateway">6 — fileGateway design</a>
+        <a href="#rbac">7 — RBAC matrix for files</a>
+        <a href="#shim">8 — Delivery shim changes</a>
+        <a href="#migration">9 — File backfill plan</a>
+        <a href="#compare">10 — Single-tenant vs staging</a>
+        <a href="#next">11 — Recommended next steps</a>
+        <a href="#slice">12 — MVP vertical slice</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1 SUMMARY -->
+  <div class="section" id="summary">
+    <div class="section-label">1 — Executive summary</div>
+    <div class="card red">
+      <h3>The problem in one sentence</h3>
+      <p style="margin-top:8px">Entity rows live in Postgres with <code>company_id</code> RLS, but <strong>file bytes still sit on Base44 production CDN</strong> — and staging uploads would proxy there too if the shim worked.</p>
+    </div>
+    <div class="grid3" style="margin-top:14px">
+      <div class="card green">
+        <h3>✓ Done</h3>
+        <p>Entity tables migrated to Supabase. Tenant RLS on <code>company_id</code>. <code>entityGateway</code> routes CRUD. Auth shell + impersonation in <code>delivery/</code>.</p>
+      </div>
+      <div class="card amber">
+        <h3>⚠ Partial</h3>
+        <p><code>UploadFile</code> shim exists but calls the wrong endpoint with the wrong protocol. <code>entityRbacGateway</code> Supabase copy is broken. No storage buckets.</p>
+      </div>
+      <div class="card red">
+        <h3>✗ Missing</h3>
+        <p>Private tenant-scoped storage. File registry. Signed read URLs. Backfill of <code>base44.app</code> URLs in migrated <code>doc</code> JSON. RBAC on file bytes.</p>
+      </div>
+    </div>
+    <div class="answer" style="margin-top:14px">
+      <strong>Goal:</strong> Mirror single-tenant ergonomics (<code>UploadFile({ file })</code> → <code>file_url</code>) while upgrading isolation to <strong>private storage + short-lived signed URLs + permission checks on every read</strong>.
+    </div>
+  </div>
+
+  <!-- 2 SINGLE TENANT -->
+  <div class="section" id="single-tenant">
+    <div class="section-label">2 — How single-tenant handles files</div>
+    <div class="card">
+      <h3>Upload API (one integration, ~25 UI call sites)</h3>
+      <div class="code">const { file_url } = await base44.integrations.Core.UploadFile({ file });</div>
+      <p style="margin-top:12px">Used by invoices, receipts, procedures, suppliers, recruitment, branding, feedback, payroll attachments, and more. Returns an opaque CDN URL stored inline on entity fields.</p>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>Where URLs are stored (not a separate File entity)</h3>
+      <table>
+        <thead><tr><th>Entity</th><th>Fields</th></tr></thead>
+        <tbody>
+          <tr><td><code>AccountingDocument</code></td><td><code>documentFile</code>, <code>requiredDocuments[].fileUrl</code>, <code>payments[].requiredDocument.fileUrl</code></td></tr>
+          <tr><td><code>Candidate</code></td><td><code>resumeUrl</code></td></tr>
+          <tr><td><code>Procedure</code></td><td><code>attachments[].url</code></td></tr>
+          <tr><td><code>EmploymentDocument</code></td><td><code>fileUrl</code></td></tr>
+          <tr><td><code>SupplierAgreement</code>, <code>SupplierApprovalFile</code></td><td><code>fileUrl</code></td></tr>
+          <tr><td><code>EmployeeNote</code>, <code>SystemFeedback</code></td><td><code>attachments</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="compare" style="margin-top:14px">
+      <div class="card">
+        <h4>Security model (production)</h4>
+        <ul>
+          <li><strong>Upload</strong> — Base44 user session; SDK sends auth.</li>
+          <li><strong>Metadata</strong> — <code>entityRbacGateway</code> + entity ACLs gate who sees the URL (e.g. <code>invoices.view</code>).</li>
+          <li><strong>Read</strong> — UI uses URL <em>directly</em> in <code>&lt;img&gt;</code>, <code>&lt;a href&gt;</code>, react-pdf. No second auth hop.</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h4>Implication</h4>
+        <p>RBAC protects the <strong>pointer</strong>, not the <strong>bytes</strong>. The URL is the capability token. Acceptable-ish in single-tenant; <strong>not acceptable</strong> in multi-tenant staging where cross-tenant URL leakage is catastrophic.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>Read path in UI (no signed-URL refresh)</h3>
+      <div class="code">// DocumentViewer.jsx — fileUrl used directly
+link.href = fileUrl;
+&lt;img src={fileUrl} /&gt;
+&lt;Document file={fileUrl} /&gt;  // react-pdf</div>
+    </div>
+  </div>
+
+  <!-- 3 STAGING GAPS -->
+  <div class="section" id="staging-gaps">
+    <div class="section-label">3 — Staging state today</div>
+    <table>
+      <thead><tr><th>Layer</th><th>Status</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Entity rows in Postgres</td><td><span class="badge green">Migrated</span></td><td><code>company_id</code> RLS on entity tables</td></tr>
+        <tr><td><code>entityGateway</code></td><td><span class="badge amber">Partial</span></td><td>RLS only — no permission matrix, no branch scope</td></tr>
+        <tr><td><code>entityRbacGateway</code></td><td><span class="badge red">Broken</span></td><td>Supabase copy references undefined <code>sb</code>, <code>_jwt</code>, <code>base44</code></td></tr>
+        <tr><td><code>UploadFile</code> shim</td><td><span class="badge red">Mismatch</span></td><td>Sends FormData + Bearer; target expects JSON + <code>api_key</code></td></tr>
+        <tr><td>Supabase Storage</td><td><span class="badge red">None</span></td><td>No buckets, no storage RLS policies</td></tr>
+        <tr><td>File backfill</td><td><span class="badge red">None</span></td><td>Migrated <code>doc</code> JSON still holds <code>base44.app</code> URLs</td></tr>
+      </tbody>
+    </table>
+
+    <div class="card purple" style="margin-top:14px">
+      <h3>Broken shim chain</h3>
+      <div class="flow">
+        <div class="flow-node">UI<br><span class="flow-label">UploadFile({ file })</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node highlight">supabaseBase44Shim<br><span class="flow-label">FormData + Bearer</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node warn">uploadBotFileToStorage<br><span class="flow-label">expects JSON + api_key</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node warn">Base44 production<br><span class="flow-label">biz-flow-erp-6829504d.base44.app</span></div>
+      </div>
+      <p style="margin-top:10px">Even if the protocol matched, uploads would land in <strong>production single-tenant storage</strong> — mixing staging tenants with prod blobs.</p>
+    </div>
+  </div>
+
+  <!-- 4 LEAKS -->
+  <div class="section" id="leaks">
+    <div class="section-label">4 — Active leak vectors</div>
+    <div class="grid2">
+      <div class="card red">
+        <h3>1 — Migrated production URLs</h3>
+        <p>DB rows expose <code>base44.app</code> file URLs. Anyone with the URL can fetch bytes — <strong>not tenant-scoped</strong>, not RBAC-gated at read time.</p>
+      </div>
+      <div class="card red">
+        <h3>2 — Upload proxy to prod</h3>
+        <p><code>uploadBotFileToStorage</code> forwards to production Base44 <code>UploadFile</code>. New staging uploads would write to prod CDN.</p>
+      </div>
+      <div class="card red">
+        <h3>3 — Weak entity gateway</h3>
+        <p>Staging <code>entityGateway</code> has no permission matrix — only <code>company_id</code> RLS. Weaker than production <code>entityRbacGateway</code>.</p>
+      </div>
+      <div class="card red">
+        <h3>4 — URL-as-secret model</h3>
+        <p>UI renders raw URLs. No signed-URL expiry, no read-time permission check on file bytes.</p>
+      </div>
+    </div>
+    <div class="danger">
+      <strong>Treat staging as containing live leak paths to production blobs</strong> until backfill completes and the upload shim is rewired.
+    </div>
+  </div>
+
+  <!-- 5 TARGET -->
+  <div class="section" id="target">
+    <div class="section-label">5 — Target architecture</div>
+    <div class="diagram-box">
+      <div class="diagram-title">Upload path</div>
+      <div class="diagram-row">
+        <div class="flow-node">UI</div><span class="flow-arrow">→</span>
+        <div class="flow-node highlight">delivery shim</div><span class="flow-arrow">→</span>
+        <div class="flow-node highlight">fileGateway</div><span class="flow-arrow">→</span>
+        <div class="flow-node db">Supabase Storage<br><span class="flow-label">private bucket</span></div>
+      </div>
+      <div class="diagram-row" style="margin-top:4px">
+        <span class="flow-arrow" style="visibility:hidden">→</span>
+        <span class="flow-arrow" style="visibility:hidden">→</span>
+        <span class="flow-arrow">↓</span>
+        <div class="flow-node db">file_asset table<br><span class="flow-label">registry + audit</span></div>
+      </div>
+      <hr style="margin:20px 0;border-color:#334155">
+      <div class="diagram-title">Read path</div>
+      <div class="diagram-row">
+        <div class="flow-node">DocumentViewer / img / pdf</div><span class="flow-arrow">→</span>
+        <div class="flow-node highlight">fileGateway/sign</div><span class="flow-arrow">→</span>
+        <div class="flow-node">RBAC + branch scope</div><span class="flow-arrow">→</span>
+        <div class="flow-node db">Signed URL (60–300s)</div>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:14px">
+      <div class="card blue">
+        <h3>Storage layer</h3>
+        <p>Private bucket <code>bizflow-files</code>. No public access. Object path:</p>
+        <div class="code path">{company_id}/{category}/{entity}/{record_id}/{uuid}.{ext}</div>
+        <p style="margin-top:8px">Clients never upload directly — only edge functions via service role.</p>
+      </div>
+      <div class="card blue">
+        <h3>Registry: <code>file_asset</code></h3>
+        <p>Every blob tracked for RBAC, audit, migration:</p>
+        <div class="tag-list">
+          <span class="tag">id (file_ref)</span>
+          <span class="tag">company_id</span>
+          <span class="tag">storage_path</span>
+          <span class="tag">entity_type / entity_id / field</span>
+          <span class="tag">branch_id</span>
+          <span class="tag">uploaded_by</span>
+          <span class="tag">legacy_url</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6 FILE GATEWAY -->
+  <div class="section" id="file-gateway">
+    <div class="section-label">6 — fileGateway edge function</div>
+    <p>Single entry point mirroring <code>UploadFile</code> and adding secure reads. Reuses <code>resolveSessionRbacContext</code> from <code>packages/bizflow-client/src/rbac.ts</code>.</p>
+    <table style="margin-top:14px">
+      <thead><tr><th>Op</th><th>Auth</th><th>RBAC</th><th>Behavior</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>upload</code></td>
+          <td>Bearer JWT</td>
+          <td>Permission for target entity (e.g. <code>invoices.create</code>)</td>
+          <td>Validate mime + magic bytes + size (max 15 MB) → store in bucket → insert <code>file_asset</code> → return <code>{ file_url, file_ref }</code></td>
+        </tr>
+        <tr>
+          <td><code>sign</code></td>
+          <td>Bearer JWT</td>
+          <td>Permission to read parent entity + branch scope</td>
+          <td>Lookup <code>file_asset</code> → verify <code>company_id</code> → return signed URL (60–300s TTL)</td>
+        </tr>
+        <tr>
+          <td><code>delete</code></td>
+          <td>Bearer JWT</td>
+          <td>Matching delete permission</td>
+          <td>Soft-delete registry row; optional storage purge</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card" style="margin-top:14px">
+      <h3>Upload validation (inherit from uploadBotFileToStorage)</h3>
+      <div class="tag-list">
+        <span class="tag">image/jpeg</span>
+        <span class="tag">image/png</span>
+        <span class="tag">image/webp</span>
+        <span class="tag">application/pdf</span>
+        <span class="tag new">magic-byte verify</span>
+        <span class="tag new">15 MB max</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7 RBAC -->
+  <div class="section" id="rbac">
+    <div class="section-label">7 — RBAC matrix for files</div>
+    <p>Map file access to existing entity permissions. On <code>sign</code>, load parent entity (service role) and check:</p>
+    <ol style="margin-top:8px;padding-left:20px">
+      <li><code>company_id</code> match</li>
+      <li>Permission from matrix below</li>
+      <li>Branch scope if entity has <code>branchId</code></li>
+    </ol>
+    <p style="margin-top:8px"><strong>Deny by default</strong> — unknown entity/field → 403.</p>
+    <table style="margin-top:14px">
+      <thead><tr><th>File context</th><th>Required permission</th></tr></thead>
+      <tbody>
+        <tr><td><code>AccountingDocument.*</code></td><td><code>invoices.view</code> / <code>create</code> / <code>edit</code></td></tr>
+        <tr><td><code>Candidate.resumeUrl</code></td><td><code>recruitment.cru_candidate</code></td></tr>
+        <tr><td><code>Employee</code> docs</td><td><code>employees.view</code> (+ <code>employees.view_pii</code> for sensitive)</td></tr>
+        <tr><td><code>Procedure.attachments</code></td><td>certification module perms (add to matrix)</td></tr>
+        <tr><td><code>Supplier*</code> files</td><td>supplier module perms</td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn" style="margin-top:14px">
+      <strong>Prerequisite:</strong> Fix staging <code>entityRbacGateway</code> (port production <code>entry.ts</code> to Supabase + <code>resolveSessionRbacContext</code>). Route entity mutations through RBAC gateway, not plain <code>entityGateway</code>.
+    </div>
+  </div>
+
+  <!-- 8 SHIM -->
+  <div class="section" id="shim">
+    <div class="section-label">8 — Delivery shim changes (keep src/ unchanged)</div>
+    <div class="compare">
+      <div class="card red">
+        <h4>Today — supabaseBase44Shim.js</h4>
+        <div class="code">UploadFile → uploadBotFileToStorage
+  (FormData + Bearer — wrong)</div>
+      </div>
+      <div class="card green after">
+        <h4>Target</h4>
+        <div class="code">UploadFile → fileGateway { op: 'upload' }
+  return { file_url, file_ref }</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>Read helper (delivery-only or shared)</h3>
+      <div class="code">resolveFileUrl(urlOrRef)
+  → fileGateway { op: 'sign' }
+  → cached short-lived signed URL</div>
+      <p style="margin-top:8px">Wire <code>DocumentViewer</code>, <code>FilePreviewModal</code>, and download <code>&lt;a href&gt;</code> links through it. Production Base44 keeps raw URLs unchanged.</p>
+    </div>
+  </div>
+
+  <!-- 9 MIGRATION -->
+  <div class="section" id="migration">
+    <div class="section-label">9 — File backfill plan</div>
+
+    <div class="phase blocked">
+      <div class="phase-num">0</div>
+      <div>
+        <h4>Stop the bleeding (day 1)</h4>
+        <ul class="checklist">
+          <li>Disable production Base44 proxy in staging <code>uploadBotFileToStorage</code></li>
+          <li>Audit migrated data: scan <code>doc</code> JSON for <code>base44.app</code> URLs per entity table</li>
+          <li>Treat staging as containing production file URLs until backfill completes</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase active">
+      <div class="phase-num">1</div>
+      <div>
+        <h4>Infrastructure (week 1)</h4>
+        <ul class="checklist">
+          <li>Create private <code>bizflow-files</code> bucket + <code>file_asset</code> table + RLS</li>
+          <li>Implement <code>fileGateway</code> (upload + sign)</li>
+          <li>Fix <code>UploadFile</code> shim → <code>fileGateway</code></li>
+          <li>Add <code>resolveFileUrl()</code> and wire viewers</li>
+          <li>Fix <code>entityRbacGateway</code> on Supabase</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">2</div>
+      <div>
+        <h4>Backfill script (week 1–2)</h4>
+        <div class="code">For each entity table × file field:
+  1. Scan doc JSON for base44.app / known CDN URLs
+  2. Download blob (service role / api_key)
+  3. Re-validate mime + magic bytes
+  4. Upload to bizflow-files/{company_id}/...
+  5. Insert file_asset (source='migration', legacy_url=original)
+  6. Rewrite doc field to file_ref or staging URL pattern
+  7. Log failures → migration_errors (auditable, retryable)</div>
+        <p style="margin-top:10px"><strong>Priority order:</strong> <code>AccountingDocument</code> → <code>EmploymentDocument</code> → <code>Candidate.resumeUrl</code> → suppliers → procedures → feedback.</p>
+        <p style="margin-top:6px"><strong>Dual-read period:</strong> <code>fileGateway/sign</code> accepts <code>file_ref</code> and legacy <code>base44.app</code> URLs — legacy only after verifying parent entity belongs to requester's tenant.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">3</div>
+      <div>
+        <h4>Harden (week 2+)</h4>
+        <ul class="checklist">
+          <li>Block new writes of raw external URLs on entity update</li>
+          <li>Expire legacy URL support after backfill completes</li>
+          <li>Add <code>file_access_log</code> audit table</li>
+          <li>E2E: tenant A cannot sign tenant B's file; branch-scoped user blocked on out-of-scope PDF</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 COMPARE -->
+  <div class="section" id="compare">
+    <div class="section-label">10 — Single-tenant vs staging target</div>
+    <table>
+      <thead><tr><th>Concern</th><th>Single-tenant (Base44)</th><th>Staging target</th></tr></thead>
+      <tbody>
+        <tr><td>Upload API</td><td><code>UploadFile({ file })</code></td><td>Same shim → <code>fileGateway</code></td></tr>
+        <tr><td>Where bytes live</td><td>Base44 CDN</td><td>Supabase private bucket</td></tr>
+        <tr><td>Who can upload</td><td>Session + entity ACL</td><td>JWT + <code>entityRbacGateway</code> permissions</td></tr>
+        <tr><td>Who can read</td><td>Entity RBAC on metadata only</td><td>Entity RBAC + <code>fileGateway/sign</code></td></tr>
+        <tr><td>URL in browser</td><td>Long-lived public URL</td><td>Short-lived signed URL</td></tr>
+        <tr><td>Cross-tenant</td><td>N/A</td><td><code>company_id</code> on registry + path + sign check</td></tr>
+        <tr><td>Branch scope</td><td>Partial in some functions</td><td>Enforced at <code>sign</code> via parent entity</td></tr>
+      </tbody>
+    </table>
+    <div class="answer" style="margin-top:14px">
+      Single-tenant uses <strong>URL-as-secret</strong>. Staging must upgrade to <strong>private storage + capability tokens</strong> while keeping the same developer ergonomics.
+    </div>
+  </div>
+
+  <!-- 11 NEXT -->
+  <div class="section" id="next">
+    <div class="section-label">11 — Recommended next steps</div>
+    <div class="grid2">
+      <div class="card">
+        <ol style="padding-left:18px">
+          <li>Do not treat file migration as optional — migrated rows are live leak paths.</li>
+          <li>Implement <code>fileGateway</code> before more staging features touch uploads or preview.</li>
+          <li>Fix <code>entityRbacGateway</code> on Supabase so file + entity permissions share one RBAC context.</li>
+          <li>Run URL inventory query across entity tables to size backfill.</li>
+          <li>Keep <code>src/</code> unchanged — all file logic in <code>delivery/</code> + <code>supabase/functions/fileGateway/</code>.</li>
+        </ol>
+      </div>
+      <div class="card purple">
+        <h3>Key files to touch</h3>
+        <div class="tag-list">
+          <span class="tag new">supabase/functions/fileGateway/</span>
+          <span class="tag">delivery/runtime/supabaseBase44Shim.js</span>
+          <span class="tag">supabase/migrations/*_file_asset.sql</span>
+          <span class="tag">supabase/functions/entityRbacGateway/</span>
+          <span class="tag">packages/bizflow-client/src/rbac.ts</span>
+        </div>
+        <h3 style="margin-top:14px">Do NOT</h3>
+        <div class="tag-list">
+          <span class="tag risk">Proxy uploads to base44.app</span>
+          <span class="tag risk">Public storage bucket</span>
+          <span class="tag risk">Put staging logic in src/</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12 SLICE -->
+  <div class="section" id="slice">
+    <div class="section-label">12 — MVP vertical slice</div>
+    <div class="card green">
+      <h3>Smallest proof: AccountingDocument.documentFile</h3>
+      <p>Proves the full loop before touching ~15 other file-bearing entities:</p>
+      <div class="flow" style="margin-top:12px">
+        <div class="flow-node db">private bucket</div>
+        <span class="flow-arrow">+</span>
+        <div class="flow-node highlight">fileGateway upload/sign</div>
+        <span class="flow-arrow">+</span>
+        <div class="flow-node">shim fix</div>
+        <span class="flow-arrow">+</span>
+        <div class="flow-node">DocumentViewer signed URL</div>
+        <span class="flow-arrow">+</span>
+        <div class="flow-node">backfill invoices only</div>
+      </div>
+      <p style="margin-top:12px">Once green: roll out to <code>Candidate.resumeUrl</code>, supplier files, procedure attachments, etc.</p>
+    </div>
+  </div>
+
+  <hr>
+  <p style="text-align:center;font-size:.75rem;color:#475569">BizFlow ERP · Staging file strategy · html-handoffs/pub/staging-file-strategy/</p>
+
+</div>
+</body>
+</html>
