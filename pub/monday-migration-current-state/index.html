@@ -31,7 +31,7 @@
 <body>
 <header>
   <h1>Monday → BizFlow — Stakeholder Rules Applied</h1>
-  <p>Snapshot: 2026-06-07T09:46:03.636Z · Generated: 2026-06-07T19:01:35.967Z</p>
+  <p>Snapshot: 2026-06-07T09:46:03.636Z · Generated: 2026-06-07T20:47:15.085Z</p>
 </header>
 <div class="wrap">
 
@@ -39,7 +39,7 @@
   <h2>Rules implemented</h2>
   <ul class="rules">
     <li>Only Monday status <strong>פעיל</strong> → active in BizFlow; all others → <strong>archived (terminated)</strong></li>
-    <li>Role, wage, weekly shifts, branch, employment status — from <strong>active board only</strong></li>
+    <li>Role, wage, weekly shifts, branch, employment status — from <strong>active board</strong> when matched; <strong>intake-only rows → archived</strong> using intake fields</li>
     <li>Approved position mappings (stakeholder 07 Jun 2026) — see table below</li>
     <li>Waiters (מלצר): any wage on active board (incl. 0) → <strong>35.4</strong></li>
     <li>Already in BizFlow → skip (not re-imported)</li>
@@ -53,7 +53,7 @@
     <thead><tr><th>Monday</th><th>BizFlow</th></tr></thead>
     <tbody>
       <tr><td>מנהל משמרת</td><td>מנהל משמרת</td></tr>
-      <tr><td>מנהל צוות</td><td>מנהל משמרת</td></tr><tr><td>עובד מטבח זר</td><td>טבח/ית</td></tr><tr><td>מנהל סניף</td><td>מנהל מסעדה</td></tr><tr><td>מנהל המסעדה</td><td>מנהל מסעדה</td></tr><tr><td>ברמן</td><td>מלצר</td></tr><tr><td>מנהל אזור</td><td>מנהל איזור</td></tr>
+      <tr><td>מנהל צוות</td><td>מנהל משמרת</td></tr><tr><td>עובד מטבח זר</td><td>טבח/ית</td></tr><tr><td>מנהל סניף</td><td>מנהל מסעדה</td></tr><tr><td>מנהל המסעדה</td><td>מנהל מסעדה</td></tr><tr><td>ברמן</td><td>מלצר</td></tr><tr><td>מנהל אזור</td><td>מנהל איזור</td></tr><tr><td>מארח</td><td>מלצר</td></tr>
       <tr><td>ללא שיוך</td><td><em>blocked — manual lookup</em></td></tr>
     </tbody>
   </table>
@@ -64,19 +64,20 @@
   <table>
     <thead><tr><th>Metric</th><th>No mappings</th><th>Stakeholder mappings</th><th>Delta</th></tr></thead>
     <tbody>
-      <tr><td>Would migrate</td><td>1152</td><td>1178</td><td><span class="delta-up">+26</span></td></tr>
+      <tr><td>Would migrate</td><td>1161</td><td>1187</td><td><span class="delta-up">+26</span></td></tr>
       <tr><td>→ Active (פעיל)</td><td>280</td><td>290</td><td><span class="delta-up">+10</span></td></tr>
-      <tr><td>→ Archived</td><td>872</td><td>888</td><td><span class="delta-up">+16</span></td></tr>
-      <tr><td>Blocked</td><td>33</td><td>7</td><td><span class="delta-up">-26</span></td></tr>
+      <tr><td>→ Archived</td><td>881</td><td>897</td><td><span class="delta-up">+16</span></td></tr>
+      <tr><td>Blocked</td><td>34</td><td>8</td><td><span class="delta-up">-26</span></td></tr>
       <tr><td>Already in BizFlow</td><td>11</td><td>11</td><td>—</td></tr>
-      <tr><td>Files</td><td>15304</td><td>15604</td><td><span class="delta-up">+300</span></td></tr>
+      <tr><td>Files</td><td>15425</td><td>15725</td><td><span class="delta-up">+300</span></td></tr>
+      <tr><td>Intake-only → archived</td><td>10</td><td>10</td><td>—</td></tr>
     </tbody>
   </table>
 </section>
 
 <section>
   <h2>Remaining blockers (stakeholder mappings ON)</h2>
-  <ul><li>Missing national ID in intake board — <strong>4</strong></li><li>Missing first name — <strong>1</strong></li><li>Position &quot;ללא שיוך&quot; requires manual lookup in Monday — <strong>1</strong></li><li>Missing start date — <strong>1</strong></li></ul>
+  <ul><li>Missing national ID in intake board — <strong>4</strong></li><li>Missing start date — <strong>2</strong></li><li>Missing first name — <strong>1</strong></li><li>Position &quot;ללא שיוך&quot; requires manual lookup in Monday — <strong>1</strong></li></ul>
   <p class="note">Full per-employee detail (Monday links, fields, suggested actions): <a href="../monday-migration-blockers/index.html">Blocker detail report</a> · <a href="../monday-migration-runbook/index.html">Live migration runbook</a></p>
 </section>
 
@@ -1829,10 +1830,28 @@
 </section>
 
 <section>
-  <h2>Employees to migrate — Archived (888)</h2>
+  <h2>Employees to migrate — Archived (897)</h2>
   <details><summary>Show list</summary><table id="archived">
     <thead><tr><th>Name</th><th>ID</th><th>Monday status</th><th>Biz status</th><th>Files</th></tr></thead>
     <tbody><tr>
+      <td>יהונתן גיאן</td>
+      <td>211330188</td>
+      <td>intake_only</td>
+      <td><span class="pill ">terminated</span></td>
+      <td>12</td>
+    </tr><tr>
+      <td>אסעד גבארין</td>
+      <td>205392186</td>
+      <td>intake_only</td>
+      <td><span class="pill ">terminated</span></td>
+      <td>12</td>
+    </tr><tr>
+      <td>מעיין קאופמן</td>
+      <td>216969071</td>
+      <td>intake_only</td>
+      <td><span class="pill ">terminated</span></td>
+      <td>12</td>
+    </tr><tr>
       <td>יניב אלוש</td>
       <td>25416587</td>
       <td>לא פעיל</td>
@@ -2025,6 +2044,12 @@
       <td><span class="pill ">terminated</span></td>
       <td>13</td>
     </tr><tr>
+      <td>אור שגן</td>
+      <td>325067627</td>
+      <td>intake_only</td>
+      <td><span class="pill ">terminated</span></td>
+      <td>12</td>
+    </tr><tr>
       <td>עמית חיינר</td>
       <td>213076573</td>
       <td>לא פעיל</td>
@@ -2042,6 +2067,12 @@
       <td>לא פעיל</td>
       <td><span class="pill ">terminated</span></td>
       <td>18</td>
+    </tr><tr>
+      <td>אמיר עבד אל קאדר</td>
+      <td>215812272</td>
+      <td>intake_only</td>
+      <td><span class="pill ">terminated</span></td>
+      <td>12</td>
     </tr><tr>
       <td>לי לזניק</td>
       <td>325855070</td>
@@ -2241,6 +2272,12 @@
       <td><span class="pill ">terminated</span></td>
       <td>13</td>
     </tr><tr>
+      <td>עמית גמזו</td>
+      <td>322294471</td>
+      <td>intake_only</td>
+      <td><span class="pill ">terminated</span></td>
+      <td>18</td>
+    </tr><tr>
       <td>חאלד מסאדי</td>
       <td>207664301</td>
       <td>לא פעיל</td>
@@ -2258,6 +2295,12 @@
       <td>לא פעיל</td>
       <td><span class="pill ">terminated</span></td>
       <td>14</td>
+    </tr><tr>
+      <td>שהאב אל דין בחאש</td>
+      <td>212903942</td>
+      <td>intake_only</td>
+      <td><span class="pill ">terminated</span></td>
+      <td>17</td>
     </tr><tr>
       <td>תהל עינב</td>
       <td>212497135</td>
@@ -4761,6 +4804,12 @@
       <td><span class="pill ">terminated</span></td>
       <td>14</td>
     </tr><tr>
+      <td>סטפן קורוסטישבסקי</td>
+      <td>330990359</td>
+      <td>intake_only</td>
+      <td><span class="pill ">terminated</span></td>
+      <td>14</td>
+    </tr><tr>
       <td>אהוד גוטובסקי</td>
       <td>215413485</td>
       <td>לא פעיל</td>
@@ -6399,6 +6448,12 @@
       <td><span class="pill ">terminated</span></td>
       <td>13</td>
     </tr><tr>
+      <td>אביב וקנין</td>
+      <td>12345678</td>
+      <td>intake_only</td>
+      <td><span class="pill ">terminated</span></td>
+      <td>12</td>
+    </tr><tr>
       <td>איברהים זיתאוי</td>
       <td>8015959</td>
       <td>לא פעיל</td>
@@ -7165,6 +7220,6 @@
 </section>
 
 </div>
-<footer>BizFlow ERP · 2026-06-07T19:01:35.967Z</footer>
+<footer>BizFlow ERP · 2026-06-07T20:47:15.085Z</footer>
 </body>
 </html>
