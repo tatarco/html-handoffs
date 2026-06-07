@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monday Migration — Live Runbook</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #fff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --accent: #1d4ed8;
+    --ok: #16a34a;
+    --warn: #d97706;
+    --bad: #dc2626;
+    --border: #e2e8f0;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, Segoe UI, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; line-height: 1.55; }
+  header { background: linear-gradient(135deg, #0f172a, #1e3a8a); color: #fff; padding: 36px 32px; }
+  header h1 { margin: 0 0 8px; font-size: 26px; }
+  header p { margin: 0; opacity: .85; max-width: 720px; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 28px 24px 48px; }
+  section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; margin-bottom: 18px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  h2 { margin: 0 0 14px; font-size: 18px; }
+  h3 { margin: 20px 0 10px; font-size: 15px; color: #334155; }
+  p, li { font-size: 14px; }
+  ul, ol { padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .pill { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+  .pill.ok { background: #dcfce7; color: #166534; }
+  .pill.warn { background: #fef3c7; color: #92400e; }
+  .pill.bad { background: #fee2e2; color: #991b1b; }
+  .pill.info { background: #dbeafe; color: #1e40af; }
+  .pill.muted { background: #f1f5f9; color: #475569; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: #f8fafc; color: var(--muted); font-weight: 600; }
+  pre, code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 14px 16px; border-radius: 10px; overflow-x: auto; line-height: 1.45; }
+  code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
+  .flow { display: grid; gap: 10px; margin: 14px 0; }
+  .step { display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: start; }
+  .step-num { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
+  .step-body { background: #f8fafc; border-radius: 10px; padding: 12px 14px; border: 1px solid var(--border); }
+  .step-body strong { display: block; margin-bottom: 4px; }
+  .note { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #1e3a8a; margin-top: 12px; }
+  .danger { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+  .diagram { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 16px; overflow-x: auto; font-size: 12px; line-height: 1.4; white-space: pre; font-family: ui-monospace, monospace; }
+  footer { text-align: center; padding: 24px; font-size: 12px; color: var(--muted); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Monday → BizFlow — Live Migration Runbook</h1>
+  <p>Exact sequence for the local runner: what runs when, how checkpointing works, and how to recover from failures without duplicating employees or files.</p>
+</header>
+
+<div class="wrap">
+
+<section>
+  <h2>Quick links</h2>
+  <p class="toc">
+    <a href="#overview">Overview</a> ·
+    <a href="#preflight">Pre-flight</a> ·
+    <a href="#phase-analyze">Phase 1 — Analyze</a> ·
+    <a href="#phase-dry">Phase 2 — Dry preview</a> ·
+    <a href="#phase-live">Phase 3 — Live migrate</a> ·
+    <a href="#per-employee">Per-employee steps</a> ·
+    <a href="#statuses">Run statuses</a> ·
+    <a href="#recovery">Failure recovery</a> ·
+    <a href="#timing">Timing</a> ·
+    <a href="#dont">Do not</a>
+  </p>
+  <p>Related reports:
+    <a href="../monday-migration-current-state/index.html">Gap report (counts)</a> ·
+    <a href="../monday-migration-blockers/index.html">Blocker detail (7 rows)</a>
+  </p>
+</section>
+
+<section id="overview">
+  <h2>Overview</h2>
+  <p>The migration runs <strong>on your machine</strong>, not as a Base44 edge function. It is deliberately slow and checkpointed: one employee at a time, files one by one, with every outcome written to <code>progress.csv</code> before moving on.</p>
+  <div class="diagram">┌─────────────┐     ┌──────────────┐     ┌─────────────┐     ┌──────────────────┐
+│  SNAPSHOT   │ ──► │   ANALYZE    │ ──► │ progress.csv│ ──► │ migrate --live   │
+│ (disk cache)│     │ build plan   │     │ + cache.json│     │ employee by emp  │
+└─────────────┘     └──────────────┘     └─────────────┘     └──────────────────┘
+       ▲                                                            │
+       │         Re-run same command resumes from CSV ◄────────────┘
+       │
+  --refresh-snapshot only when Monday/BizFlow master data changed</div>
+  <p><strong>Current plan (stakeholder rules ON):</strong> ~1,178 employees to create, 11 skipped (already in BizFlow), 7 blocked (must fix in Monday first), ~15,600 files.</p>
+</section>
+
+<section id="preflight">
+  <h2>Pre-flight checklist</h2>
+  <ol>
+    <li>Resolve all <a href="../monday-migration-blockers/index.html">7 blockers</a> in Monday (or accept they will never import).</li>
+    <li>Confirm stakeholder mapping rules are final — re-run <code>analyze</code> after any mapping change.</li>
+    <li>Set env vars in the shell that will run for hours:
+      <pre>export BASE44_API_KEY='…'
+export MONDAY_API_TOKEN='…'</pre>
+    </li>
+    <li>Ensure <code>getEmployees</code> with <code>migrationBulk: true</code> is deployed (already on main).</li>
+    <li>Keep the laptop awake; use <code>tmux</code> or <code>screen</code> so a terminal close does not kill the process.</li>
+    <li>Open the live dashboard in a browser (auto-refreshes every 5s):
+      <pre>open .scratch/monday-migration/status.html</pre>
+    </li>
+  </ol>
+</section>
+
+<section id="phase-analyze">
+  <h2>Phase 1 — Analyze (plan only, no writes)</h2>
+  <div class="flow">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Load or fetch snapshot</strong>Reads <code>snapshot-monday.json</code>, <code>snapshot-master.json</code>, <code>snapshot-employees.json</code> from disk. If missing or <code>--refresh-snapshot</code>: one Monday fetch (both boards) + BizFlow positions + branches + bulk employees.</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Build migration plan</strong>Matches intake ↔ active board by national ID. Applies stakeholder rules (active/archive, position aliases, waiter wage). Produces per-row <code>plan_status</code> and employee <code>payload</code>.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Write artifacts</strong><code>analyze-cache.json</code> — full plan + file lists (used by migrate).<br><code>progress.csv</code> — one row per intake item; preserves prior run progress if re-analyzing.<br><code>status.html</code> — dashboard.</div></div>
+  </div>
+  <pre>node tools/monday-migration/run.mjs analyze
+# optional: refresh Monday/BizFlow data
+node tools/monday-migration/run.mjs analyze --refresh-snapshot</pre>
+  <p class="note">Analyze is safe to re-run anytime. Rows already <span class="pill ok">complete</span> or <span class="pill warn">partial</span> keep their progress when you re-analyze (CSV merge preserves them).</p>
+</section>
+
+<section id="phase-dry">
+  <h2>Phase 2 — Dry migrate preview</h2>
+  <p>Runs the migrate command <strong>without</strong> <code>--live</code>. Refreshes the dashboard and prints how many rows are actionable — no BizFlow writes.</p>
+  <pre>node tools/monday-migration/run.mjs migrate</pre>
+  <p>Use this to confirm the queue size before starting the long run. Optional smoke test:</p>
+  <pre>node tools/monday-migration/run.mjs migrate --live --limit 3</pre>
+</section>
+
+<section id="phase-live">
+  <h2>Phase 3 — Live migrate (actual import)</h2>
+  <pre>node tools/monday-migration/run.mjs migrate --live</pre>
+  <h3>What the runner does at startup</h3>
+  <ol>
+    <li>Loads <code>analyze-cache.json</code> (must exist — run analyze first).</li>
+    <li>Loads <code>progress.csv</code>.</li>
+    <li>Loads employee snapshot from disk (does <strong>not</strong> re-fetch BizFlow unless you ran analyze with refresh).</li>
+    <li>Builds queue: all rows where <code>run_status</code> is <span class="pill info">pending</span>, <span class="pill warn">partial</span>, <span class="pill bad">failed</span>, or <span class="pill muted">in_progress</span>.</li>
+    <li>Skips <span class="pill bad">blocked</span> rows entirely (plan_status starts with <code>blocked_</code>).</li>
+  </ol>
+  <h3>Loop (repeated until queue empty or you stop)</h3>
+  <p>For each queued employee, in CSV order:</p>
+  <ol>
+    <li>Mark row <span class="pill muted">in_progress</span> → write CSV + dashboard immediately.</li>
+    <li>Execute employee + file steps (see next section).</li>
+    <li>Set final status → write CSV + dashboard immediately.</li>
+    <li>Sleep <code>--delay-ms</code> (default 200ms) before next employee.</li>
+  </ol>
+  <p class="note">When the batch ends, the process exits. <strong>Re-run the exact same command</strong> to continue. There is no background daemon.</p>
+</section>
+
+<section id="per-employee">
+  <h2>Per-employee steps (inside the loop)</h2>
+  <div class="diagram">START row (pending / failed / partial)
+  │
+  ├─ plan_status = blocked_* ──────────────────────────► SKIP (never enters live queue)
+  │
+  ├─ plan_status = flagged_existing_in_biz (no --force-merge)
+  │     ├─ Link existing employee_id (no update)
+  │     └─ Upload files only if employee_id known
+  │           └─► run_status = skipped_existing
+  │
+  ├─ run_status = partial (employee already created)
+  │     └─ SKIP create/update ──► upload files only
+  │
+  └─ otherwise (pending / failed)
+        ├─ No existing employee in snapshot → POST Employee (create)
+        ├─ Existing + --force-merge → PUT Employee (update)
+        └─ employee_id saved to CSV
+              │
+              ▼
+        FOR EACH intake file (Monday asset):
+              ├─ Already exists as EmploymentDocument (same name)? → skip (count skipped)
+              ├─ Fetch Monday public URL → download → UploadFile → POST EmploymentDocument
+              └─ On file error: log, count failed, continue other files
+              │
+              ▼
+        ALL files OK? ──► complete
+        SOME files failed? ──► partial (employee kept, retry files later)
+        Employee step threw? ──► failed (retry employee + files later)</div>
+
+  <h3>Idempotency guarantees</h3>
+  <table>
+    <thead><tr><th>Concern</th><th>How it's handled</th></tr></thead>
+    <tbody>
+      <tr><td>Re-run same employee</td><td><span class="pill ok">complete</span> rows are not in the queue. Snapshot + CSV <code>employee_id</code> prevent duplicate creates.</td></tr>
+      <tr><td>Duplicate files</td><td>Before upload, lists <code>EmploymentDocument</code> for employee; skips if <code>name</code> already exists.</td></tr>
+      <tr><td>Already in BizFlow (11 today)</td><td><code>flagged_existing_in_biz</code> → <span class="pill muted">skipped_existing</span>; no employee update unless <code>--force-merge</code>.</td></tr>
+      <tr><td>Process killed mid-employee</td><td>Row stuck <span class="pill muted">in_progress</span> is picked up next run; treated as <span class="pill warn">partial</span> if <code>employee_id</code> exists, else <span class="pill info">pending</span>.</td></tr>
+      <tr><td>Monday duplicate intake rows</td><td>CSV keyed on <code>monday_intake_id</code> (not TZ alone) — each intake row is independent.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="statuses">
+  <h2>Run statuses — what they mean</h2>
+  <table>
+    <thead><tr><th>Status</th><th>Meaning</th><th>Next run behavior</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill info">pending</span></td><td>Ready to import; nothing attempted yet.</td><td>Create employee + upload all files.</td></tr>
+      <tr><td><span class="pill muted">in_progress</span></td><td>Interrupted mid-row (crash, Ctrl+C, laptop sleep).</td><td>Resumes as partial (if employee_id set) or pending.</td></tr>
+      <tr><td><span class="pill ok">complete</span></td><td>Employee created/linked and all files uploaded.</td><td>Skipped permanently (until you manually reset CSV).</td></tr>
+      <tr><td><span class="pill warn">partial</span></td><td>Employee exists; one or more files failed.</td><td><strong>Files only</strong> — does not re-create employee. Retries failed files; skips existing doc names.</td></tr>
+      <tr><td><span class="pill bad">failed</span></td><td>Employee create/update threw (network, validation, 5xx).</td><td>Retries employee step + files from scratch.</td></tr>
+      <tr><td><span class="pill muted">skipped_existing</span></td><td>Already in BizFlow; files processed per skip rules.</td><td>Not queued again.</td></tr>
+      <tr><td><span class="pill bad">blocked</span></td><td>Plan blocker (missing TZ, position, etc.).</td><td>Never runs in live mode until Monday is fixed and you re-analyze.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="recovery">
+  <h2>Failure recovery playbook</h2>
+
+  <h3>1. Terminal closed / laptop slept / Ctrl+C</h3>
+  <p>Check <code>progress.csv</code> and <code>status.html</code>. Any <span class="pill muted">in_progress</span> row may be partial-complete. Simply re-run:</p>
+  <pre>node tools/monday-migration/run.mjs migrate --live</pre>
+
+  <h3>2. Single employee failed (red in dashboard)</h3>
+  <p>Read <code>error</code> column in CSV or <code>runner.log</code>. Fix root cause (bad data, rate limit). Re-run full migrate — only <span class="pill bad">failed</span> rows retry.</p>
+  <p>To test one person after fixing Monday:</p>
+  <pre>node tools/monday-migration/run.mjs analyze --tz 123456789
+node tools/monday-migration/run.mjs migrate --live --tz 123456789</pre>
+
+  <h3>3. Partial — employee OK, some files failed</h3>
+  <p>Employee record already in BizFlow. Next run uploads only files that are not already <code>EmploymentDocument</code> names. Check <code>files_failed</code> and <code>error</code> in CSV for asset names. Common causes: Monday URL expired, upload timeout.</p>
+
+  <h3>4. Rate limit (HTTP 429)</h3>
+  <p>BizFlow client auto-retries with backoff (up to 4 retries). If persistent, increase delays:</p>
+  <pre>node tools/monday-migration/run.mjs migrate --live --delay-ms 1000 --file-delay-ms 300</pre>
+
+  <h3>5. Stale analyze cache (mapping changed after analyze)</h3>
+  <pre>node tools/monday-migration/run.mjs analyze
+node tools/monday-migration/run.mjs migrate --live</pre>
+  <p>Completed rows keep their status; pending rows get updated payloads from the new plan.</p>
+
+  <h3>6. Need to re-import an already-complete employee</h3>
+  <p class="note danger">No built-in "reset one row" CLI. Manually edit <code>progress.csv</code>: set <code>run_status=pending</code>, clear <code>employee_id</code>, zero file counters. For existing BizFlow employees use <code>--force-merge</code> to update fields. Duplicates are otherwise avoided.</p>
+
+  <h3>7. Catastrophic mistake — start CSV fresh</h3>
+  <p class="note danger">Delete or rename <code>progress.csv</code> and <code>analyze-cache.json</code>, then re-analyze. <strong>Risk:</strong> may attempt to create employees that already exist if snapshot is stale. Prefer <code>analyze --refresh-snapshot</code> so existing employees are detected.</p>
+
+  <h3>Logs &amp; audit trail</h3>
+  <table>
+    <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>.scratch/monday-migration/progress.csv</code></td><td>Source of truth for resume; safe to open in Excel.</td></tr>
+      <tr><td><code>.scratch/monday-migration/runner.log</code></td><td>Append-only: EMPLOYEE OK/FAIL, FILE OK/FAIL per line.</td></tr>
+      <tr><td><code>.scratch/monday-migration/status.html</code></td><td>Live dashboard (5s refresh).</td></tr>
+      <tr><td><code>.scratch/monday-migration/analyze-cache.json</code></td><td>Full payloads + Monday file asset IDs.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="timing">
+  <h2>Timing expectations</h2>
+  <p>Rough lower bound for ~1,178 employees and ~15,600 files (defaults: 200ms between employees, 100ms between files):</p>
+  <table>
+    <thead><tr><th>Step</th><th>Per unit</th><th>Total (approx)</th></tr></thead>
+    <tbody>
+      <tr><td>Employee create</td><td>~1–3 s API</td><td>~20–60 min</td></tr>
+      <tr><td>File upload</td><td>~2–5 s each</td><td><strong>many hours</strong> (bulk of runtime)</td></tr>
+      <tr><td>Inter-row delays</td><td>200ms × 1178</td><td>~4 min</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Plan for an overnight run (or multiple sessions using resume). Use <code>--limit N</code> for controlled batches during business hours.</p>
+</section>
+
+<section id="dont">
+  <h2>Do not</h2>
+  <ul>
+    <li><strong>Do not</strong> run <code>analyze --refresh-snapshot</code> mid-migrate unless you understand snapshot drift — usually wait until a batch finishes.</li>
+    <li><strong>Do not</strong> delete employees in BizFlow mid-run without resetting CSV rows — creates orphan state.</li>
+    <li><strong>Do not</strong> run two migrate processes in parallel on the same CSV.</li>
+    <li><strong>Do not</strong> expect Base44 function logs — all observability is local CSV + dashboard + runner.log.</li>
+    <li><strong>Do not</strong> use <code>--force-merge</code> unless you intentionally want to overwrite existing BizFlow employee fields.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Recommended execution sequence</h2>
+  <pre># 1. Final plan
+node tools/monday-migration/run.mjs analyze
+
+# 2. Fix blockers in Monday, then refresh plan
+node tools/monday-migration/run.mjs analyze --refresh-snapshot
+
+# 3. Smoke test
+node tools/monday-migration/run.mjs migrate --live --limit 5
+
+# 4. Full run (in tmux)
+node tools/monday-migration/run.mjs migrate --live
+
+# 5. After any interruption — same command
+node tools/monday-migration/run.mjs migrate --live
+
+# 6. When dashboard shows 0 pending / failed / partial — done</pre>
+</section>
+
+</div>
+<footer>BizFlow ERP · Monday local migration runner · Generated 2026-06-07</footer>
+</body>
+</html>
