@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monday Migration — Final Report</title>
+<style>
+  :root { --bg:#f8fafc; --card:#fff; --text:#0f172a; --muted:#64748b; --accent:#1d4ed8; --ok:#16a34a; --warn:#d97706; --bad:#dc2626; --border:#e2e8f0; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,Segoe UI,Arial,sans-serif; background:var(--bg); color:var(--text); margin:0; line-height:1.55; }
+  header { background:linear-gradient(135deg,#0f172a,#1e3a8a); color:#fff; padding:36px 32px; }
+  header h1 { margin:0 0 8px; font-size:26px; }
+  header p { margin:0; opacity:.85; max-width:760px; }
+  .wrap { max-width:1040px; margin:0 auto; padding:28px 24px 48px; }
+  section { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:22px 24px; margin-bottom:18px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+  h2 { margin:0 0 14px; font-size:18px; }
+  h3 { margin:18px 0 10px; font-size:15px; color:#334155; }
+  p,li { font-size:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+  .stat { background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:14px; }
+  .stat .n { font-size:28px; font-weight:800; }
+  .stat .l { font-size:11px; color:var(--muted); margin-top:4px; }
+  .stat.ok .n { color:var(--ok); }
+  .stat.warn .n { color:var(--warn); }
+  .stat.bad .n { color:var(--bad); }
+  .pill { display:inline-block; border-radius:999px; padding:2px 10px; font-size:11px; font-weight:700; }
+  .pill.ok { background:#dcfce7; color:#166534; }
+  .pill.warn { background:#fef3c7; color:#92400e; }
+  .pill.bad { background:#fee2e2; color:#991b1b; }
+  .pill.info { background:#dbeafe; color:#1e40af; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:10px; }
+  th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  code { font-size:12px; background:#f1f5f9; padding:2px 6px; border-radius:4px; }
+  .muted { color:var(--muted); font-size:13px; }
+  .err { color:#991b1b; font-size:12px; max-width:420px; word-break:break-word; }
+  .bar { height:10px; background:#e2e8f0; border-radius:6px; overflow:hidden; margin:10px 0 4px; }
+  .fill { height:100%; background:linear-gradient(90deg,#22c55e,#16a34a); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Monday → BizFlow Migration — Final Report</h1>
+  <p>Generated 2026-06-08T09:43:06.053Z · Local runner checkpoint data · Employees 1194/1206 done · Files 15638/15779 transferred</p>
+</header>
+<div class="wrap">
+
+<section>
+  <h2>Executive summary</h2>
+  <div class="bar"><div class="fill" style="width:99.0%"></div></div>
+  <p class="muted">Employee completion: <strong>99.0%</strong> · File completion: <strong>99.1%</strong></p>
+  <div class="grid" style="margin-top:16px">
+    <div class="stat ok"><div class="n">1178</div><div class="l">Complete</div></div>
+    <div class="stat info"><div class="n">16</div><div class="l">Skipped (in BizFlow)</div></div>
+    <div class="stat warn"><div class="n">11</div><div class="l">Partial (1 file fail)</div></div>
+    <div class="stat bad"><div class="n">2</div><div class="l">Failed + blocked</div></div>
+    <div class="stat ok"><div class="n">14045</div><div class="l">Files uploaded</div></div>
+    <div class="stat info"><div class="n">1593</div><div class="l">Files skipped (dup)</div></div>
+    <div class="stat warn"><div class="n">130</div><div class="l">Files pending</div></div>
+    <div class="stat bad"><div class="n">11</div><div class="l">Files failed</div></div>
+  </div>
+  <p style="margin-top:14px"><span class="pill warn">Verify: FAIL locally</span> <span class="pill info">BizFlow doc check: rate-limited (429)</span></p>
+</section>
+
+<section>
+  <h2>What to do next</h2>
+  <table>
+    <thead><tr><th>Priority</th><th>Issue</th><th>Count</th><th>Retryable?</th><th>Command / action</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Partial employees — employee OK, 1 file failed</td><td>11</td><td><span class="pill ok">Yes</span></td><td><code>migrate --live</code> or <code>--tz …</code></td></tr>
+      <tr><td>2</td><td>Skipped-existing — files never uploaded</td><td>10 employees (118 files)</td><td><span class="pill ok">Yes</span></td><td><code>migrate --live --tz …</code> after employee_id linked</td></tr>
+      <tr><td>3</td><td>Junk test row</td><td>1</td><td><span class="pill bad">No</span></td><td>Ignore / delete CSV row (TZ 12345678)</td></tr>
+      <tr><td>4</td><td>Blocked — missing national ID</td><td>1</td><td><span class="pill bad">Manual</span></td><td>Fix Monday or exclude</td></tr>
+      <tr><td>5</td><td>Full BizFlow verify</td><td>—</td><td><span class="pill ok">Yes</span></td><td><code>verify --check-bizflow</code> when rate limit clears</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Failed file error breakdown</h2>
+  <table>
+    <thead><tr><th>Category</th><th>Count</th><th>Meaning</th><th>Retry?</th></tr></thead>
+    <tbody>
+      <tr><td>BizFlow upload 500</td><td>4</td><td>Base44 UploadFile integration error</td><td>Yes</td></tr>
+      <tr><td>Timeout</td><td>3</td><td>Network / upload timeout</td><td>Yes</td></tr>
+      <tr><td>Empty Monday source</td><td>2</td><td>Monday asset downloaded as 0 bytes</td><td>Check Monday source</td></tr>
+      <tr><td>Monday download</td><td>1</td><td>fetch failed pulling from Monday</td><td>Yes</td></tr>
+      <tr><td>Multipart parse</td><td>1</td><td>Upload boundary corruption</td><td>Yes</td></tr>
+      <tr><td>Other</td><td>0</td><td>—</td><td>Case by case</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Partial employees <span class="pill warn">11</span></h2>
+  <p class="muted">Employee record exists. Re-run migration for the failed file only.</p>
+  <table>
+    <thead><tr><th>Name</th><th>TZ</th><th>Files</th><th>Error bucket</th><th>Employee ID</th><th>Error</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>‪ארז קוטר‬‏</td><td><code>315143529</code></td><td>19/20</td>
+        <td>empty_monday_source</td><td><code>6a2604b6f28275331c4011f3</code></td>
+        <td class="err">UploadFile failed (400): {&quot;message&quot;:&quot;Cannot upload empty file: אישור קופה פעילה.pdf&quot;,&quot;detail&quot;:null,&quot;traceback&quot;:null,&quot;extra_data&quot;:null,&quot;request_id&quot;:null}</td>
+      </tr><tr>
+        <td>גיא אהרון</td><td><code>326394848</code></td><td>13/14</td>
+        <td>timeout</td><td><code>6a260d840e89cdec6ce3a1cd</code></td>
+        <td class="err">The operation was aborted due to timeout</td>
+      </tr><tr>
+        <td>יהב בונן</td><td><code>214244535</code></td><td>11/12</td>
+        <td>monday_download</td><td><code>6a2621b69c4bf274550ae51c</code></td>
+        <td class="err">fetch failed</td>
+      </tr><tr>
+        <td>ירדן טל</td><td><code>323907618</code></td><td>12/13</td>
+        <td>bizflow_upload_500</td><td><code>6a262f31dc9836879e7fca1f</code></td>
+        <td class="err">UploadFile failed (500): {&quot;error_type&quot;:&quot;HTTPException&quot;,&quot;message&quot;:&quot;Error running integration. Error: . integration: UploadFile. inputs: {'app_id': None, 'app_owner': None, 'file': UploadFile(filename='</td>
+      </tr><tr>
+        <td>נועה מני</td><td><code>213356645</code></td><td>15/16</td>
+        <td>bizflow_upload_500</td><td><code>6a264bb992903f45276cfa29</code></td>
+        <td class="err">UploadFile failed (500): {&quot;error_type&quot;:&quot;HTTPException&quot;,&quot;message&quot;:&quot;Error running integration. Error: . integration: UploadFile. inputs: {'app_id': None, 'app_owner': None, 'file': UploadFile(filename='</td>
+      </tr><tr>
+        <td>סתיו קרסיק</td><td><code>209517952</code></td><td>14/15</td>
+        <td>bizflow_upload_500</td><td><code>6a26576d28ed8daef4406a71</code></td>
+        <td class="err">UploadFile failed (500): {&quot;error_type&quot;:&quot;HTTPException&quot;,&quot;message&quot;:&quot;Error running integration. Error: . integration: UploadFile. inputs: {'app_id': None, 'app_owner': None, 'file': UploadFile(filename='</td>
+      </tr><tr>
+        <td>עדי מרינברג</td><td><code>325856946</code></td><td>10/11</td>
+        <td>bizflow_upload_500</td><td><code>6a2659c3e89edc50d8720db9</code></td>
+        <td class="err">UploadFile failed (500): {&quot;error_type&quot;:&quot;HTTPException&quot;,&quot;message&quot;:&quot;Error running integration. Error: . integration: UploadFile. inputs: {'app_id': None, 'app_owner': None, 'file': UploadFile(filename='</td>
+      </tr><tr>
+        <td>עמית קרופקין</td><td><code>331431114</code></td><td>13/14</td>
+        <td>timeout</td><td><code>6a2663b5feb7ea57fe35af56</code></td>
+        <td class="err">The operation was aborted due to timeout</td>
+      </tr><tr>
+        <td>רועי פוקס</td><td><code>215105933</code></td><td>13/14</td>
+        <td>timeout</td><td><code>6a26715c866d58a426dc9ed7</code></td>
+        <td class="err">The operation was aborted due to timeout</td>
+      </tr><tr>
+        <td>רותם תורן</td><td><code>218010676</code></td><td>11/12</td>
+        <td>upload_multipart</td><td><code>6a2672f3121281b2c4a32911</code></td>
+        <td class="err">UploadFile failed (500): {&quot;error_type&quot;:&quot;MultipartParseError&quot;,&quot;message&quot;:&quot;Expected boundary character 45, got 210 at index 2&quot;,&quot;detail&quot;:&quot;Expected boundary character 45, got 210 at index 2&quot;,&quot;traceback&quot;:&quot;&quot;</td>
+      </tr><tr>
+        <td>רנטו בללי</td><td><code>212981351</code></td><td>12/13</td>
+        <td>empty_monday_source</td><td><code>6a26746cc4eea87b2a25a277</code></td>
+        <td class="err">UploadFile failed (400): {&quot;message&quot;:&quot;Cannot upload empty file: employeeIdBackCertificate.pdf&quot;,&quot;detail&quot;:null,&quot;traceback&quot;:null,&quot;extra_data&quot;:null,&quot;request_id&quot;:null}</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Skipped-existing — pending files <span class="pill info">10</span></h2>
+  <p class="muted">Already in BizFlow at analyze time. Employee upsert skipped; documents may still be missing.</p>
+  <table>
+    <thead><tr><th>Name</th><th>TZ</th><th>Pending files</th><th>Employee ID</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>אבי קרן</td><td><code>212151583</code></td><td>15/15</td><td><code>—</code></td>
+      </tr><tr>
+        <td>אביב אברהם</td><td><code>203342571</code></td><td>12/12</td><td><code>—</code></td>
+      </tr><tr>
+        <td>אדם סטרייבסקי</td><td><code>300747599</code></td><td>3/3</td><td><code>—</code></td>
+      </tr><tr>
+        <td>איה לובינגר</td><td><code>218045839</code></td><td>11/11</td><td><code>6a09f195c238285c87800ce3</code></td>
+      </tr><tr>
+        <td>גרמן סיץ׳</td><td><code>325511467</code></td><td>15/15</td><td><code>69f9b8039c3bcf984fc4a5e1</code></td>
+      </tr><tr>
+        <td>גרמן סיץ׳</td><td><code>325511467</code></td><td>15/15</td><td><code>69f9b8039c3bcf984fc4a5e1</code></td>
+      </tr><tr>
+        <td>יובל פבל</td><td><code>322747452</code></td><td>11/11</td><td><code>69fb9b1e1a564203a36df94b</code></td>
+      </tr><tr>
+        <td>יותם סלע</td><td><code>324060045</code></td><td>15/15</td><td><code>69f772bfbc21066f34e889cb</code></td>
+      </tr><tr>
+        <td>יותם סלע</td><td><code>324060045</code></td><td>12/12</td><td><code>69f772bfbc21066f34e889cb</code></td>
+      </tr><tr>
+        <td>מישל שריקי</td><td><code>300618899</code></td><td>9/9</td><td><code>—</code></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Non-retryable / manual</h2>
+  <table>
+    <thead><tr><th>Name</th><th>TZ</th><th>Status</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>אביב וקנין</td><td><code>12345678</code></td><td>failed</td><td class="err">Missing plan row in analyze cache — re-run analyze</td></tr>
+      <tr><td>New Item</td><td><code>—</code></td><td>blocked_missing_tz</td><td class="err">Missing national ID in intake board</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Related reports</h2>
+  <ul>
+    <li><a href="https://tatarco.github.io/html-handoffs/pub/monday-migration-runbook/">Live runbook</a></li>
+    <li><a href="https://tatarco.github.io/html-handoffs/pub/monday-migration-blockers/">Blocker detail (pre-run)</a></li>
+    <li><a href="https://tatarco.github.io/html-handoffs/pub/monday-migration-current-state/">Gap report (pre-run)</a></li>
+  </ul>
+  <p class="muted">Resume command: <code>node tools/monday-migration/run.mjs migrate --live</code></p>
+</section>
+
+</div>
+</body>
+</html>
