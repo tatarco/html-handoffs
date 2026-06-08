@@ -5,21 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Monday Migration — End Date Gap</title>
 <style>
-  :root { --bg:#f8fafc; --card:#fff; --text:#0f172a; --muted:#64748b; --accent:#1d4ed8; --ok:#16a34a; --warn:#d97706; --bad:#dc2626; --border:#e2e8f0; }
+  :root { --bg:#f8fafc; --card:#fff; --text:#0f172a; --muted:#64748b; --ok:#16a34a; --warn:#d97706; --bad:#dc2626; --border:#e2e8f0; }
   * { box-sizing:border-box; }
   body { font-family:-apple-system,Segoe UI,Arial,sans-serif; background:var(--bg); color:var(--text); margin:0; line-height:1.5; }
   header { background:linear-gradient(135deg,#7f1d1d,#b91c1c); color:#fff; padding:32px 28px; }
   header h1 { margin:0 0 6px; font-size:24px; }
-  header p { margin:0; opacity:.92; font-size:14px; max-width:720px; }
-  .wrap { max-width:820px; margin:0 auto; padding:24px 20px 40px; }
+  header p { margin:0; opacity:.92; font-size:14px; max-width:760px; }
+  .wrap { max-width:860px; margin:0 auto; padding:24px 20px 40px; }
   section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px 22px; margin-bottom:14px; }
   h2 { margin:0 0 12px; font-size:17px; }
   p,li,td,th { font-size:14px; }
   .muted { color:var(--muted); font-size:13px; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-top:10px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px; margin-top:10px; }
   .stat { background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:12px; }
-  .stat .n { font-size:24px; font-weight:800; }
-  .stat .l { font-size:11px; color:var(--muted); margin-top:2px; }
+  .stat .n { font-size:22px; font-weight:800; }
+  .stat .l { font-size:10px; color:var(--muted); margin-top:2px; }
   .stat.bad .n { color:var(--bad); }
   .stat.warn .n { color:var(--warn); }
   .stat.ok .n { color:var(--ok); }
@@ -42,61 +42,62 @@
 <body>
 <header>
   <h1>End date gap — decision needed</h1>
-  <p>Monday → BizFlow migration follow-up · Generated 2026-06-08T11:10:44.884Z · Snapshot 2026-06-07T21:19:42.494Z</p>
+  <p>Monday → BizFlow · Generated 2026-06-08T12:26:26.089Z · Joins 3 boards in one cached snapshot (no per-employee API)</p>
 </header>
 <div class="wrap">
 
 <section>
   <h2>Current state</h2>
-  <p>Employee migration is otherwise <strong>complete</strong> (1,197 migrated, 2 partial file cases). This is a <strong>separate data gap</strong> on termination dates.</p>
+  <p>Migration is otherwise complete. Terminated employees (<strong>הופסק</strong>) are missing <code>endDate</code> in BizFlow.</p>
   <div class="grid">
-    <div class="stat bad"><div class="n">790</div><div class="l">Terminated in BizFlow, no end date</div></div>
-    <div class="stat ok"><div class="n">285</div><div class="l">Can auto-fix from Monday</div></div>
-    <div class="stat warn"><div class="n">505</div><div class="l">No end date in Monday either</div></div>
+    <div class="stat bad"><div class="n">790</div><div class="l">Terminated, no end date</div></div>
+    <div class="stat ok"><div class="n">292</div><div class="l">Can auto-fix</div></div>
+    <div class="stat warn"><div class="n">498</div><div class="l">Still missing in Monday</div></div>
+    <div class="stat ok"><div class="n">32</div><div class="l">From resignation board</div></div>
+    <div class="stat ok"><div class="n">260</div><div class="l">Last-shift only</div></div>
+    <div class="stat warn"><div class="n">3</div><div class="l">Conflicts (term wins)</div></div>
   </div>
-  <p class="muted" style="margin-top:12px">In the UI these employees show status <strong>הופסק</strong> (terminated). Start dates migrated correctly; end dates did not.</p>
 </section>
 
 <section>
-  <h2>What is the issue?</h2>
-  <p>The migration mapped Monday <strong>משמרת ראשונה</strong> → BizFlow <code>startDate</code>, but never mapped Monday <strong>תאריך משמרת אחרונה</strong> → BizFlow <code>endDate</code>.</p>
+  <h2>Data sources (priority order)</h2>
   <table>
-    <thead><tr><th>Monday (active board)</th><th>BizFlow field</th><th>Before fix</th></tr></thead>
+    <thead><tr><th>Board</th><th>Monday column</th><th>BizFlow</th><th>Rows with date</th></tr></thead>
     <tbody>
-      <tr><td><code>date</code> — משמרת ראשונה</td><td><code>startDate</code></td><td><span class="pill ok">Mapped</span></td></tr>
-      <tr><td><code>date_mkqx9tpn</code> — תאריך משמרת אחרונה</td><td><code>endDate</code></td><td><span class="pill bad">Not mapped</span></td></tr>
+      <tr>
+        <td>התפטרות-נטישה-פיטורין</td>
+        <td><code>date6</code> — תאריך סיום יחסי עובד מעביד…</td>
+        <td><code>endDate</code> <span class="pill ok">priority 1</span></td>
+        <td>55 TZ</td>
+      </tr>
+      <tr>
+        <td>Active employees</td>
+        <td><code>date_mkqx9tpn</code> — תאריך משמרת אחרונה</td>
+        <td><code>endDate</code> <span class="pill warn">fallback</span></td>
+        <td>410 TZ</td>
+      </tr>
     </tbody>
   </table>
-  <div class="callout warn"><strong>Impact:</strong> Payroll and employee screens that rely on end date (e.g. terminated tab, archive filters) show blank termination dates for all stopped employees.</div>
+  <p class="muted">Join key on all boards: national ID (<code>dup__of_______3</code>). Termination board adds only <strong>7</strong> net-new dates beyond last-shift fallback.</p>
 </section>
 
 <section>
   <h2>Decision required</h2>
-  <p>Please choose how to handle the <strong>285</strong> employees where Monday already has a last-shift date, and the <strong>505</strong> where it does not.</p>
   <ol class="decision">
-    <li>
-      <strong>Auto-backfill 285 employees</strong> <span class="pill ok">Recommended</span><br>
-      One scripted patch copies <em>תאריך משמרת אחרונה</em> from Monday into BizFlow. No re-migration, no file re-upload. ~5 minutes.
-    </li>
-    <li>
-      <strong>Missing in Monday (505 employees)</strong> — pick one:<br>
-      (a) HR fills dates in Monday, then we run backfill again<br>
-      (b) HR sets dates manually in BizFlow<br>
-      (c) Accept blank end dates where source data never existed
-    </li>
-    <li>
-      <strong>Reply to confirm</strong> — e.g. <em>"Approve auto-backfill + accept blanks for the rest"</em> or your preferred mix of (a)/(b)/(c).
-    </li>
+    <li><strong>Approve auto-backfill (292)</strong> — one bulk assess + scripted BizFlow patch. ~1 min at 200ms/update.</li>
+    <li><strong>Missing (498)</strong> — fill in Monday or BizFlow manually, or accept blanks.</li>
+    <li><strong>Conflicts (3)</strong> — script uses resignation-board date6 over last-shift. Review sample below if needed.</li>
   </ol>
-  <div class="callout info"><strong>Already prepared:</strong> Mapping fix is in the migration tool for any future imports. Backfill command is ready; it has <strong>not</strong> been run on production yet.</div>
+  <table><thead><tr><th>Name</th><th>Resignation date6</th><th>Last shift</th><th>Chosen</th></tr></thead><tbody><tr><td>בר איינהורן</td><td>2025-12-06</td><td>2026-01-21</td><td><strong>2025-12-06</strong></td></tr><tr><td>דיאא אבו דואם</td><td>2025-02-28</td><td>2026-01-30</td><td><strong>2025-02-28</strong></td></tr><tr><td>רון וינשטיין</td><td>2025-12-01</td><td>2025-11-04</td><td><strong>2025-12-01</strong></td></tr></tbody></table>
+  <div class="callout info"><strong>Ops commands:</strong> <code>assess-end-dates</code> then <code>backfill-end-dates --live</code>. Monday fetched once into snapshot; backfill reads ledger only.</div>
 </section>
 
 <section>
-  <h2>Related reports</h2>
-  <p class="muted"><a href="../monday-migration-final-report/">Migration sign-off report</a> · <a href="../monday-migration-blockers/">Blockers detail</a></p>
+  <h2>Related</h2>
+  <p class="muted"><a href="../monday-migration-final-report/">Migration sign-off</a></p>
 </section>
 
 </div>
-<footer>BizFlow ERP · Monday migration ops · 2026-06-08T11:10:44.884Z</footer>
+<footer>BizFlow ERP · 2026-06-08T12:26:26.089Z</footer>
 </body>
 </html>
