@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dev/Staging External-Interactions Simulator — Design & Mockups</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#141b30; --panel2:#1b2540; --line:#2a3654;
+    --ink:#e8edf7; --dim:#9fb0d0; --accent:#5b8cff; --accent2:#33d6a6;
+    --wa:#075e54; --wa-bg:#0b141a; --wa-in:#1f2c33; --wa-out:#005c4b;
+    --warn:#ffb84d; --bad:#ff6b6b; --good:#33d6a6; --meta:#0866ff; --ff:#6c5ce7; --slack:#611f69;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:linear-gradient(180deg,#0b1020,#0d1226);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1040px;margin:0 auto;padding:18px 16px 90px}
+  h1{font-size:25px;margin:.2em 0 .1em;letter-spacing:-.3px}
+  h2{font-size:19px;margin:1.4em 0 .5em;border-bottom:1px solid var(--line);padding-bottom:6px}
+  h3{font-size:15px;margin:1.1em 0 .4em;color:#cdd9f5}
+  p{margin:.5em 0;color:#d6deef}
+  .sub{color:var(--dim);font-size:14px;margin-top:2px}
+  code{background:#0c1428;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12.5px;color:#bfe3ff}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;vertical-align:middle}
+  .push{background:rgba(91,140,255,.16);color:#9db9ff;border:1px solid #33518f}
+  .pull{background:rgba(51,214,166,.14);color:#69e4bf;border:1px solid #2c7d63}
+  .sink{background:rgba(255,184,77,.14);color:#ffce85;border:1px solid #8a6a2c}
+  .tag{font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+
+  /* tabs */
+  .tabs{position:sticky;top:0;z-index:20;display:flex;gap:6px;overflow-x:auto;padding:10px 0;margin:0 -4px 6px;
+    background:linear-gradient(180deg,#0b1020 70%,rgba(11,16,32,0));backdrop-filter:blur(4px)}
+  .tab{white-space:nowrap;cursor:pointer;font-size:13px;font-weight:600;color:var(--dim);
+    border:1px solid var(--line);background:var(--panel);padding:8px 13px;border-radius:999px}
+  .tab.active{color:#fff;background:linear-gradient(180deg,#27407e,#1d2f5e);border-color:var(--accent)}
+  section.view{display:none;animation:fade .25s ease}
+  section.view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:12px 0}
+  .grid{display:grid;gap:12px}
+  @media(min-width:720px){.grid.c2{grid-template-columns:1fr 1fr}.grid.c3{grid-template-columns:1fr 1fr 1fr}}
+  .kv{display:flex;gap:8px;font-size:13px;margin:3px 0}
+  .kv b{color:#fff;min-width:96px;display:inline-block}
+  ul{margin:.4em 0;padding-inline-start:20px}li{margin:3px 0;color:#d6deef;font-size:14px}
+  .muted{color:var(--dim)}
+  .lead{font-size:15.5px;color:#e4ebfb}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin:8px 0;display:block;overflow-x:auto}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:#cdd9f5;font-weight:700;position:sticky;top:0}
+  tr:nth-child(even) td{background:rgba(255,255,255,.012)}
+
+  /* phone / fake whatsapp */
+  .stage{display:grid;gap:16px}
+  @media(min-width:760px){.stage.split{grid-template-columns:340px 1fr}}
+  .phone{width:330px;max-width:100%;margin:0 auto;background:#000;border-radius:34px;padding:10px;border:1px solid #222}
+  .screen{background:var(--wa-bg);border-radius:26px;overflow:hidden;height:560px;display:flex;flex-direction:column}
+  .wa-top{background:var(--wa);color:#e9edef;padding:12px 14px;display:flex;align-items:center;gap:10px}
+  .wa-av{width:34px;height:34px;border-radius:50%;background:#0a8f7e;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .wa-top small{display:block;color:#bfe7df;font-size:11px}
+  .wa-body{flex:1;overflow-y:auto;padding:12px;background-image:radial-gradient(rgba(255,255,255,.02) 1px,transparent 1px);background-size:14px 14px;direction:rtl}
+  .bub{max-width:80%;padding:7px 10px;border-radius:10px;margin:6px 0;font-size:13.5px;clear:both;white-space:pre-wrap;word-wrap:break-word}
+  .bub.in{background:var(--wa-in);color:#e9edef;border-top-right-radius:2px;float:right}
+  .bub.out{background:var(--wa-out);color:#e9edef;border-top-left-radius:2px;float:left}
+  .bub .btns{margin-top:7px;display:flex;flex-direction:column;gap:5px}
+  .bub .btns button{background:#101d24;border:1px solid #2a4a55;color:#7fd9ff;border-radius:7px;padding:7px;font-size:13px;cursor:pointer}
+  .bub .meta{font-size:10px;color:#8aa;display:block;text-align:left;margin-top:3px}
+  .wa-input{display:flex;gap:6px;padding:9px;background:#111b21}
+  .wa-input input{flex:1;background:#202c33;border:none;color:#e9edef;border-radius:18px;padding:9px 13px;font-size:13px}
+  .wa-input button{background:var(--accent2);border:none;color:#062;border-radius:50%;width:38px;height:38px;font-size:16px;cursor:pointer}
+
+  /* console log */
+  .logrow{display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:center;padding:9px 11px;border:1px solid var(--line);border-radius:10px;margin:6px 0;background:var(--panel2);font-size:12.5px}
+  .dir{font-size:10px;font-weight:800;text-align:center;border-radius:6px;padding:3px 0}
+  .dir.in{background:rgba(91,140,255,.18);color:#9db9ff}
+  .dir.out{background:rgba(255,184,77,.16);color:#ffce85}
+  .logrow .who{color:#fff;font-weight:600}
+  .logrow .det{color:var(--dim)}
+  .st{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px}
+  .st.ok{background:rgba(51,214,166,.16);color:#69e4bf}
+  .st.cap{background:rgba(255,184,77,.16);color:#ffce85}
+  .st.err{background:rgba(255,107,107,.16);color:#ff9a9a}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;cursor:pointer;background:linear-gradient(180deg,#2b4a92,#22376d);
+    border:1px solid var(--accent);color:#fff;border-radius:10px;padding:9px 14px;font-size:13.5px;font-weight:600}
+  .btn.ghost{background:var(--panel2);border-color:var(--line);color:#cdd9f5}
+  .btn.sm{padding:6px 10px;font-size:12px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+  .diagram{font-size:12px;line-height:1.7;white-space:pre;overflow-x:auto;background:#0a1124;border:1px solid var(--line);border-radius:12px;padding:14px;color:#bcd0f5}
+  .field{margin:9px 0}
+  .field label{display:block;font-size:12px;color:var(--dim);margin-bottom:4px}
+  .field input,.field select,.field textarea{width:100%;background:#0c1428;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:9px 11px;font-size:13.5px}
+  .note{background:rgba(91,140,255,.08);border:1px solid #2c447c;border-radius:10px;padding:11px 13px;font-size:13px;color:#cfe;margin:10px 0}
+  .note.warn{background:rgba(255,184,77,.08);border-color:#8a6a2c;color:#ffe0ad}
+  .phase{border-inline-start:3px solid var(--accent);padding:4px 0 4px 14px;margin:14px 0}
+  .phase h3{margin:.1em 0}
+  .badge-row{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+  .foot{color:var(--dim);font-size:12px;text-align:center;margin-top:30px}
+  a{color:#7fb0ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>External-Interactions Simulator</h1>
+  <div class="sub">A dev- & staging-only “fake outside world” for BizFlow ERP — design + interactive mockups · 2026-06-10</div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-v="why">Why &amp; How</div>
+    <div class="tab" data-v="inv">Integrations</div>
+    <div class="tab" data-v="console">Sim Console</div>
+    <div class="tab" data-v="wa">Fake WhatsApp</div>
+    <div class="tab" data-v="inject">Inbound Injector</div>
+    <div class="tab" data-v="fakeworld">Fake Lead / Sign</div>
+    <div class="tab" data-v="plan">Build Plan</div>
+  </div>
+
+  <!-- ============ WHY ============ -->
+  <section class="view active" id="why">
+    <div class="card">
+      <p class="lead">Real FillFaster, Meta, the WhatsApp bot, Slack, Tabit and the rest only point at <b>production</b>. On dev &amp; staging those counterparts don’t exist — so we build a believable fake of them that drives the <b>real</b> staging handlers, and we record every in/out interaction in one place.</p>
+      <p class="muted">Two jobs in one tool: (1) a developer test harness to fire inbound events and watch side-effects, and (2) a faithful “fake outside world” anyone can interact with like production — chat the bot in a fake WhatsApp, submit a fake Meta lead, sign a fake document.</p>
+    </div>
+
+    <h2>Every integration is one of three shapes</h2>
+    <div class="grid c3">
+      <div class="card">
+        <span class="pill push">PUSH · they call us</span>
+        <h3>Mock = payload injector</h3>
+        <p class="sub">Compose a webhook body and POST it to the <b>real</b> staging function. It runs for real, writes entities, fires downstream.</p>
+        <p class="muted" style="font-size:12px">FillFaster signed-doc · Meta/website/public leads · WhatsApp inbound · Slack actions</p>
+      </div>
+      <div class="card">
+        <span class="pill pull">PULL · we call them</span>
+        <h3>Mock = fake API responder</h3>
+        <p class="sub">Point the function’s base-URL env at a mock gateway that returns canned, scriptable responses.</p>
+        <p class="muted" style="font-size:12px">Google Places · API-Football · Komo · Tabit (via Supabase) · FillFaster PDF download · Meta Graph</p>
+      </div>
+      <div class="card">
+        <span class="pill sink">SINK · we send out</span>
+        <h3>Mock = capture, don’t send</h3>
+        <p class="sub">Divert real outbound sends into a recorder so no real WhatsApp/email/Slack leaves staging.</p>
+        <p class="muted" style="font-size:12px">WhatsApp templates · Slack posts · Make webhooks · Meta conversions</p>
+      </div>
+    </div>
+
+    <h2>The headline: a fake WhatsApp that actually loops</h2>
+    <div class="card">
+      <div class="diagram">  You type in Fake WhatsApp
+          │  POST { phone, textBody, replyId }
+          ▼
+  ┌─────────────────────────────────────────┐
+  │  REAL staging fn: handleWhatsAppBotInbound │  ← runs the real state machine,
+  │            ?testMode=true                  │    reads/writes real entities
+  └─────────────────────────────────────────┘
+          │  returns BotMessage { text | buttons | list }  (synchronous)
+          ▼
+  Rendered back as the bot’s bubble  ───►  every hop logged to ExternalInteraction</div>
+      <p class="muted"><code>handleWhatsAppBotInbound?testMode=true</code> already returns the bot reply synchronously — so the loop closes without any real provider, and the conversation exercises the genuine bot logic, sessions and submissions.</p>
+    </div>
+
+    <h2>Architecture</h2>
+    <div class="card">
+      <div class="diagram">  ┌────────────────────── ADMIN CONSOLE (staging-only, Supabase-auth) ──────────────────────┐
+  │  Sim Console · Inbound Injector · Fake WhatsApp · Fake Lead Form · Fake Signing Page       │
+  └───────────┬───────────────────────────────────────────────────────┬────────────────────────┘
+              │ inject (PUSH)                                           │ reads
+              ▼                                                         ▼
+  ┌───────────────────────────┐    triggers outbound     ┌──────────────────────────────┐
+  │  REAL staging functions    │ ───────────────────────► │  Mock Gateway (edge fn)        │
+  │  receive*/handle*          │   (env base-URL = mock)  │  · PULL responders (canned)    │
+  │  write real entities       │ ◄─────────────────────── │  · SINK recorder (capture)     │
+  └───────────┬───────────────┘      canned response      └──────────────┬───────────────┘
+              │ every hop                                                 │ every hop
+              ▼                                                           ▼
+        ┌──────────────────────────  ExternalInteraction  (entity/table)  ──────────────────────────┐
+        │  direction · integration · event · status · payload · response · relatedEntity · correlId  │
+        └────────────────────────────────────────────────────────────────────────────────────────────┘</div>
+      <div class="note">Boundary rule honoured: operator UI + “fake world” pages live in <code>admin/src</code> (staging-only by construction); the mock gateway is a <code>delivery/edge-functions</code> function; <code>src/</code> stays clean. The only edits to <code>base44/functions</code> are making a finite list of outbound base-URLs env-configurable + a <code>MOCK_MODE</code> guard.</div>
+    </div>
+  </section>
+
+  <!-- ============ INVENTORY ============ -->
+  <section class="view" id="inv">
+    <div class="card">
+      <h3 style="margin-top:0">Integration inventory — the substrate the simulator reproduces</h3>
+      <p class="sub">Extracted from the live <code>base44/functions</code> sources. <span class="pill push">PUSH</span> = inject a payload · <span class="pill pull">PULL</span> = fake API · <span class="pill sink">SINK</span> = capture send.</p>
+    </div>
+    <table>
+      <thead><tr><th>External system</th><th>Shape</th><th>Key functions</th><th>What the mock provides</th><th>Staging-ready?</th></tr></thead>
+      <tbody>
+        <tr><td><b>FillFaster</b> (e-sign)</td><td><span class="pill push">PUSH</span><span class="pill pull">PULL</span></td><td>receiveSignedDocument, receiveFillfasterWebhook, receiveAgreementCallback, receiveDocumentESignLink, dispatchSigningForm</td><td>Fake signing page → posts signed PDF (base64) to <code>receiveSignedDocument</code>; fake PDF-download responder for the webhook variant</td><td><b>receiveSignedDocument</b> ✅ · receiveFillfasterWebhook ❌ (raw entity-API, not ported)</td></tr>
+        <tr><td><b>WhatsApp bot</b> (Meta / 99digital)</td><td><span class="pill push">PUSH</span><span class="pill sink">SINK</span></td><td>receiveWhatsAppMessage, handleWhatsAppBotInbound, sendWhatsAppTemplate, sendFreeTextNotification</td><td>Fake WhatsApp chat loop (inject inbound, capture bot reply). testMode returns BotMessage synchronously</td><td>✅ asServiceRole</td></tr>
+        <tr><td><b>Meta leads</b> (Graph webhook)</td><td><span class="pill push">PUSH</span><span class="pill pull">PULL</span></td><td>handleFacebookLeadWebhook, handleFacebookLeads, sendMetaConversionEvent, fireCandidateMetaEvent</td><td>Fake lead form → inject <code>entry[].changes[].value.leadgen_id</code>; fake Graph responder for lead-detail fetch; conversions captured by SINK</td><td>webhook needs HMAC + Graph fetch mock · <b>handleFacebookLeads</b> (direct JSON) ✅</td></tr>
+        <tr><td><b>Website / public leads</b></td><td><span class="pill push">PUSH</span></td><td>handleWebsiteLeads, handlePublicLinkLead, publicApplicationForm</td><td>Fake lead form posts JSON straight to handler → real Candidate created</td><td>✅</td></tr>
+        <tr><td><b>Slack</b> (actions + posts)</td><td><span class="pill push">PUSH</span><span class="pill sink">SINK</span></td><td>receiveSlackAction, sendSlackNotification, sendBugToSlack, refreshSlackCanvas</td><td>Inject <code>block_actions</code> button payload; capture chat.postMessage / canvases.edit instead of hitting slack.com</td><td>✅ asServiceRole</td></tr>
+        <tr><td><b>Make.com webhooks</b></td><td><span class="pill sink">SINK</span></td><td>sendOnboardingWebhook, sendFrontalMeetingScheduledWebhook, scheduleRejectionWebhook, processRejectionWebhookQueue</td><td>Capture the outbound webhook body; (most forward to internal fns, so already observable)</td><td>✅</td></tr>
+        <tr><td><b>API-Football</b> (sports feed)</td><td><span class="pill pull">PULL</span></td><td>syncLiveFixtureScores, syncPromoFixtureSchedule</td><td>Fake fixtures responder — scripted scores to drive grading/achievements deterministically</td><td>hardcoded URL → needs env-ization</td></tr>
+        <tr><td><b>Komo</b> (loyalty)</td><td><span class="pill pull">PULL</span></td><td>komoSync, resyncPromoPlayerKomoTier</td><td>Fake Komo API — register/tier-sync 200/400 responses</td><td>env <code>KOMO_API_URL</code> ✅ already</td></tr>
+        <tr><td><b>99digital OTP</b></td><td><span class="pill sink">SINK</span></td><td>promoRequestOtp, promoVerifyOtp</td><td>Capture the OTP template send + surface the code in the console so you can “receive” it</td><td>env-ize <code>D99_BASE</code></td></tr>
+        <tr><td><b>Google Places</b></td><td><span class="pill pull">PULL</span></td><td>googlePlacesAutocomplete</td><td>Fake predictions responder</td><td>hardcoded host → env-ize</td></tr>
+        <tr><td><b>Tabit</b> (POS, via Supabase)</td><td><span class="pill pull">PULL</span></td><td>dailyTabitAutoImport, enqueueTabitImports, getTabitCatalog</td><td>Supabase-native already; seed mock catalog/import rows (lowest priority)</td><td>Supabase pipeline, separate</td></tr>
+      </tbody>
+    </table>
+    <div class="note">~30 boundary functions across 10 systems. The MVP doesn’t need all of them — the three highest-value flows (WhatsApp bot · Meta/website lead · FillFaster signing) cover the “interact like production” ask and are already staging-portable.</div>
+  </section>
+
+  <!-- ============ CONSOLE ============ -->
+  <section class="view" id="console">
+    <div class="card">
+      <h3 style="margin-top:0">Simulator Console</h3>
+      <p class="sub">One live log of every in/out hop (the <code>ExternalInteraction</code> backbone) + quick-fire launchers. Cross-tenant; lives in the admin console.</p>
+      <div class="row" style="margin:10px 0">
+        <span class="tag">Tenant: <b style="color:#fff">Humondial-dev</b></span>
+        <span class="tag">Env: <b style="color:#ffce85">staging</b></span>
+        <span class="tag">MOCK_MODE: <b style="color:#69e4bf">on</b></span>
+        <button class="btn sm" onclick="addDemoRows()">▶ Replay last lead</button>
+        <button class="btn sm ghost" onclick="document.querySelector('[data-v=wa]').click()">Open Fake WhatsApp</button>
+      </div>
+    </div>
+    <div class="card" id="logwrap">
+      <div class="row" style="justify-content:space-between"><h3 style="margin:0">Live interaction log</h3><span class="muted" style="font-size:12px">newest first</span></div>
+      <div id="log">
+        <div class="logrow"><div class="dir in">IN</div><div><span class="who">Meta lead webhook</span> → <span class="det">handleFacebookLeadWebhook · leadgen_id 8842</span></div><span class="st ok">created Candidate</span></div>
+        <div class="logrow"><div class="dir out">OUT</div><div><span class="who">WhatsApp template</span> <span class="det">new_lead · ל-972-50-123… · captured</span></div><span class="st cap">SINK</span></div>
+        <div class="logrow"><div class="dir in">IN</div><div><span class="who">FillFaster signed doc</span> → <span class="det">receiveSignedDocument · ONBOARDING-c_19f</span></div><span class="st ok">process→signed</span></div>
+        <div class="logrow"><div class="dir out">OUT</div><div><span class="who">Make: onboarding webhook</span> <span class="det">dispatchSigningForm · captured</span></div><span class="st cap">SINK</span></div>
+        <div class="logrow"><div class="dir out">OUT</div><div><span class="who">API-Football</span> <span class="det">fixtures?ids=1180… · canned</span></div><span class="st ok">PULL mock</span></div>
+        <div class="logrow"><div class="dir in">IN</div><div><span class="who">Slack action</span> → <span class="det">receiveSlackAction · set_closed · fb_77</span></div><span class="st ok">feedback→closed</span></div>
+        <div class="logrow"><div class="dir out">OUT</div><div><span class="who">Google Places</span> <span class="det">autocomplete “תל אב…” · canned</span></div><span class="st ok">PULL mock</span></div>
+        <div class="logrow"><div class="dir in">IN</div><div><span class="who">Website lead</span> → <span class="det">handleWebsiteLeads · 972-54-998…</span></div><span class="st err">dup → skipped</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Row detail (tap a row in the real thing)</h3>
+      <div class="grid c2">
+        <div>
+          <div class="kv"><b>Direction</b><span>inbound · PUSH</span></div>
+          <div class="kv"><b>Integration</b><span>meta_leads</span></div>
+          <div class="kv"><b>Event</b><span>leadgen</span></div>
+          <div class="kv"><b>Target fn</b><span>handleFacebookLeadWebhook</span></div>
+          <div class="kv"><b>Status</b><span style="color:#69e4bf">200 · Candidate c_19f created</span></div>
+          <div class="kv"><b>Related</b><span>Candidate c_19f · branch Tel-Aviv</span></div>
+          <div class="kv"><b>Correlation</b><span>sim_3a7f… (groups the whole chain)</span></div>
+        </div>
+        <div>
+          <div class="muted" style="font-size:12px;margin-bottom:4px">request payload</div>
+          <div class="diagram" style="font-size:11px">{ "entry":[{ "changes":[{
+   "field":"leadgen",
+   "value":{ "leadgen_id":"8842",
+             "form_id":"f_201" }}]}]}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAKE WHATSAPP ============ -->
+  <section class="view" id="wa">
+    <div class="card">
+      <h3 style="margin-top:0">Fake WhatsApp — interactive demo</h3>
+      <p class="sub">This mock is wired to a <b>scripted</b> bot to show the feel. In the real build, every send hits <code>handleWhatsAppBotInbound?testMode=true</code> and renders the genuine reply. Try the buttons or type “דיווח”.</p>
+    </div>
+    <div class="stage split">
+      <div class="phone">
+        <div class="screen">
+          <div class="wa-top"><div class="wa-av">🤖</div><div><b>BizFlow Bot</b><small>online · staging mock</small></div></div>
+          <div class="wa-body" id="waBody"></div>
+          <div class="wa-input">
+            <input id="waInput" placeholder="הקלד הודעה…" onkeydown="if(event.key==='Enter')waSend()">
+            <button onclick="waSend()">➤</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-top:0">
+          <h3 style="margin-top:0">What happens on each tap</h3>
+          <ol style="font-size:13.5px;color:#d6deef;padding-inline-start:18px">
+            <li>Your bubble → <code>POST handleWhatsAppBotInbound</code> with <code>{phone, textBody, replyId}</code></li>
+            <li>Real state machine advances the <code>WhatsAppBotSession</code></li>
+            <li>Returned <code>BotMessage</code> (text / buttons / list) renders as the bot bubble</li>
+            <li>Both hops logged to <code>ExternalInteraction</code> with a shared correlation id</li>
+          </ol>
+          <div class="note">99digital can’t carry button payloads, so the bot keeps a title→id map. The fake client mirrors that: tapping a button sends its <code>id</code>, exactly like production.</div>
+          <div class="row">
+            <button class="btn sm ghost" onclick="waReset()">↺ Reset session</button>
+            <span class="tag">phone 972-50-555-0101</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INJECTOR ============ -->
+  <section class="view" id="inject">
+    <div class="card">
+      <h3 style="margin-top:0">Inbound Injector — compose &amp; fire any PUSH webhook</h3>
+      <p class="sub">Pick an integration, get a realistic pre-filled payload, edit, fire at the real staging function. Side-effects show up live in the Sim Console.</p>
+    </div>
+    <div class="grid c2">
+      <div class="card" style="margin-top:0">
+        <div class="field"><label>Integration</label>
+          <select id="injSel" onchange="injPreset()">
+            <option value="meta">Meta lead webhook → handleFacebookLeadWebhook</option>
+            <option value="signed">FillFaster signed doc → receiveSignedDocument</option>
+            <option value="website">Website lead → handleWebsiteLeads</option>
+            <option value="slack">Slack action → receiveSlackAction</option>
+          </select>
+        </div>
+        <div class="field"><label>Target (auto)</label><input id="injUrl" readonly></div>
+        <div class="field"><label>Payload (editable)</label><textarea id="injBody" rows="11" style="font-family:monospace;font-size:12px"></textarea></div>
+        <div class="row">
+          <button class="btn" onclick="injFire()">⚡ Fire at staging</button>
+          <button class="btn ghost sm" onclick="injPreset()">Reset payload</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:0">
+        <h3 style="margin-top:0">Result</h3>
+        <div id="injOut" class="diagram" style="min-height:120px">— fire to see the response + entity side-effects —</div>
+        <h3>Safety</h3>
+        <ul>
+          <li><b>Dry-run toggle</b> — skip downstream dispatch (no chained WhatsApp/email) while testing a single handler.</li>
+          <li><b>Test-tenant guard</b> — injector only targets staging/dev refs; production refs are rejected.</li>
+          <li><b>Seeded test IDs</b> — payloads default to the known-safe candidate/process IDs.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAKE WORLD ============ -->
+  <section class="view" id="fakeworld">
+    <div class="card"><h3 style="margin-top:0">Fake public-facing pages</h3><p class="sub">These look like the real external surfaces so non-developers can drive flows. Each just wraps an injector call.</p></div>
+    <div class="grid c2">
+      <div class="card" style="margin-top:0;border-color:var(--meta)">
+        <span class="pill push">Fake Meta / Website lead form</span>
+        <div class="field" dir="rtl"><label style="text-align:right">שם מלא</label><input dir="rtl" style="text-align:right" value="ישראל ישראלי"></div>
+        <div class="field" dir="rtl"><label style="text-align:right">טלפון</label><input dir="rtl" style="text-align:right" value="050-555-0101"></div>
+        <div class="field" dir="rtl"><label style="text-align:right">סניף מועדף</label><select dir="rtl" style="text-align:right"><option>תל אביב</option><option>חיפה</option></select></div>
+        <button class="btn" onclick="fakeLead()">שליחת ליד 📨</button>
+        <div id="leadOut" class="muted" style="font-size:12px;margin-top:8px"></div>
+      </div>
+      <div class="card" style="margin-top:0;border-color:var(--ff)">
+        <span class="pill push">Fake FillFaster signing page</span>
+        <p class="sub">Mimics the signing redirect. “Sign” posts a base64 PDF to <code>receiveSignedDocument</code>.</p>
+        <div class="field"><label>signingRef</label><input value="ONBOARDING-c_19f"></div>
+        <div style="background:#0c1428;border:1px dashed var(--line);border-radius:10px;height:90px;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:13px">📄 agreement.pdf — preview</div>
+        <div style="margin-top:10px"><button class="btn" onclick="fakeSign()">✍️ Sign &amp; submit</button></div>
+        <div id="signOut" class="muted" style="font-size:12px;margin-top:8px"></div>
+      </div>
+    </div>
+    <div class="card">
+      <span class="pill sink">Fake Slack action</span>
+      <p class="sub">Renders the bug-card buttons; clicking injects a <code>block_actions</code> payload to <code>receiveSlackAction</code>.</p>
+      <div class="row"><button class="btn sm ghost" onclick="fakeSlack('in-progress')">🔧 In progress</button><button class="btn sm ghost" onclick="fakeSlack('closed')">✅ Close</button><button class="btn sm ghost" onclick="fakeSlack('future')">📅 Future</button></div>
+      <div id="slackOut" class="muted" style="font-size:12px;margin-top:8px"></div>
+    </div>
+  </section>
+
+  <!-- ============ PLAN ============ -->
+  <section class="view" id="plan">
+    <div class="card"><h3 style="margin-top:0">Build plan — thin slices, value first</h3><p class="sub">Each phase is independently shippable and demoable on staging.</p></div>
+
+    <div class="card">
+      <div class="phase"><h3>Phase 0 · Backbone <span class="tag">~½ day</span></h3>
+        <ul><li>New <code>ExternalInteraction</code> entity (direction, integration, event, status, payloadJson, responseJson, relatedEntityType/Id, correlationId, createdAt).</li>
+        <li>Tiny <code>logInteraction()</code> helper (inline-duplicated per function per the entry.ts isolation rule).</li>
+        <li><code>MOCK_MODE</code> staging env flag.</li></ul>
+      </div>
+      <div class="phase"><h3>Phase 1 · Inbound Injector <span class="tag">~1 day</span></h3>
+        <ul><li>Admin route + payload composer with realistic presets for the 4 PUSH flows.</li>
+        <li>Dry-run toggle + test-tenant guard.</li><li>Immediate testing value for every PUSH integration with zero handler changes.</li></ul>
+      </div>
+      <div class="phase"><h3>Phase 2 · Outbound SINK + Mock Gateway <span class="tag">~1–2 days</span></h3>
+        <ul><li>One <code>delivery/edge-functions/mockGateway</code> fn: records calls, returns canned responses.</li>
+        <li>Env-ize the finite list of outbound base-URLs (99digital, Slack, Graph, API-Football, Komo, Places) → point at gateway when <code>MOCK_MODE</code>.</li>
+        <li>No real WhatsApp/email/Slack leaves staging; all captured in the log.</li></ul>
+      </div>
+      <div class="phase"><h3>Phase 3 · Fake WhatsApp + Fake World <span class="tag">~2 days</span> <span class="pill push">headline</span></h3>
+        <ul><li>Fake WhatsApp chat loop over <code>handleWhatsAppBotInbound?testMode=true</code>.</li>
+        <li>Fake Meta/website lead form · Fake FillFaster signing page · Fake Slack card.</li></ul>
+      </div>
+      <div class="phase"><h3>Phase 4 · PULL responders (promo/sports) <span class="tag">~1–2 days</span></h3>
+        <ul><li>Scriptable fake API-Football fixtures, Komo, Google Places, Tabit catalog.</li>
+        <li>Deterministic match scores to drive grading / achievements / leaderboard on demand.</li></ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Open questions for the morning</h3>
+      <ul>
+        <li><b>Scope of v1</b> — ship Phases 0–3 (the “interact like production” story) and defer Phase 4 promo/sports?</li>
+        <li><b>SINK invasiveness</b> — OK to make the ~6 outbound base-URLs env-configurable in <code>base44/functions</code>, or prefer a network-level intercept to touch zero handlers?</li>
+        <li><b>receiveFillfasterWebhook</b> — port its raw entity-API calls to <code>asServiceRole</code> now (so the PDF-download variant works on staging), or stay on the already-portable <code>receiveSignedDocument</code> only?</li>
+        <li><b>Dev vs staging parity</b> — same mock gateway for both, or a local stub for pure-dev?</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="foot">Design draft · turns into a spec under <code>docs/superpowers/specs/</code> then an implementation plan. Nothing built yet — review &amp; steer first.</div>
+</div>
+
+<script>
+  // tabs
+  const tabs=document.getElementById('tabs');
+  tabs.addEventListener('click',e=>{const t=e.target.closest('.tab');if(!t)return;
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');document.getElementById(t.dataset.v).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+
+  // ---- fake whatsapp scripted bot ----
+  const waBody=document.getElementById('waBody');
+  function bub(side,html,meta){const d=document.createElement('div');d.className='bub '+side;d.innerHTML=html+(meta?`<span class="meta">${meta}</span>`:'');waBody.appendChild(d);waBody.scrollTop=waBody.scrollHeight;return d;}
+  function botButtons(text,btns){const d=bub('out',text);const w=document.createElement('div');w.className='btns';btns.forEach(b=>{const x=document.createElement('button');x.textContent=b.title;x.onclick=()=>{waUser(b.title,b.id)};w.appendChild(x);});d.appendChild(w);waBody.scrollTop=waBody.scrollHeight;}
+  function waUser(text,id){bub('in',text,'נשלח ✓✓');setTimeout(()=>botReply(text,id),450);}
+  function waSend(){const i=document.getElementById('waInput');if(!i.value.trim())return;waUser(i.value.trim(),null);i.value='';}
+  function botReply(text,id){
+    const t=(id||text||'').toString();
+    if(/דיווח|report|menu|תפריט|^היי|^שלום|hi|hello/i.test(t)){
+      botButtons('שלום דני 👋 מה תרצה לעשות?',[{id:'feat_report',title:'📝 הגשת דיווח'},{id:'feat_approvals',title:'✅ אישורים ממתינים'},{id:'feat_shifts',title:'📅 המשמרות שלי'}]);return;}
+    if(id==='feat_report'){botButtons('איזה סוג דיווח?',[{id:'et_tip',title:'טיפים'},{id:'et_absence',title:'היעדרות'},{id:'et_expense',title:'החזר הוצאה'}]);return;}
+    if(id==='et_tip'){bub('out','הזן את סכום הטיפים (₪):','staging mock');return;}
+    if(/^\d+$/.test(t)){botButtons(`קיבלתי: ${t} ₪. לאשר ולשלוח?`,[{id:'confirm',title:'✅ שליחה'},{id:'cancel',title:'✖️ ביטול'}]);return;}
+    if(id==='confirm'){bub('out','הדיווח נשלח למנהל לאישור. תודה! 🙏\n(נוצר EmployeeEvent · נרשם ל-ExternalInteraction)','✓✓');return;}
+    if(id==='feat_approvals'){bub('out','אין אישורים ממתינים כרגע.');return;}
+    if(id==='feat_shifts'){bub('out','המשמרת הבאה שלך: יום ה׳ 18:00–23:00, סניף תל אביב.');return;}
+    if(id==='cancel'){bub('out','בוטל. כתוב "דיווח" כדי להתחיל מחדש.');return;}
+    bub('out','לא הבנתי 🤔 כתוב "דיווח" לתפריט.');
+  }
+  function waReset(){waBody.innerHTML='';bub('out','שיחה אופסה. כתוב "דיווח" כדי להתחיל.','session reset');}
+  waReset();
+
+  // ---- console demo rows ----
+  function logRow(dir,who,det,st,cls){const d=document.createElement('div');d.className='logrow';
+    d.innerHTML=`<div class="dir ${dir}">${dir.toUpperCase()}</div><div><span class="who">${who}</span> <span class="det">${det}</span></div><span class="st ${cls}">${st}</span>`;
+    const log=document.getElementById('log');log.insertBefore(d,log.firstChild);}
+  function addDemoRows(){logRow('in','Meta lead webhook','handleFacebookLeadWebhook · leadgen_id '+Math.floor(Math.random()*9000+1000),'created Candidate','ok');
+    setTimeout(()=>logRow('out','WhatsApp template','new_lead · captured','SINK','cap'),400);
+    setTimeout(()=>logRow('out','Meta conversions','Lead event · captured','SINK','cap'),800);}
+
+  // ---- injector ----
+  const presets={
+    meta:{url:'POST {SUPA}/functions/v1/handleFacebookLeadWebhook',body:{entry:[{changes:[{field:'leadgen',value:{leadgen_id:'8842',form_id:'f_201'}}]}]}},
+    signed:{url:'POST {SUPA}/functions/v1/receiveSignedDocument',body:{signingRef:'ONBOARDING-c_19f',signedDocumentBase64:'<base64-pdf>',fileName:'agreement.pdf',formId:'form_a'}},
+    website:{url:'POST {SUPA}/functions/v1/handleWebsiteLeads',body:{fullName:'ישראל ישראלי',phone:'050-555-0101',preferredBranchId:'br_ta',desiredPositionId:'pos_waiter',source:'website'}},
+    slack:{url:'POST {SUPA}/functions/v1/receiveSlackAction',body:{type:'block_actions',actions:[{action_id:'set_closed',value:'fb_77',type:'button'}],message:{ts:'1718000000.001'},channel:{id:'C_BUGS'}}}
+  };
+  function injPreset(){const k=document.getElementById('injSel').value;document.getElementById('injUrl').value=presets[k].url;
+    document.getElementById('injBody').value=JSON.stringify(presets[k].body,null,2);document.getElementById('injOut').textContent='— fire to see the response + entity side-effects —';}
+  function injFire(){const k=document.getElementById('injSel').value;
+    const map={meta:'200 · Candidate c_'+Math.floor(Math.random()*900+100)+' created\n→ SINK: new_lead WhatsApp captured\n→ ConversationAssignmentQueue +1',
+      signed:'200 · EmploymentAgreementProcess → signed\n→ CandidateNote created\n→ SINK: next-form dispatch captured',
+      website:'200 · Candidate created (source=website)\n→ SINK: welcome WhatsApp captured',
+      slack:'200 · SystemFeedback fb_77 → closed\n→ SINK: chat.update captured'};
+    document.getElementById('injOut').textContent=map[k];}
+  injPreset();
+
+  // ---- fake world ----
+  function fakeLead(){document.getElementById('leadOut').innerHTML='✅ Injected → handleWebsiteLeads → Candidate created · welcome WhatsApp captured in console.';}
+  function fakeSign(){document.getElementById('signOut').innerHTML='✅ Posted base64 PDF → receiveSignedDocument → process signed · stored via fileGateway (supafile:).';}
+  function fakeSlack(s){document.getElementById('slackOut').innerHTML='✅ block_actions → receiveSlackAction → SystemFeedback → <b>'+s+'</b>.';}
+</script>
+</body>
+</html>
