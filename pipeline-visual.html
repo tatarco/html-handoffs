@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizFlow Vibe-to-Prod Pipeline</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; line-height: 1.5; }
+
+  h1 { font-size: 1.6rem; font-weight: 700; color: #f8fafc; }
+  h2 { font-size: 1.1rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
+  h3 { font-size: .95rem; font-weight: 600; color: #f1f5f9; margin-bottom: 8px; }
+  p  { font-size: .85rem; color: #94a3b8; }
+
+  .page { max-width: 1300px; margin: 0 auto; padding: 40px 24px; }
+  .header { text-align: center; margin-bottom: 48px; }
+  .header p { margin-top: 8px; font-size: 1rem; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+
+  /* ── Section headings ── */
+  .section { margin-bottom: 48px; }
+  .section-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #475569; border-bottom: 1px solid #1e293b; padding-bottom: 6px; margin-bottom: 20px; }
+
+  /* ── Cards ── */
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; }
+  .card.green  { border-color: #16a34a33; background: #052e16; }
+  .card.blue   { border-color: #1d4ed833; background: #0c1445; }
+  .card.purple { border-color: #7c3aed33; background: #160b2e; }
+  .card.orange { border-color: #ea580c33; background: #1c0d00; }
+  .card.red    { border-color: #dc262633; background: #1c0000; }
+  .card.slate  { border-color: #47556933; background: #111827; }
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .dot.green  { background: #4ade80; }
+  .dot.blue   { background: #60a5fa; }
+  .dot.purple { background: #a78bfa; }
+  .dot.orange { background: #fb923c; }
+  .dot.red    { background: #f87171; }
+  .dot.slate  { background: #94a3b8; }
+
+  /* ── Three-column env layout ── */
+  .env-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+  /* ── Branch flow ── */
+  .branch-row { display: flex; align-items: center; gap: 0; margin-bottom: 10px; }
+  .branch-box { padding: 8px 16px; border-radius: 8px; font-size: .82rem; font-weight: 600; min-width: 220px; }
+  .branch-arrow { padding: 0 12px; color: #475569; font-size: 1.2rem; }
+  .branch-note { font-size: .75rem; color: #64748b; margin-left: 8px; }
+
+  /* ── Pipeline steps ── */
+  .pipeline { display: flex; flex-direction: column; gap: 0; }
+  .step { display: flex; align-items: flex-start; gap: 16px; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+  .step-body { padding-bottom: 20px; border-left: 1px dashed #1e293b; padding-left: 16px; flex: 1; }
+  .step:last-child .step-body { border-left: none; padding-bottom: 0; }
+  .step-title { font-size: .88rem; font-weight: 600; color: #f1f5f9; }
+  .step-detail { font-size: .78rem; color: #64748b; margin-top: 2px; }
+  .code { font-family: 'Menlo', 'Monaco', monospace; background: #0f1117; border: 1px solid #1e293b; border-radius: 6px; padding: 10px 14px; font-size: .78rem; color: #7dd3fc; margin-top: 8px; white-space: pre; overflow-x: auto; }
+
+  /* ── File tree ── */
+  .tree { font-family: 'Menlo', 'Monaco', monospace; font-size: .78rem; line-height: 1.8; background: #0f1117; border: 1px solid #1e293b; border-radius: 10px; padding: 16px 20px; }
+  .tree .new   { color: #4ade80; }
+  .tree .keep  { color: #64748b; }
+  .tree .dir   { color: #60a5fa; font-weight: 600; }
+  .tree .never { color: #f87171; }
+
+  /* ── Auth / data flow ── */
+  .flow-row { display: flex; align-items: stretch; gap: 0; }
+  .flow-node { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px 16px; font-size: .8rem; text-align: center; min-width: 130px; }
+  .flow-arrow { display: flex; align-items: center; padding: 0 6px; color: #475569; font-size: 1.1rem; }
+  .flow-label { font-size: .65rem; color: #64748b; margin-top: 2px; }
+
+  /* ── Grid helpers ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* ── Tag list ── */
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .tag { background: #0f1117; border: 1px solid #334155; border-radius: 6px; padding: 3px 10px; font-size: .72rem; color: #94a3b8; font-family: monospace; }
+  .tag.new { border-color: #16a34a55; color: #4ade80; }
+  .tag.edge { border-color: #7c3aed55; color: #a78bfa; }
+
+  /* ── Warning box ── */
+  .warn { background: #1c1400; border: 1px solid #ca8a0455; border-radius: 10px; padding: 14px 18px; font-size: .82rem; color: #fbbf24; margin-top: 12px; }
+  .warn strong { color: #f59e0b; }
+
+  /* ── Answer box ── */
+  .answer { background: #052e16; border: 1px solid #16a34a55; border-radius: 10px; padding: 14px 18px; font-size: .82rem; color: #86efac; margin-top: 12px; }
+  .answer strong { color: #4ade80; }
+
+  hr { border: none; border-top: 1px solid #1e293b; margin: 36px 0; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>BizFlow — Vibe-to-Prod Pipeline</h1>
+    <p style="color:#64748b">Everything we've built, where it lives, how it connects. As of 2026-05-26.</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 1 — THE BIG PICTURE
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">1 — The Big Picture</div>
+
+    <div class="env-row">
+      <div class="card green">
+        <h3><span class="dot green"></span>Base44 Dev (TODAY)</h3>
+        <p>Gal's active development environment. <strong style="color:#4ade80">Never touched by us.</strong></p>
+        <div class="tag-list">
+          <span class="tag">biz-flow-erp-6829504d.base44.app</span>
+          <span class="tag">Base44 auth</span>
+          <span class="tag">Base44 entities</span>
+          <span class="tag">Deno functions</span>
+          <span class="tag">main branch</span>
+        </div>
+      </div>
+
+      <div class="card blue">
+        <h3><span class="dot blue"></span>Supabase Staging (WHAT WE'RE BUILDING)</h3>
+        <p>CI-managed. Syncs from main on every push. E2E tests run here.</p>
+        <div class="tag-list">
+          <span class="tag new">ekoaogtxwptcukkmklcn.supabase.co</span>
+          <span class="tag new">Supabase Auth</span>
+          <span class="tag new">168 entity tables (JSONB)</span>
+          <span class="tag new">feat/supabase-entity-tables branch</span>
+        </div>
+      </div>
+
+      <div class="card purple">
+        <h3><span class="dot purple"></span>Supabase Production (FUTURE)</h3>
+        <p>Real customers. Promoted from staging via PR review + green E2E.</p>
+        <div class="tag-list">
+          <span class="tag">jrfzsqvnyrlgvbfacfxt.supabase.co</span>
+          <span class="tag">production branch</span>
+          <span class="tag">PR gate required</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="answer" style="margin-top:16px">
+      <strong>Key insight:</strong> These are two separate running apps. Base44 dev keeps working exactly as-is. The Supabase app is being built in parallel, on a different branch, deploying to a different URL and database. Eventually the Supabase SPA <em>replaces</em> the Base44 app — but nothing breaks until you're ready to switch.
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 2 — GIT BRANCH STRATEGY
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">2 — Git Branch Strategy</div>
+
+    <div style="padding:20px;background:#0f1117;border:1px solid #1e293b;border-radius:12px">
+      <div class="branch-row">
+        <div class="branch-box" style="background:#052e16;border:1px solid #16a34a55;color:#4ade80">
+          main
+        </div>
+        <span class="branch-note">← Base44 auto-deploys from here. We ONLY add migrations, scripts, CI files. NEVER add Supabase UI code here.</span>
+      </div>
+      <div style="padding:0 0 0 30px;color:#334155;font-size:1.2rem">↓ diverges</div>
+      <div class="branch-row">
+        <div class="branch-box" style="background:#0c1445;border:1px solid #1d4ed855;color:#60a5fa">
+          feat/supabase-entity-tables
+        </div>
+        <span class="branch-note">← All our work lives here. Will become "staging" when ready.</span>
+      </div>
+      <div style="padding:0 0 0 30px;color:#334155;font-size:1.2rem">↓ GitHub Actions opens PR when E2E passes</div>
+      <div class="branch-row">
+        <div class="branch-box" style="background:#160b2e;border:1px solid #7c3aed55;color:#a78bfa">
+          production
+        </div>
+        <span class="branch-note">← Manual PR review required. Not yet created.</span>
+      </div>
+    </div>
+
+    <div class="warn" style="margin-top:16px">
+      <strong>About "no code in the base44 folder":</strong> Everything we've added to <code>src/</code> (Login, AdminDashboard, ImpersonationBanner) lives only on <code>feat/supabase-entity-tables</code>, not on <code>main</code>. The <code>base44/</code> folder (functions, entity JSONCs) is completely untouched. When this branch is deployed as the Supabase SPA, it IS a different app — same React codebase, Supabase auth instead of Base44 auth.
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 3 — WHAT LIVES WHERE IN THE REPO
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">3 — Repository File Map</div>
+
+    <div class="tree">
+<span class="dir">bizflow-erp/</span>
+├── <span class="dir">base44/</span>          <span class="never">← NEVER TOUCH. Base44 functions &amp; entity schemas.</span>
+│   ├── <span class="keep">entities/</span>     <span class="keep">168 entity JSONC files (source of truth for schema)</span>
+│   └── <span class="keep">functions/</span>    <span class="keep">Deno backend functions (Base44 platform deploys these)</span>
+│
+├── <span class="dir">src/</span>              <span class="keep">React app — shared codebase</span>
+│   ├── <span class="keep">pages/</span>        <span class="keep">[untouched] Base44 app pages</span>
+│   ├── <span class="keep">components/</span>   <span class="keep">[untouched] Base44 app components</span>
+│   ├── <span class="keep">lib/</span>
+│   │   ├── <span class="keep">AuthContext.jsx</span>           <span class="keep">Base44 auth (untouched)</span>
+│   │   ├── <span class="new">supabaseClient.js</span>         <span class="new">NEW — Supabase singleton (VITE_ env vars)</span>
+│   │   └── <span class="new">SupabaseAuthContext.jsx</span>   <span class="new">NEW — Supabase session + impersonation</span>
+│   ├── <span class="dir">pages/</span>
+│   │   ├── <span class="new">Login.jsx</span>                 <span class="new">NEW — RTL Hebrew Supabase login form</span>
+│   │   └── <span class="new">admin/</span>                    <span class="new">NEW — Tenant &amp; user management UI</span>
+│   │       ├── <span class="new">AdminDashboard.jsx</span>
+│   │       └── <span class="new">CompanyUsers.jsx</span>
+│   └── <span class="dir">components/</span>
+│       └── <span class="new">ImpersonationBanner.jsx</span>   <span class="new">NEW — Floating overlay on all screens</span>
+│
+├── <span class="dir">packages/</span>
+│   └── <span class="new">bizflow-client/</span>           <span class="new">NEW — @bizflow/client: entity API for Supabase</span>
+│       └── <span class="new">src/</span>
+│           ├── <span class="new">entities.ts</span>           <span class="new">list/get/create/update/delete/filter (JSONB)</span>
+│           ├── <span class="new">auth.ts</span>               <span class="new">getUser / getUserFromJwt</span>
+│           └── <span class="new">index.ts</span>
+│
+├── <span class="dir">supabase/</span>
+│   ├── <span class="new">migrations/</span>               <span class="new">NEW — 170 SQL files (168 entities + shared + admin)</span>
+│   │   ├── <span class="new">20260728120001_codegen_00_shared_functions.sql</span>
+│   │   ├── <span class="new">20260729100001…250_codegen_[entity].sql</span>   <span class="new">168 entity tables</span>
+│   │   ├── <span class="new">20260729100250_jsonb_patch_rpc.sql</span>
+│   │   └── <span class="new">20260730100000_admin_setup.sql</span>
+│   └── <span class="new">functions/</span>
+│       └── <span class="new">bizflow-admin/index.ts</span>    <span class="new">NEW — Deno Edge Function: company/user/impersonate</span>
+│
+├── <span class="dir">scripts/</span>
+│   ├── <span class="new">codegen-migrations.mjs</span>    <span class="new">NEW — base44/entities/*.jsonc → SQL migrations</span>
+│   ├── <span class="new">seed-staging.mjs</span>          <span class="new">NEW — Base44 API → wipe → reseed staging tables</span>
+│   └── <span class="new">setup-super-admin.mjs</span>     <span class="new">NEW — one-time: create superadmin user in Supabase Auth</span>
+│
+├── <span class="dir">tests/e2e/</span>                    <span class="new">NEW — E2E test suite (Node ESM, no deps)</span>
+│   ├── <span class="new">run.mjs</span>      <span class="new">orchestrator (cleanup always runs)</span>
+│   ├── <span class="new">smoke.mjs</span>    <span class="new">table access + jsonb_patch merge semantics</span>
+│   ├── <span class="new">crud.mjs</span>     <span class="new">INSERT→GET→PATCH→DELETE on candidate</span>
+│   ├── <span class="new">rls.mjs</span>      <span class="new">anon key sees 0 rows (RLS enforced)</span>
+│   └── <span class="new">cleanup.mjs</span>  <span class="new">delete _test_run_id rows from all 168 tables</span>
+│
+└── <span class="dir">.github/workflows/</span>
+    ├── <span class="keep">spa-staging-cloudflare-pages.yml</span>   <span class="keep">existing SPA build + deploy</span>
+    ├── <span class="new">supabase-staging.yml</span>              <span class="new">NEW — codegen → push → E2E → open prod PR</span>
+    └── <span class="new">seed-staging.yml</span>                  <span class="new">NEW — nightly 02:00 UTC Base44→staging seed</span>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 4 — THE JSONB DATA MODEL
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">4 — The Database Model (Why JSONB)</div>
+
+    <div class="grid2">
+      <div class="card slate">
+        <h3>Every entity table looks like this</h3>
+        <div class="code">CREATE TABLE candidate (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID NOT NULL,       -- tenant isolation
+  doc        JSONB NOT NULL,      -- ALL fields live here
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ
+);
+
+-- GIN index for doc @> containment queries
+-- B-tree index on company_id for RLS
+-- RLS: company_id = (auth.jwt()->'app_metadata'->>'company_id')</div>
+        <p style="margin-top:10px">168 Base44 entities → 168 tables. Same 4-column structure each time. No schema mapping needed.</p>
+      </div>
+      <div class="card slate">
+        <h3>What @bizflow/client exposes</h3>
+        <div class="code">const db = buildEntityMap(supabase, ['candidate']);
+
+// Same API as Base44
+await db.candidate.list()
+await db.candidate.get(id)
+await db.candidate.create({ name: 'Avi' })
+await db.candidate.update(id, { status: 'hired' })
+await db.candidate.filter({ status: 'new' })
+
+// update() uses jsonb_patch RPC:
+// UPDATE candidate SET doc = doc || $patch
+// WHERE id = $id RETURNING id, doc
+// Merge-patch: only changed fields, nothing destroyed</div>
+        <p style="margin-top:10px">Gal's app code doesn't need to change — same API shape as Base44's entity client.</p>
+      </div>
+    </div>
+
+    <div class="answer" style="margin-top:16px">
+      <strong>Multi-tenancy is enforced in the DB, not the app.</strong> RLS policies check <code>auth.jwt()-&gt;'app_metadata'->>'company_id'</code> on every read/write. A user can only see their own company's data. <code>app_metadata</code> is server-set (via admin API only) — a user cannot forge their own company_id.
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 5 — THE CI PIPELINE (EVERY PUSH TO MAIN)
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">5 — CI Pipeline (supabase-staging.yml — triggers on main push)</div>
+
+    <div class="pipeline">
+      <div class="step">
+        <div class="step-num" style="background:#1d4ed8;color:white">1</div>
+        <div class="step-body">
+          <div class="step-title">Gal edits an entity in Base44 UI</div>
+          <div class="step-detail">Base44 commits the change to <code>base44/entities/EntityName.jsonc</code> on <code>main</code>. GitHub Actions triggers.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#0284c7;color:white">2</div>
+        <div class="step-body">
+          <div class="step-title">Codegen: entity JSONC → SQL migration</div>
+          <div class="step-detail"><code>node scripts/codegen-migrations.mjs</code> — reads all 168 JSONC files, runs the lifecycle state machine (NEW / UNCHANGED / RENAMED / DELETED / RESTORED), emits only the migrations that are needed. Idempotent: re-running on unchanged entities produces nothing.</div>
+          <div class="code">done: 0 created, 168 skipped   ← stable run (nothing new)
+done: 1 created, 167 skipped  ← after adding a new entity</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#0e7490;color:white">3</div>
+        <div class="step-body">
+          <div class="step-title">Push migrations to Supabase staging</div>
+          <div class="step-detail"><code>supabase db push --db-url $STAGING_SUPABASE_DB_URL --include-all</code> — applies any new migration files. Supabase CLI tracks which migrations have already run.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#0f766e;color:white">4</div>
+        <div class="step-body">
+          <div class="step-title">RLS guard: verify all tables are protected</div>
+          <div class="step-detail">SQL query: any table in <code>public</code> with no RLS policies → build fails. Prevents shipping tables that are open to all authenticated users.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#15803d;color:white">5</div>
+        <div class="step-body">
+          <div class="step-title">E2E tests</div>
+          <div class="step-detail"><code>node tests/e2e/run.mjs</code> — three suites: smoke (5 tables + jsonb_patch), CRUD (full lifecycle on candidate), RLS (anon key sees 0 rows). Cleanup always runs even on failure.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#7c3aed;color:white">6</div>
+        <div class="step-body">
+          <div class="step-title">Open staging → production PR</div>
+          <div class="step-detail">If all steps pass, GitHub Actions opens (or updates) a PR from <code>main</code> to <code>production</code>. Merging that PR triggers the production deploy. Manual review required.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 6 — NIGHTLY SEED
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">6 — Nightly Staging Seed (seed-staging.yml — 02:00 UTC)</div>
+
+    <div class="flow-row" style="flex-wrap:wrap;gap:8px;align-items:center">
+      <div class="flow-node" style="background:#052e16;border-color:#16a34a55">
+        Base44 Dev<br><span class="flow-label">168 entities × N rows</span>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        seed-staging.mjs<br><span class="flow-label">fetch all via Base44 API<br>paginated 500/req</span>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="background:#1c0d00;border-color:#ea580c55">
+        Wipe staging<br><span class="flow-label">DELETE all rows</span>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="background:#0c1445;border-color:#1d4ed855">
+        Supabase Staging<br><span class="flow-label">reinsert with<br>SEED_COMPANY_ID</span>
+      </div>
+    </div>
+
+    <p style="margin-top:12px">Result: staging always has fresh, realistic data. Same records Gal sees in Base44 dev, now queryable via Supabase. Seed uses deterministic UUIDs (SHA-1 of Base44 ID) so re-running produces the same PKs — no duplicates.</p>
+  </div>
+
+  <hr>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 7 — ADMIN + IMPERSONATION
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">7 — Admin Panel + User Impersonation</div>
+
+    <div class="grid2">
+      <div>
+        <h3 style="margin-bottom:12px">Auth layers</h3>
+        <div class="pipeline">
+          <div class="step">
+            <div class="step-num" style="background:#ea580c;color:white">①</div>
+            <div class="step-body">
+              <div class="step-title">Super admin (hardcoded)</div>
+              <div class="step-detail">Created once with <code>node scripts/setup-super-admin.mjs --email admin@bizflow.app --password ...</code><br>Has <code>app_metadata: { role: 'superadmin' }</code> — checked by Edge Function on every admin API call.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:#d97706;color:white">②</div>
+            <div class="step-body">
+              <div class="step-title">Super admin creates a company + first user</div>
+              <div class="step-detail">Admin Dashboard (<code>/admin</code>) → "Create company" → company name + first user email + password → Edge Function creates company row + Supabase Auth user with <code>app_metadata.company_id</code>.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:#ca8a04;color:white">③</div>
+            <div class="step-body">
+              <div class="step-title">Company admin invites more users</div>
+              <div class="step-detail"><code>/admin/companies/:id</code> → "Invite user" → email → Edge Function calls <code>supabase.auth.admin.inviteUserByEmail</code> + stores invite in <code>company_invites</code> table with the correct <code>company_id</code>.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="margin-bottom:12px">Impersonation flow</h3>
+        <div class="pipeline">
+          <div class="step">
+            <div class="step-num" style="background:#7c3aed;color:white">①</div>
+            <div class="step-body">
+              <div class="step-title">Super admin sees floating "A" chip (bottom-right)</div>
+              <div class="step-detail">Always visible when logged in as superadmin. Click → popover opens with list of all companies + users.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:#6d28d9;color:white">②</div>
+            <div class="step-body">
+              <div class="step-title">Click "Impersonate" next to any user</div>
+              <div class="step-detail">Auth context saves current admin JWT to <code>sessionStorage.__bizflow_admin_session</code>. Calls Edge Function <code>POST /bizflow-admin/impersonate</code> with target user_id.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:#5b21b6;color:white">③</div>
+            <div class="step-body">
+              <div class="step-title">Magic link redirect</div>
+              <div class="step-detail">Edge Function calls <code>supabase.auth.admin.generateLink({ type: 'magiclink', email })</code> → returns a one-time URL → frontend navigates there → Supabase sets the new user's session automatically.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:#4c1d95;color:white">④</div>
+            <div class="step-body">
+              <div class="step-title">Orange banner appears above EVERYTHING</div>
+              <div class="step-detail"><code>ImpersonationBanner</code> is mounted at the root of the app (outside all routes). Detects <code>sessionStorage.__bizflow_admin_session</code> → shows "🎭 Acting as: user@company.com — [Exit]".<br>Exit → <code>supabase.auth.setSession(savedAdminSession)</code> → banner goes away.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card orange" style="margin-top:16px">
+      <h3>Edge Function: bizflow-admin</h3>
+      <p style="margin-bottom:8px">Lives at <code>supabase/functions/bizflow-admin/index.ts</code>. All routes validate <code>app_metadata.role === 'superadmin'</code> from the JWT before doing anything. Uses service role key server-side (never exposed to the browser).</p>
+      <div class="tag-list">
+        <span class="tag edge">GET /companies</span>
+        <span class="tag edge">POST /companies</span>
+        <span class="tag edge">GET /companies/:id/users</span>
+        <span class="tag edge">POST /companies/:id/invite</span>
+        <span class="tag edge">POST /impersonate</span>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 8 — SECRETS NEEDED
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">8 — GitHub Secrets Checklist</div>
+
+    <div class="grid2">
+      <div class="card slate">
+        <h3>Already set ✓</h3>
+        <div class="tag-list" style="margin-top:8px">
+          <span class="tag new">STAGING_SUPABASE_URL</span>
+          <span class="tag new">STAGING_SUPABASE_ANON_KEY</span>
+          <span class="tag new">STAGING_SUPABASE_SERVICE_KEY</span>
+          <span class="tag new">STAGING_SUPABASE_DB_URL</span>
+          <span class="tag new">STAGING_SUPABASE_PROJECT_REF</span>
+          <span class="tag new">PROD_SUPABASE_URL</span>
+          <span class="tag new">PROD_SUPABASE_SERVICE_KEY</span>
+          <span class="tag new">PROD_SUPABASE_DB_URL</span>
+        </div>
+      </div>
+      <div class="card red">
+        <h3>Still needed ✗</h3>
+        <div class="tag-list" style="margin-top:8px">
+          <span class="tag" style="border-color:#f8717155;color:#f87171">BASE44_APP_ID</span>
+          <span class="tag" style="border-color:#f8717155;color:#f87171">BASE44_API_KEY</span>
+          <span class="tag" style="border-color:#f8717155;color:#f87171">SEED_COMPANY_ID</span>
+          <span class="tag" style="border-color:#f8717155;color:#f87171">VITE_SUPABASE_URL (frontend)</span>
+          <span class="tag" style="border-color:#f8717155;color:#f87171">VITE_SUPABASE_ANON_KEY (frontend)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SECTION 9 — WHAT'S LEFT
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">9 — Pipeline Status</div>
+
+    <div class="grid3">
+      <div class="card green">
+        <h3>Done ✓</h3>
+        <ul style="font-size:.8rem;color:#86efac;padding-left:16px;line-height:2">
+          <li>codegen-migrations.mjs (full lifecycle)</li>
+          <li>168 entity migrations → pushed to staging</li>
+          <li>jsonb_patch RPC</li>
+          <li>@bizflow/client package</li>
+          <li>Supabase auth context</li>
+          <li>Login page (RTL Hebrew)</li>
+          <li>Staging CI workflow</li>
+          <li>Nightly seed workflow</li>
+          <li>E2E test suite</li>
+          <li>Admin + impersonation</li>
+        </ul>
+      </div>
+      <div class="card orange">
+        <h3>To do next</h3>
+        <ul style="font-size:.8rem;color:#fdba74;padding-left:16px;line-height:2">
+          <li>Run setup-super-admin.mjs</li>
+          <li>Add missing GitHub secrets</li>
+          <li>Deploy bizflow-admin Edge Function</li>
+          <li>Test login → admin → impersonation</li>
+          <li>Create production branch</li>
+          <li>Prod deploy workflow</li>
+        </ul>
+      </div>
+      <div class="card purple">
+        <h3>Out of scope for now</h3>
+        <ul style="font-size:.8rem;color:#c4b5fd;padding-left:16px;line-height:2">
+          <li>Supabase Edge Functions (Deno) replacing Base44 functions</li>
+          <li>Tabit ingestion via Supabase cron</li>
+          <li>Make.com staging copies</li>
+          <li>Realtime subscriptions</li>
+          <li>Tenant offboarding</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:40px;color:#1e293b;font-size:.75rem">Generated 2026-05-26 — BizFlow vibe-to-prod pipeline visual</div>
+</div>
+</body>
+</html>

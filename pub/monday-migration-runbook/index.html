@@ -130,8 +130,11 @@ node tools/monday-migration/run.mjs analyze --refresh-snapshot</pre>
   <h2>Phase 2 — Dry migrate preview</h2>
   <p>Runs the migrate command <strong>without</strong> <code>--live</code>. Refreshes the dashboard and prints how many rows are actionable — no BizFlow writes.</p>
   <pre>node tools/monday-migration/run.mjs migrate</pre>
-  <p>Use this to confirm the queue size before starting the long run. Optional smoke test:</p>
-  <pre>node tools/monday-migration/run.mjs migrate --live --limit 3</pre>
+  <p>Use this to confirm the queue size before starting the long run. Preview a smoke-test batch (1 active + 1 archived):</p>
+  <pre>node tools/monday-migration/run.mjs migrate --limit-active 1 --limit-archive 1</pre>
+  <p>Lists exactly which two employees would run, with <code>[active]</code> / <code>[archived]</code> labels. Verify position, branch, wage, and file counts in BizFlow after the live smoke test:</p>
+  <pre>node tools/monday-migration/run.mjs migrate --live --limit-active 1 --limit-archive 1</pre>
+  <p class="note">Passing only <code>--limit-active 1</code> imports one active employee and skips archived in that batch. Only <code>--limit-archive 1</code> does the reverse. Omit both flags for the full queue.</p>
 </section>
 
 <section id="phase-live">
@@ -250,12 +253,29 @@ node tools/monday-migration/run.mjs migrate --live</pre>
   <table>
     <thead><tr><th>File</th><th>Purpose</th></tr></thead>
     <tbody>
-      <tr><td><code>.scratch/monday-migration/progress.csv</code></td><td>Source of truth for resume; safe to open in Excel.</td></tr>
+      <tr><td><code>.scratch/monday-migration/progress.csv</code></td><td>Per-employee resume state.</td></tr>
+      <tr><td><code>.scratch/monday-migration/files-ledger.csv</code></td><td><strong>Per-file ledger</strong> — every planned file, status: pending / uploaded / skipped / failed.</td></tr>
       <tr><td><code>.scratch/monday-migration/runner.log</code></td><td>Append-only: EMPLOYEE OK/FAIL, FILE OK/FAIL per line.</td></tr>
       <tr><td><code>.scratch/monday-migration/status.html</code></td><td>Live dashboard (5s refresh).</td></tr>
+      <tr><td><code>.scratch/monday-migration/verify.html</code></td><td>Completion certificate after <code>verify</code>.</td></tr>
       <tr><td><code>.scratch/monday-migration/analyze-cache.json</code></td><td>Full payloads + Monday file asset IDs.</td></tr>
     </tbody>
   </table>
+</section>
+
+<section>
+  <h2>How you know you are really done</h2>
+  <p>Per-employee counts alone are not enough. The runner keeps a <strong>file-level ledger</strong> (~15,600 rows) seeded at analyze time. Each file is marked <code>uploaded</code>, <code>skipped</code> (duplicate name already in BizFlow), or <code>failed</code>.</p>
+  <pre>node tools/monday-migration/run.mjs verify
+node tools/monday-migration/run.mjs verify --check-bizflow
+open .scratch/monday-migration/verify.html</pre>
+  <p><strong>PASS</strong> means:</p>
+  <ul>
+    <li>Every migratable employee is <code>complete</code> or <code>skipped_existing</code></li>
+    <li>Zero files are <code>pending</code> or <code>failed</code> in <code>files-ledger.csv</code></li>
+    <li>With <code>--check-bizflow</code>: every planned filename exists as <code>EmploymentDocument</code> on that employee in BizFlow</li>
+  </ul>
+  <p class="note danger">Do not declare the migration finished until <code>verify --check-bizflow</code> prints PASS.</p>
 </section>
 
 <section id="timing">
@@ -291,16 +311,19 @@ node tools/monday-migration/run.mjs analyze
 # 2. Fix blockers in Monday, then refresh plan
 node tools/monday-migration/run.mjs analyze --refresh-snapshot
 
-# 3. Smoke test
-node tools/monday-migration/run.mjs migrate --live --limit 5
+# 3. Preview smoke test (dry)
+node tools/monday-migration/run.mjs migrate --limit-active 1 --limit-archive 1
 
-# 4. Full run (in tmux)
+# 4. Live smoke test — verify 1 active + 1 archived in BizFlow UI
+node tools/monday-migration/run.mjs migrate --live --limit-active 1 --limit-archive 1
+
+# 5. Full run (in tmux)
 node tools/monday-migration/run.mjs migrate --live
 
-# 5. After any interruption — same command
+# 6. After any interruption — same command (no limits = full remaining queue)
 node tools/monday-migration/run.mjs migrate --live
 
-# 6. When dashboard shows 0 pending / failed / partial — done</pre>
+# 7. When dashboard shows 0 pending / failed / partial — done</pre>
 </section>
 
 </div>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Humondial × Komo — Integration Brief</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f6f7f9; color: #1a1a2e; }
+
+  header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; padding: 48px 40px 36px; }
+  header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  header p { margin-top: 8px; color: #a0aec0; font-size: 15px; }
+  header .badge { display: inline-block; margin-top: 14px; background: #38a169; color: #fff; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.3px; }
+
+  main { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  h2 { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+  .section-desc { font-size: 14px; color: #718096; margin-bottom: 20px; line-height: 1.6; }
+
+  .card { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 28px; margin-bottom: 32px; }
+  .card h2 { margin-bottom: 4px; }
+
+  /* Tier table */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; padding: 10px 14px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #718096; border-bottom: 2px solid #e2e8f0; }
+  td { padding: 14px 14px; border-bottom: 1px solid #f0f4f8; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  .komo-tag { display: inline-block; font-family: 'SF Mono', monospace; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 6px; background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
+  .tier-name { font-weight: 600; }
+  .tier-pts { font-size: 13px; color: #718096; }
+  .chip { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+  .chip-copper  { background: #b7791f; }
+  .chip-mist    { background: #718096; }
+  .chip-golden  { background: #d69e2e; }
+  .chip-ruby    { background: #c53030; }
+  .chip-violet  { background: #6b46c1; }
+
+  /* Event cards */
+  .event-list { display: flex; flex-direction: column; gap: 16px; }
+  .event { border-radius: 10px; border: 1px solid #e2e8f0; overflow: hidden; }
+  .event-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: #f7fafc; border-bottom: 1px solid #e2e8f0; }
+  .event-icon { font-size: 22px; flex-shrink: 0; }
+  .event-title { font-weight: 700; font-size: 15px; }
+  .event-subtitle { font-size: 13px; color: #718096; margin-top: 2px; }
+  .event-body { padding: 18px 20px; }
+  .event-body p { font-size: 14px; line-height: 1.7; color: #4a5568; margin-bottom: 10px; }
+  .event-body p:last-child { margin-bottom: 0; }
+
+  .call-box { background: #1a1a2e; border-radius: 8px; padding: 14px 16px; margin-top: 12px; }
+  .call-box .label { font-size: 11px; font-weight: 600; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .call-box pre { color: #68d391; font-family: 'SF Mono', 'Fira Mono', monospace; font-size: 12.5px; white-space: pre-wrap; word-break: break-all; margin: 0; }
+
+  .tag-new  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: #c6f6d5; color: #276749; margin-left: 6px; vertical-align: middle; }
+  .tag-prog { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: #bee3f8; color: #2c5282; margin-left: 6px; vertical-align: middle; }
+
+  .note { display: flex; gap: 12px; background: #fffbeb; border: 1px solid #f6e05e; border-radius: 8px; padding: 14px 16px; font-size: 13px; color: #744210; line-height: 1.6; }
+  .note-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+  footer { text-align: center; font-size: 13px; color: #a0aec0; padding-bottom: 24px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Humondial × Komo — Integration Brief</h1>
+  <p>How and when Humondial sends data to Komo. For validation by Komo team.</p>
+  <span class="badge">Live as of May 28, 2026</span>
+</header>
+
+<main>
+
+  <!-- TIER MAP -->
+  <div class="card">
+    <h2>Tier Mapping</h2>
+    <p class="section-desc">Humondial has 5 loyalty tiers. Each maps to a Komo group by name. These are the exact strings sent in every API call.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Humondial Tier Name</th>
+          <th>Points Required</th>
+          <th>Komo Group Value Sent</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><span class="chip chip-copper"></span><span class="tier-name">Bench Player</span><br><span class="tier-pts">Entry level</span></td>
+          <td>0 pts (all new members)</td>
+          <td><span class="komo-tag">Tier1</span></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><span class="chip chip-mist"></span><span class="tier-name">Starter</span></td>
+          <td>250 pts</td>
+          <td><span class="komo-tag">Tier2</span></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><span class="chip chip-golden"></span><span class="tier-name">Striker</span></td>
+          <td>500 pts</td>
+          <td><span class="komo-tag">Tier3</span></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><span class="chip chip-ruby"></span><span class="tier-name">Top Scorer</span></td>
+          <td>750 pts</td>
+          <td><span class="komo-tag">Tier4</span></td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><span class="chip chip-violet"></span><span class="tier-name">Humondial Champion</span></td>
+          <td>1,050 pts</td>
+          <td><span class="komo-tag">Tier5</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- EVENTS -->
+  <div class="card">
+    <h2>API Calls — When &amp; What</h2>
+    <p class="section-desc">There are two types of calls Humondial makes to Komo. All calls use the same API key and go to <code style="font-size:12px;background:#f0f4f8;padding:2px 6px;border-radius:4px;">api.prod.bcomo.com</code>.</p>
+
+    <div class="event-list">
+
+      <!-- EVENT 1: REGISTRATION -->
+      <div class="event">
+        <div class="event-header">
+          <div class="event-icon">📲</div>
+          <div>
+            <div class="event-title">New Member Registration <span class="tag-new">ONCE PER USER</span></div>
+            <div class="event-subtitle">Triggered when a player completes OTP login for the first time</div>
+          </div>
+        </div>
+        <div class="event-body">
+          <p><strong>When it happens:</strong> A user enters their phone number on the Humondial loyalty app and verifies their OTP. This is their very first login — they don't exist in Komo yet.</p>
+          <p><strong>What Humondial sends to Komo:</strong> A registration call to create the member, immediately followed by a group association to place them in <strong>Tier1</strong> (the entry tier).</p>
+          <p><strong>Endpoint 1 — Create member:</strong></p>
+          <div class="call-box">
+            <div class="label">POST /api/v4/advanced/registration/quick</div>
+            <pre>{
+  "customer": {
+    "firstName": "חבר",
+    "lastName": "הומונדיאל",
+    "phoneNumber": "05XXXXXXXX"
+  }
+}</pre>
+          </div>
+          <p style="margin-top:12px;"><strong>Endpoint 2 — Assign to Tier1 (immediately after):</strong></p>
+          <div class="call-box">
+            <div class="label">POST /api/v4/advanced/submitEvent</div>
+            <pre>{
+  "customers": [{ "phoneNumber": "05XXXXXXXX" }],
+  "event": {
+    "type": "group_association",
+    "data": { "StringValue1": "Tier1" }
+  }
+}</pre>
+          </div>
+          <p style="margin-top:12px;"><strong>Headers on both calls:</strong></p>
+          <div class="call-box">
+            <div class="label">Headers</div>
+            <pre>x-api-key: [KOMO_API_KEY]
+x-source-name: tier1        ← registration call only
+x-Source-Type: Humondial    ← group_association call only
+x-Source-Name: Side3        ← group_association call only</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- EVENT 2: EXISTING KOMO MEMBER -->
+      <div class="event">
+        <div class="event-header">
+          <div class="event-icon">🔄</div>
+          <div>
+            <div class="event-title">Existing Komo Member — First Humondial Login <span class="tag-new">ONCE PER USER</span></div>
+            <div class="event-subtitle">Triggered when the phone already exists in Komo at the moment of first Humondial login</div>
+          </div>
+        </div>
+        <div class="event-body">
+          <p><strong>When it happens:</strong> The registration call returns a "phone already exists" response (error code <code style="font-size:12px;background:#f0f4f8;padding:2px 6px;border-radius:4px;">4001014</code>). This means the user is already in Komo from another program.</p>
+          <p><strong>What Humondial does:</strong> Skips re-registration, awards the user a welcome bonus of points (250 pts — the Tier2 threshold) on the Humondial side, and sends a group association to move them directly to <strong>Tier2</strong> in Komo.</p>
+          <div class="call-box">
+            <div class="label">POST /api/v4/advanced/submitEvent — move to Tier2</div>
+            <pre>{
+  "customers": [{ "phoneNumber": "05XXXXXXXX" }],
+  "event": {
+    "type": "group_association",
+    "data": { "StringValue1": "Tier2" }
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- EVENT 3: TIER UPGRADE -->
+      <div class="event">
+        <div class="event-header">
+          <div class="event-icon">🏆</div>
+          <div>
+            <div class="event-title">Tier Upgrade <span class="tag-prog">ONGOING</span></div>
+            <div class="event-subtitle">Triggered every time a player crosses a tier threshold through activity</div>
+          </div>
+        </div>
+        <div class="event-body">
+          <p><strong>When it happens:</strong> A player earns enough points through venue visits, predictions, deliveries, or table bookings to cross into the next tier. The upgrade is detected after each of these four actions.</p>
+          <p><strong>Activities that can trigger a tier upgrade:</strong></p>
+          <ul style="margin: 8px 0 12px 20px; font-size: 14px; color: #4a5568; line-height: 2;">
+            <li>Grading a match prediction result</li>
+            <li>Redeeming a venue check-in code at the branch</li>
+            <li>Submitting a match prediction</li>
+            <li>Recording a table booking</li>
+          </ul>
+          <p><strong>What is sent:</strong> A single group association event with the player's new tier value.</p>
+          <div class="call-box">
+            <div class="label">POST /api/v4/advanced/submitEvent — tier upgrade example (Tier1 → Tier2)</div>
+            <pre>{
+  "customers": [{ "phoneNumber": "05XXXXXXXX" }],
+  "event": {
+    "type": "group_association",
+    "data": { "StringValue1": "Tier2" }
+  }
+}</pre>
+          </div>
+          <p style="margin-top:12px;">The value in <code style="font-size:12px;background:#f0f4f8;padding:2px 6px;border-radius:4px;">StringValue1</code> will be <strong>Tier2</strong>, <strong>Tier3</strong>, <strong>Tier4</strong>, or <strong>Tier5</strong> depending on which tier the player just unlocked.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="note">
+    <div class="note-icon">⚠️</div>
+    <div>
+      <strong>Action needed from Komo:</strong> Please confirm that the group names <strong>Tier1</strong>, <strong>Tier2</strong>, <strong>Tier3</strong>, <strong>Tier4</strong>, and <strong>Tier5</strong> exist and are correctly configured on your side (via <code>group_association</code> events). If your system uses different names, let us know and we will update our config immediately — no code changes required.
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>Humondial loyalty platform — Komo integration document — May 2026</p>
+</footer>
+
+</body>
+</html>
