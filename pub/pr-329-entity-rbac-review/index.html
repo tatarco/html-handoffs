@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PR #329 Review — entityRbacGateway Transform Fix</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; line-height: 1.55; }
+  h1 { font-size: 1.75rem; font-weight: 700; color: #f8fafc; }
+  h2 { font-size: 1rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
+  h3 { font-size: .95rem; font-weight: 600; color: #f1f5f9; margin-bottom: 8px; }
+  h4 { font-size: .85rem; font-weight: 600; color: #cbd5e1; margin: 14px 0 8px; }
+  p, li { font-size: .86rem; color: #94a3b8; }
+  strong { color: #e2e8f0; }
+  a { color: #7dd3fc; }
+  .page { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+  .header { text-align: center; margin-bottom: 40px; }
+  .header p { margin-top: 10px; font-size: .95rem; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin: 2px; }
+  .badge.green { background: #052e16; color: #4ade80; border: 1px solid #16a34a55; }
+  .badge.blue { background: #0c1445; color: #60a5fa; border: 1px solid #1d4ed855; }
+  .badge.purple { background: #160b2e; color: #a78bfa; border: 1px solid #7c3aed55; }
+  .badge.amber { background: #1c1400; color: #fbbf24; border: 1px solid #ca8a0455; }
+  .badge.red { background: #1c0000; color: #f87171; border: 1px solid #dc262655; }
+  .section { margin-bottom: 40px; }
+  .section-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #475569; border-bottom: 1px solid #1e293b; padding-bottom: 6px; margin-bottom: 18px; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 14px; }
+  .card.green { border-color: #16a34a33; background: #052e16; }
+  .card.blue { border-color: #1d4ed833; background: #0c1445; }
+  .card.purple { border-color: #7c3aed33; background: #160b2e; }
+  .card.red { border-color: #dc262633; background: #1c0000; }
+  .card.amber { border-color: #ca8a0433; background: #1c1400; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media (max-width: 800px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+  .code { font-family: Menlo, Monaco, monospace; background: #0f1117; border: 1px solid #1e293b; border-radius: 8px; padding: 12px 14px; font-size: .76rem; color: #7dd3fc; margin-top: 10px; white-space: pre-wrap; overflow-x: auto; line-height: 1.5; }
+  .code.bad { color: #fca5a5; border-color: #7f1d1d55; }
+  .code.good { color: #86efac; border-color: #14532d55; }
+  table { width: 100%; border-collapse: collapse; font-size: .8rem; margin-top: 10px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #334155; vertical-align: top; }
+  th { color: #64748b; font-weight: 600; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; }
+  td { color: #cbd5e1; }
+  td code { font-family: Menlo, monospace; font-size: .75rem; color: #7dd3fc; }
+  .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 14px 0; }
+  .flow-node { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; font-size: .78rem; font-weight: 600; color: #f1f5f9; text-align: center; min-width: 110px; }
+  .flow-node.highlight { border-color: #7c3aed88; background: #160b2e; color: #c4b5fd; }
+  .flow-node.db { border-color: #16a34a88; background: #052e16; color: #86efac; }
+  .flow-arrow { color: #475569; font-size: 1.1rem; padding: 0 4px; }
+  .flow-label { display: block; font-size: .62rem; font-weight: 400; color: #64748b; margin-top: 3px; }
+  .warn { background: #1c1400; border: 1px solid #ca8a0455; border-radius: 10px; padding: 14px 16px; font-size: .82rem; color: #fbbf24; margin-top: 12px; }
+  .answer { background: #052e16; border: 1px solid #16a34a55; border-radius: 10px; padding: 14px 16px; font-size: .82rem; color: #86efac; margin-top: 12px; }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 700px) { .compare { grid-template-columns: 1fr; } }
+  .compare h4 { font-size: .8rem; color: #f87171; margin-bottom: 8px; }
+  .compare .after h4 { color: #4ade80; }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; font-size: .85rem; font-weight: 600; color: #cbd5e1; padding: 8px 0; }
+  summary:hover { color: #f1f5f9; }
+  .toc { columns: 2; column-gap: 24px; font-size: .82rem; }
+  .toc a { display: block; padding: 3px 0; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .file-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .file-path { font-family: Menlo, monospace; font-size: .8rem; color: #7dd3fc; }
+  .stat { font-size: .72rem; color: #64748b; }
+  .stat .add { color: #4ade80; }
+  .stat .del { color: #f87171; }
+  ul { padding-left: 1.2rem; margin-top: 8px; }
+  li { margin-bottom: 4px; }
+  hr { border: none; border-top: 1px solid #1e293b; margin: 32px 0; }
+  .meta { font-size: .78rem; color: #64748b; text-align: center; margin-top: 40px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>PR #329 — Fine-Tooth Comb Review</h1>
+    <p><strong>fix(staging): entityRbacGateway transform — buildPascalEntityMap</strong></p>
+    <p style="margin-top:12px">
+      <span class="badge blue">Branch: fix/entity-rbac-transform-pascal-map</span>
+      <span class="badge purple">Fixes #325</span>
+      <span class="badge green">6 files changed</span>
+      <span class="badge amber">+183 / −117 lines</span>
+    </p>
+    <p style="margin-top:14px">
+      <a href="https://github.com/Humongous-il/bizflow-erp/pull/329">View PR on GitHub</a>
+    </p>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Table of contents</div>
+    <div class="toc card">
+      <a href="#problem">1. The problem (#325)</a>
+      <a href="#strategy">2. PR strategy (one sentence)</a>
+      <a href="#flow">3. How pieces connect</a>
+      <a href="#file1">4. createClientFromRequest.ts (NEW)</a>
+      <a href="#file2">5. entityGateway.ts — buildPascalEntityMap</a>
+      <a href="#file3">6. entities.ts — $in filter</a>
+      <a href="#file4">7. index.ts — exports</a>
+      <a href="#file5">8. transform-functions.mjs</a>
+      <a href="#file6">9. verify-transform-boot-patterns.mjs</a>
+      <a href="#review">10. What to scrutinize</a>
+      <a href="#tests">11. Test plan</a>
+    </div>
+  </div>
+
+  <div class="section" id="problem">
+    <div class="section-label">1. The problem</div>
+    <div class="card red">
+      <h3>Staging symptom</h3>
+      <p><code>entityRbacGateway</code> returns <strong>503 BOOT_ERROR</strong> — the Edge Function module fails to load before any request logic runs.</p>
+    </div>
+
+    <div class="card">
+      <h3>Root cause on <code>main</code></h3>
+      <p><code>scripts/transform-functions.mjs</code> did two incompatible things:</p>
+      <ol style="margin-top:10px; padding-left:1.2rem;">
+        <li><strong>Removed</strong> <code>const base44 = createClientFromRequest(req)</code> and injected <code>sb</code> / <code>db</code> / <code>dbService</code> instead</li>
+        <li><strong>Partially rewrote</strong> static <code>base44.asServiceRole.entities.Employee</code> → <code>dbService.employee</code></li>
+      </ol>
+      <p style="margin-top:12px">But <code>entityRbacGateway</code> also uses patterns the transform <strong>never rewrote</strong>:</p>
+      <div class="code bad">const base44 = createClientFromRequest(req);        // removed → base44 undefined
+const ctx = await hydrateRbacFromRequest(base44);   // passes undefined
+
+const db = base44.asServiceRole.entities as Record&lt;...&gt;;
+const entityApi = db[entity];                       // dynamic access — never rewritten</div>
+      <p style="margin-top:12px">Deployed code references <code>base44</code> after it was stripped → module load failure → BOOT_ERROR.</p>
+    </div>
+
+    <div class="warn">
+      <strong>GitHub PR description is stale.</strong> It still describes the first commit (regex body rewriting). The actual code after commit 2 uses the <strong>shim approach</strong> documented below.
+    </div>
+  </div>
+
+  <div class="section" id="strategy">
+    <div class="section-label">2. PR strategy</div>
+    <div class="answer">
+      <strong>Library</strong> adds a Base44-compatible client (<code>createClientFromRequest</code> + <code>buildPascalEntityMap</code> + <code>$in</code> filters).<br>
+      <strong>Transform</strong> stops rewriting function bodies and only swaps the SDK import.<br>
+      Fixes <code>entityRbacGateway</code> boot failure without regex surgery on <code>entry.ts</code>.
+    </div>
+
+    <div class="compare" style="margin-top:18px">
+      <div class="card">
+        <h4>Before (main transform)</h4>
+        <ul>
+          <li>Strip <code>@base44/sdk</code> import</li>
+          <li>Replace <code>createClientFromRequest(req)</code> with inline Supabase setup</li>
+          <li>Regex rewrite every <code>base44.entities.X</code> → snake_case <code>db.x</code></li>
+          <li>Inject module-level <code>dbService</code> + <code>_entityProxy</code></li>
+        </ul>
+      </div>
+      <div class="card after">
+        <h4>After (this PR)</h4>
+        <ul>
+          <li>Swap import → <code>@bizflow/client</code></li>
+          <li>Keep <code>const base44 = createClientFromRequest(req)</code> as-is</li>
+          <li>Keep all <code>base44.*</code> calls unchanged</li>
+          <li>Shim implements the Base44 API shape in the library</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="flow">
+    <div class="section-label">3. End-to-end flow</div>
+    <div class="flow">
+      <div class="flow-node">base44/functions/<br><span class="flow-label">entityRbacGateway/entry.ts</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node highlight">transform-functions.mjs<br><span class="flow-label">import swap only</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node">supabase/functions/<br><span class="flow-label">index.ts (CI deploy)</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node highlight">createClientFromRequest<br><span class="flow-label">shim</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node highlight">buildPascalEntityMap<br><span class="flow-label">PascalCase proxy</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node db">Supabase tables<br><span class="flow-label">snake_case JSONB</span></div>
+    </div>
+  </div>
+
+  <div class="section" id="file1">
+    <div class="section-label">4. File review</div>
+
+    <div class="card green">
+      <div class="file-header">
+        <span class="file-path">packages/bizflow-client/src/createClientFromRequest.ts</span>
+        <span class="badge green">NEW</span>
+        <span class="stat"><span class="add">+52</span> lines</span>
+      </div>
+      <p><strong>What:</strong> Drop-in replacement for <code>createClientFromRequest</code> from <code>@base44/sdk@0.8.23</code> on Supabase Edge Functions.</p>
+
+      <h4>Returns</h4>
+      <table>
+        <tr><th>Property</th><th>Implementation</th></tr>
+        <tr><td><code>auth.me()</code></td><td><code>getUserFromJwt(userClient, jwt)</code> — returns <code>null</code> on failure (matches callers that check <code>if (!userRecord)</code>)</td></tr>
+        <tr><td><code>entities</code></td><td><code>buildPascalEntityMap(userClient)</code> — user-scoped, RLS applies</td></tr>
+        <tr><td><code>asServiceRole.entities</code></td><td><code>buildPascalEntityMap(serviceClient)</code> — service role, bypasses RLS</td></tr>
+      </table>
+
+      <h4>Design choices</h4>
+      <ul>
+        <li><strong>Service client singleton</strong> — one <code>createClient(SUPABASE_URL, SERVICE_ROLE_KEY)</code> per isolate</li>
+        <li><strong>User client per request</strong> — JWT from <code>Authorization</code> header forwarded to anon client</li>
+        <li><strong>Env required:</strong> <code>SUPABASE_URL</code>, <code>SUPABASE_ANON_KEY</code>, <code>SUPABASE_SERVICE_ROLE_KEY</code></li>
+      </ul>
+
+      <h4>Why it exists</h4>
+      <p>Core fix. Makes all existing <code>base44.*</code> code work unchanged:</p>
+      <div class="code good">hydrateRbacFromRequest(base44)
+base44.asServiceRole.entities.UserRoleAssignment.filter(...)
+const db = base44.asServiceRole.entities; db[entity]</div>
+
+      <h4>Does NOT implement</h4>
+      <p><code>base44.integrations.*</code> (InvokeLLM, UploadFile, SendEmail). Pre-existing staging gap — not introduced here.</p>
+
+      <details>
+        <summary>Review flags</summary>
+        <ul>
+          <li><code>auth.me()</code> swallows all errors → <code>null</code>. Callers can't distinguish invalid token vs missing <code>company_id</code>.</li>
+          <li>No <code>integrations</code> stub — functions using it will runtime-error (not boot-error) on that code path.</li>
+        </ul>
+      </details>
+    </div>
+  </div>
+
+  <div class="section" id="file2">
+    <div class="card purple">
+      <div class="file-header">
+        <span class="file-path">packages/bizflow-client/src/entityGateway.ts</span>
+        <span class="stat"><span class="add">+11</span> lines</span>
+      </div>
+      <p><strong>What:</strong> Adds <code>buildPascalEntityMap(sb)</code> — a Proxy over <code>buildEntityClient</code>.</p>
+
+      <div class="code">export function buildPascalEntityMap(sb) {
+  return new Proxy(cache, {
+    get(_, entityName) {
+      const table = entityNameToTable(entityName);  // Employee → employee
+      return cache[table] ??= buildEntityClient(sb, table);
+    },
+  });
+}</div>
+
+      <h4>Why</h4>
+      <ul>
+        <li>Base44 uses <strong>PascalCase</strong> entity names (<code>PermissionSet</code>, <code>UserRoleAssignment</code>)</li>
+        <li>Supabase tables are <strong>snake_case</strong> (<code>permission_set</code>, <code>user_role_assignment</code>)</li>
+        <li>Enables <code>db['Candidate']</code> and <code>db.Candidate</code> without transform rewriting</li>
+      </ul>
+      <p><strong>Used by:</strong> <code>createClientFromRequest</code> for both <code>entities</code> and <code>asServiceRole.entities</code>.</p>
+    </div>
+  </div>
+
+  <div class="section" id="file3">
+    <div class="card blue">
+      <div class="file-header">
+        <span class="file-path">packages/bizflow-client/src/entities.ts</span>
+        <span class="stat"><span class="add">+56</span> <span class="del">−2</span></span>
+      </div>
+      <p><strong>What:</strong> <code>buildEntityClient().filter()</code> now supports Base44 <code>{ $in: [...] }</code> operator.</p>
+
+      <h4>Before</h4>
+      <div class="code bad">filter: (query) => sb.from(table).contains('doc', query)</div>
+      <p>Supabase JSONB <code>contains()</code> cannot express <code>$in</code>. This RBAC query would fail after boot:</p>
+      <div class="code">PermissionSet.filter({ id: { $in: setIds } })</div>
+
+      <h4>After — three paths</h4>
+      <table>
+        <tr><th>Query shape</th><th>Strategy</th></tr>
+        <tr><td><code>id: { $in: [...] }</code></td><td>Supabase <code>.in('id', ids)</code>, then filter other fields in memory</td></tr>
+        <tr><td>Other fields with <code>$in</code></td><td>Fetch rows (with <code>contains</code> prefilter if possible), filter in JS via <code>docMatchesQuery</code></td></tr>
+        <tr><td>No <code>$in</code></td><td>Unchanged <code>contains('doc', query)</code></td></tr>
+      </table>
+
+      <p style="margin-top:12px"><strong>Why:</strong> Second bug behind BOOT_ERROR. RBAC hydration loads permission sets by ID list in both <code>entityRbacGateway</code> and <code>managePermissionSets</code>.</p>
+
+      <details>
+        <summary>Review flags</summary>
+        <ul>
+          <li>Non-<code>id</code> <code>$in</code> loads potentially large result sets then filters in JS. Fine for <code>PermissionSet</code>; risky on large tables.</li>
+          <li>Only <code>$in</code> supported — not <code>$gt</code>, <code>$ne</code>, etc.</li>
+        </ul>
+      </details>
+    </div>
+  </div>
+
+  <div class="section" id="file4">
+    <div class="card">
+      <div class="file-header">
+        <span class="file-path">packages/bizflow-client/src/index.ts</span>
+        <span class="stat"><span class="add">+2</span> lines</span>
+      </div>
+      <p><strong>What:</strong> Re-exports <code>buildPascalEntityMap</code> and <code>createClientFromRequest</code>.</p>
+      <p>Transform points all Edge Function imports at this barrel file instead of <code>@base44/sdk</code>.</p>
+    </div>
+  </div>
+
+  <div class="section" id="file5">
+    <div class="card amber">
+      <div class="file-header">
+        <span class="file-path">scripts/transform-functions.mjs</span>
+        <span class="stat"><span class="add">+25</span> <span class="del">−115</span></span>
+      </div>
+      <p><strong>Biggest behavioral change</strong> — affects all ~209 transformed functions, not just <code>entityRbacGateway</code>.</p>
+
+      <h4>Removed (old main)</h4>
+      <table>
+        <tr><th>Rule</th><th>Effect</th></tr>
+        <tr><td>Remove SDK import</td><td>Stripped <code>@base44/sdk</code> entirely</td></tr>
+        <tr><td>Replace <code>createClientFromRequest</code></td><td>Injected <code>sb</code>, <code>_jwt</code>, <code>db</code></td></tr>
+        <tr><td><code>base44.asServiceRole.entities.X</code></td><td>→ <code>dbService.snake_case</code></td></tr>
+        <tr><td><code>base44.entities.X</code></td><td>→ <code>db.snake_case</code></td></tr>
+        <tr><td><code>base44.auth.me()</code></td><td>→ <code>getUserFromJwt(sb, _jwt)</code></td></tr>
+        <tr><td>Module preamble</td><td>Injected <code>dbService</code>, <code>_entityProxy</code>, env vars</td></tr>
+      </table>
+
+      <h4>Added (this PR)</h4>
+      <table>
+        <tr><th>Rule</th><th>Effect</th></tr>
+        <tr><td>Import swap</td><td><code>@base44/sdk</code> → <code>packages/bizflow-client/src/index.ts</code></td></tr>
+        <tr><td>Minimal preamble</td><td>Only <code>const _SUPA_URL = Deno.env.get('SUPABASE_URL')!</code></td></tr>
+        <tr><td>Body untouched</td><td>All <code>base44.*</code> calls stay as written</td></tr>
+      </table>
+
+      <h4>Unchanged (still needed)</h4>
+      <ul>
+        <li><code>${VAR}/api/functions/</code> → <code>${_SUPA_URL}/functions/v1/</code></li>
+        <li>Hardcoded Base44 URL → Supabase functions URL</li>
+        <li>Hebrew geresh escaping</li>
+        <li><code>runProcedureGeneration</code> comma typo fix</li>
+        <li>CORS <code>withCors</code> wrapper injection</li>
+      </ul>
+
+      <h4>entityRbacGateway after transform</h4>
+      <div class="code good">import { createClientFromRequest } from '.../bizflow-client/src/index.ts';
+
+const base44 = createClientFromRequest(req);
+const ctx = await hydrateRbacFromRequest(base44);
+const db = base44.asServiceRole.entities as Record&lt;...&gt;;
+const entityApi = db[entity];</div>
+
+      <div class="warn">
+        <strong>Global blast radius:</strong> Every function that previously got <code>dbService.employee</code> now keeps <code>base44.asServiceRole.entities.Employee</code>. Should be equivalent via shim, but wider than "fix one function."
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="file6">
+    <div class="card">
+      <div class="file-header">
+        <span class="file-path">scripts/verify-transform-boot-patterns.mjs</span>
+        <span class="badge amber">NEW</span>
+        <span class="stat"><span class="add">+37</span> lines</span>
+      </div>
+      <p><strong>What:</strong> Local regression guard — postmortem test from the regex failure.</p>
+      <p><strong>Does:</strong></p>
+      <ol style="padding-left:1.2rem; margin-top:8px">
+        <li>Runs <code>transform-functions.mjs</code></li>
+        <li>Greps <code>entityRbacGateway</code> and <code>managePermissionSets</code> output</li>
+        <li>Asserts transform did <strong>not</strong> revert to body-mutation mode</li>
+      </ol>
+
+      <h4>Checks</h4>
+      <table>
+        <tr><th>Assert</th><th>Meaning</th></tr>
+        <tr><td>✅ <code>createClientFromRequest</code> present</td><td>Uses bizflow-client shim</td></tr>
+        <tr><td>✅ <code>const base44 = createClientFromRequest(req)</code></td><td>Did not inline sb/db setup</td></tr>
+        <tr><td>✅ <code>hydrateRbacFromRequest(base44)</code></td><td>Did not rewrite to (sb, _jwt)</td></tr>
+        <tr><td>❌ no <code>dbService</code></td><td>Old snake_case rewrite not back</td></tr>
+        <tr><td>❌ no <code>@base44/sdk</code></td><td>Import properly swapped</td></tr>
+      </table>
+
+      <p style="margin-top:12px"><strong>Limitations:</strong> Not in CI. Not a boot test. String matching only. Optional — can delete or replace with <code>deno check</code>.</p>
+    </div>
+  </div>
+
+  <div class="section" id="review">
+    <div class="section-label">10. What to scrutinize</div>
+    <div class="card">
+      <table>
+        <tr><th>Area</th><th>Question</th></tr>
+        <tr><td>Blast radius</td><td>Comfortable that ALL ~209 functions now use shim instead of snake_case rewrite?</td></tr>
+        <tr><td><code>$in</code> filter</td><td>Is in-memory filtering OK for your data sizes?</td></tr>
+        <tr><td><code>auth.me()</code> null</td><td>Silent null OK vs explicit 401 distinction?</td></tr>
+        <tr><td><code>integrations</code></td><td>Any staging-critical functions using <code>base44.integrations</code>? (uploadSignedDocument, runProcedureGeneration, etc.)</td></tr>
+        <tr><td>verify script</td><td>Keep, wire to CI, or delete?</td></tr>
+        <tr><td>PR description</td><td>Update before merge — currently misleading</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section" id="tests">
+    <div class="section-label">11. Test plan</div>
+    <div class="grid2">
+      <div class="card green">
+        <h3>Local (style only)</h3>
+        <div class="code">node scripts/verify-transform-boot-patterns.mjs</div>
+      </div>
+      <div class="card blue">
+        <h3>Staging (real proof)</h3>
+        <ul>
+          <li>Merge → CI deploys transformed <code>entityRbacGateway</code></li>
+          <li><code>OPTIONS …/entityRbacGateway</code> → <strong>204</strong> not 503</li>
+          <li>ManagerTodoPanel / InvoiceUploadZone RBAC lists work</li>
+          <li><code>managePermissionSets</code> OPTIONS → 204</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <p class="meta">Published from BizFlow ERP · PR #329 review · June 2026</p>
+
+</div>
+</body>
+</html>
