@@ -107,14 +107,15 @@
         <a href="#single-tenant">2 — Single-tenant file model</a>
         <a href="#staging-gaps">3 — Staging gaps today</a>
         <a href="#leaks">4 — Active leak vectors</a>
-        <a href="#target">5 — Target architecture</a>
-        <a href="#file-gateway">6 — fileGateway design</a>
-        <a href="#rbac">7 — RBAC matrix for files</a>
-        <a href="#shim">8 — Delivery shim changes</a>
-        <a href="#migration">9 — File backfill plan</a>
-        <a href="#compare">10 — Single-tenant vs staging</a>
-        <a href="#next">11 — Recommended next steps</a>
-        <a href="#slice">12 — MVP vertical slice</a>
+        <a href="#mental-model">5 — Mental model (three layers)</a>
+        <a href="#target">6 — Storage layout</a>
+        <a href="#file-gateway">7 — fileGateway design</a>
+        <a href="#rbac">8 — Authorization (not path)</a>
+        <a href="#shim">9 — Delivery shim changes</a>
+        <a href="#migration">10 — File backfill plan</a>
+        <a href="#compare">11 — Single-tenant vs staging</a>
+        <a href="#next">12 — Recommended next steps</a>
+        <a href="#slice">13 — MVP vertical slice</a>
       </div>
     </div>
   </div>
@@ -249,59 +250,144 @@ link.href = fileUrl;
     </div>
   </div>
 
-  <!-- 5 TARGET -->
-  <div class="section" id="target">
-    <div class="section-label">5 — Target architecture</div>
-    <div class="diagram-box">
-      <div class="diagram-title">Upload path</div>
-      <div class="diagram-row">
-        <div class="flow-node">UI</div><span class="flow-arrow">→</span>
-        <div class="flow-node highlight">delivery shim</div><span class="flow-arrow">→</span>
-        <div class="flow-node highlight">fileGateway</div><span class="flow-arrow">→</span>
-        <div class="flow-node db">Supabase Storage<br><span class="flow-label">private bucket</span></div>
+  <!-- 5 MENTAL MODEL -->
+  <div class="section" id="mental-model">
+    <div class="section-label">5 — Mental model: three separate layers</div>
+    <div class="answer">
+      <strong>Files are tenant assets first.</strong> Links to business records and branch scope are authorization concerns — not bucket layout. Do not encode entity id, record id, or branch id in the storage path.
+    </div>
+
+    <div class="grid3" style="margin-top:14px">
+      <div class="card blue">
+        <h3>Layer 1 — Storage</h3>
+        <p><strong>Only job:</strong> tenant isolation. One private bucket. Path is <code>company_id</code> + opaque id (+ optional coarse <code>category</code> folder for ops).</p>
+        <p style="margin-top:8px">No RBAC logic here. No branch folders. No entity names in paths.</p>
       </div>
-      <div class="diagram-row" style="margin-top:4px">
-        <span class="flow-arrow" style="visibility:hidden">→</span>
-        <span class="flow-arrow" style="visibility:hidden">→</span>
-        <span class="flow-arrow">↓</span>
-        <div class="flow-node db">file_asset table<br><span class="flow-label">registry + audit</span></div>
+      <div class="card purple">
+        <h3>Layer 2 — Registry</h3>
+        <p><code>file_asset</code> row per blob: who uploaded, mime, size, optional link to parent entity, legacy URL, lifecycle status.</p>
+        <p style="margin-top:8px">Source of truth for <em>what this file is</em>, not where bytes live on disk (that's derivable from id).</p>
       </div>
-      <hr style="margin:20px 0;border-color:#334155">
-      <div class="diagram-title">Read path</div>
-      <div class="diagram-row">
-        <div class="flow-node">DocumentViewer / img / pdf</div><span class="flow-arrow">→</span>
-        <div class="flow-node highlight">fileGateway/sign</div><span class="flow-arrow">→</span>
-        <div class="flow-node">RBAC + branch scope</div><span class="flow-arrow">→</span>
-        <div class="flow-node db">Signed URL (60–300s)</div>
+      <div class="card green">
+        <h3>Layer 3 — Authorization</h3>
+        <p>Computed at <code>sign</code> time from: file category defaults, linked parent entity (if any), user's permission set, and <em>parent's</em> branchId only when the parent has one.</p>
       </div>
     </div>
 
-    <div class="grid2" style="margin-top:14px">
-      <div class="card blue">
-        <h3>Storage layer</h3>
-        <p>Private bucket <code>bizflow-files</code>. No public access. Object path:</p>
-        <div class="code path">{company_id}/{category}/{entity}/{record_id}/{uuid}.{ext}</div>
-        <p style="margin-top:8px">Clients never upload directly — only edge functions via service role.</p>
-      </div>
-      <div class="card blue">
-        <h3>Registry: <code>file_asset</code></h3>
-        <p>Every blob tracked for RBAC, audit, migration:</p>
-        <div class="tag-list">
-          <span class="tag">id (file_ref)</span>
-          <span class="tag">company_id</span>
-          <span class="tag">storage_path</span>
-          <span class="tag">entity_type / entity_id / field</span>
-          <span class="tag">branch_id</span>
-          <span class="tag">uploaded_by</span>
-          <span class="tag">legacy_url</span>
-        </div>
-      </div>
+    <div class="card" style="margin-top:14px">
+      <h3>Three file lifecycles in the app today</h3>
+      <table>
+        <thead><tr><th>Kind</th><th>Example</th><th>Upload RBAC</th><th>Read RBAC</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Orphan</strong></td>
+            <td>Invoice drag-drop: upload <em>before</em> <code>AccountingDocument</code> exists</td>
+            <td>Category permission (<code>invoices.create</code>)</td>
+            <td>Uploader + same category perm, until linked</td>
+          </tr>
+          <tr>
+            <td><strong>Linked</strong></td>
+            <td><code>documentFile</code>, <code>resumeUrl</code>, procedure attachment</td>
+            <td>Category or entity create perm</td>
+            <td>Resolve via parent entity + branch if parent has <code>branchId</code></td>
+          </tr>
+          <tr>
+            <td><strong>System</strong></td>
+            <td>FillFaster webhook, WhatsApp bot, signed-doc pipeline</td>
+            <td><code>api_key</code> / service role</td>
+            <td>Same as linked once attached to entity; internal until then</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card amber" style="margin-top:14px">
+      <h3>Branch scope — when it applies (not in the path)</h3>
+      <p>Only <em>some</em> parent entities carry <code>branchId</code>. Many file hosts do not:</p>
+      <table style="margin-top:10px">
+        <thead><tr><th>File host</th><th>Has branchId?</th></tr></thead>
+        <tbody>
+          <tr><td><code>AccountingDocument</code>, <code>SupplierAgreement</code></td><td>Yes — enforce branch scope at <code>sign</code></td></tr>
+          <tr><td><code>Candidate</code>, <code>Procedure</code>, <code>Branding</code>, <code>SystemFeedback</code></td><td>No — company-wide read per module perm</td></tr>
+          <tr><td><code>EmploymentDocument</code>, <code>EmployeeNote</code></td><td>Indirect — resolve via <code>Employee.branchId</code> if needed</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:10px"><strong>Rule:</strong> branch is looked up from the linked parent at read time. Never stored as a path segment. Optional denormalized <code>branch_id</code> on <code>file_asset</code> only as a cache after link — not required at upload.</p>
     </div>
   </div>
 
-  <!-- 6 FILE GATEWAY -->
+  <!-- 6 STORAGE -->
+  <div class="section" id="target">
+    <div class="section-label">6 — Storage layout (keep it flat)</div>
+
+    <div class="compare">
+      <div class="card green after">
+        <h4>Recommended — flat + optional category</h4>
+        <div class="code path">{company_id}/{file_id}.{ext}</div>
+        <p style="margin-top:10px">or, if you want bucket browsing without DB:</p>
+        <div class="code path">{company_id}/{category}/{file_id}.{ext}</div>
+        <p style="margin-top:10px"><code>file_id</code> = UUID v4. <code>category</code> = small enum (see below). <strong>Not</strong> entity name, record id, or branch.</p>
+      </div>
+      <div class="card red">
+        <h4>Avoid — over-fitted paths</h4>
+        <div class="code path">{company_id}/{entity}/{record_id}/{field}/{uuid}.ext
+{company_id}/{branch_id}/...</div>
+        <p style="margin-top:10px">Couples storage to DB lifecycle, complicates orphan uploads, wrong for company-wide files, breaks when records move or merge.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>Category enum (coarse — for ops + default upload perms)</h3>
+      <div class="tag-list">
+        <span class="tag">invoices</span>
+        <span class="tag">recruitment</span>
+        <span class="tag">hr</span>
+        <span class="tag">suppliers</span>
+        <span class="tag">certification</span>
+        <span class="tag">branding</span>
+        <span class="tag">feedback</span>
+        <span class="tag">bot</span>
+        <span class="tag">webhook</span>
+      </div>
+      <p style="margin-top:10px">Category is a <strong>hint</strong> passed at upload (shim can infer from call site later). Flat <code>tenant/uuid.ext</code> is valid if you prefer absolute minimum — category then lives only in <code>file_asset</code>.</p>
+    </div>
+
+    <div class="diagram-box" style="margin-top:14px">
+      <div class="diagram-title">End-to-end flow</div>
+      <div class="diagram-row">
+        <div class="flow-node">UI</div><span class="flow-arrow">→</span>
+        <div class="flow-node highlight">fileGateway/upload</div><span class="flow-arrow">→</span>
+        <div class="flow-node db">{tenant}/{id}.ext</div><span class="flow-arrow">+</span>
+        <div class="flow-node db">file_asset row</div>
+      </div>
+      <div class="diagram-row" style="margin-top:12px">
+        <div class="flow-node">Viewer</div><span class="flow-arrow">→</span>
+        <div class="flow-node highlight">fileGateway/sign</div><span class="flow-arrow">→</span>
+        <div class="flow-node">auth layer<br><span class="flow-label">parent entity + perms</span></div><span class="flow-arrow">→</span>
+        <div class="flow-node db">signed URL</div>
+      </div>
+    </div>
+
+    <div class="card blue" style="margin-top:14px">
+      <h3>Registry: <code>file_asset</code> (metadata — not a second filesystem)</h3>
+      <div class="tag-list">
+        <span class="tag">id</span>
+        <span class="tag">company_id</span>
+        <span class="tag">category</span>
+        <span class="tag">storage_path</span>
+        <span class="tag new">link_entity / link_id / link_field (nullable)</span>
+        <span class="tag">uploaded_by</span>
+        <span class="tag">mime, size, original_name</span>
+        <span class="tag">legacy_url</span>
+        <span class="tag">status (active / orphan / deleted)</span>
+      </div>
+      <p style="margin-top:10px">Optional <code>link_*</code> filled when entity field is saved. Branch scope never stored on row unless denormalized cache after link.</p>
+    </div>
+  </div>
+
+  <!-- 7 FILE GATEWAY -->
   <div class="section" id="file-gateway">
-    <div class="section-label">6 — fileGateway edge function</div>
+    <div class="section-label">7 — fileGateway edge function</div>
     <p>Single entry point mirroring <code>UploadFile</code> and adding secure reads. Reuses <code>resolveSessionRbacContext</code> from <code>packages/bizflow-client/src/rbac.ts</code>.</p>
     <table style="margin-top:14px">
       <thead><tr><th>Op</th><th>Auth</th><th>RBAC</th><th>Behavior</th></tr></thead>
@@ -309,14 +395,20 @@ link.href = fileUrl;
         <tr>
           <td><code>upload</code></td>
           <td>Bearer JWT</td>
-          <td>Permission for target entity (e.g. <code>invoices.create</code>)</td>
-          <td>Validate mime + magic bytes + size (max 15 MB) → store in bucket → insert <code>file_asset</code> → return <code>{ file_url, file_ref }</code></td>
+          <td>Category permission (e.g. <code>invoices.create</code>) — entity link optional</td>
+          <td>Validate mime + magic bytes + size → write <code>{tenant}/{id}.ext</code> → insert <code>file_asset</code> (orphan ok) → return <code>{ file_ref }</code></td>
+        </tr>
+        <tr>
+          <td><code>link</code></td>
+          <td>Bearer JWT</td>
+          <td>Entity update permission</td>
+          <td>Attach <code>link_entity/link_id/link_field</code> when UI saves entity field (or inline on create)</td>
         </tr>
         <tr>
           <td><code>sign</code></td>
           <td>Bearer JWT</td>
-          <td>Permission to read parent entity + branch scope</td>
-          <td>Lookup <code>file_asset</code> → verify <code>company_id</code> → return signed URL (60–300s TTL)</td>
+          <td>Derived: linked parent policy or orphan uploader policy</td>
+          <td>Verify <code>company_id</code> → resolve auth → return signed URL (60–300s TTL)</td>
         </tr>
         <tr>
           <td><code>delete</code></td>
@@ -340,16 +432,22 @@ link.href = fileUrl;
     </div>
   </div>
 
-  <!-- 7 RBAC -->
+  <!-- 8 RBAC -->
   <div class="section" id="rbac">
-    <div class="section-label">7 — RBAC matrix for files</div>
-    <p>Map file access to existing entity permissions. On <code>sign</code>, load parent entity (service role) and check:</p>
-    <ol style="margin-top:8px;padding-left:20px">
-      <li><code>company_id</code> match</li>
-      <li>Permission from matrix below</li>
-      <li>Branch scope if entity has <code>branchId</code></li>
-    </ol>
-    <p style="margin-top:8px"><strong>Deny by default</strong> — unknown entity/field → 403.</p>
+    <div class="section-label">8 — Authorization at sign time (not in the bucket)</div>
+    <div class="card">
+      <h3>Decision tree for <code>sign</code></h3>
+      <div class="code">1. file_asset.company_id === jwt.company_id  → else 403
+2. If link_entity set:
+     a. Load parent entity
+     b. Check module permission (matrix below)
+     c. If parent.branchId exists AND user scope is branch-limited
+        → parent.branchId ∈ user.branchIds  → else 403
+3. Else (orphan):
+     a. uploaded_by === user.id OR user has category upload perm
+4. Issue signed URL</div>
+    </div>
+    <p style="margin-top:14px">Category → default permission mapping (upload and read when linked):</p>
     <table style="margin-top:14px">
       <thead><tr><th>File context</th><th>Required permission</th></tr></thead>
       <tbody>
@@ -366,9 +464,9 @@ link.href = fileUrl;
     </div>
   </div>
 
-  <!-- 8 SHIM -->
+  <!-- 9 SHIM -->
   <div class="section" id="shim">
-    <div class="section-label">8 — Delivery shim changes (keep src/ unchanged)</div>
+    <div class="section-label">9 — Delivery shim changes (keep src/ unchanged)</div>
     <div class="compare">
       <div class="card red">
         <h4>Today — supabaseBase44Shim.js</h4>
@@ -390,9 +488,9 @@ link.href = fileUrl;
     </div>
   </div>
 
-  <!-- 9 MIGRATION -->
+  <!-- 10 MIGRATION -->
   <div class="section" id="migration">
-    <div class="section-label">9 — File backfill plan</div>
+    <div class="section-label">10 — File backfill plan</div>
 
     <div class="phase blocked">
       <div class="phase-num">0</div>
@@ -428,7 +526,7 @@ link.href = fileUrl;
   1. Scan doc JSON for base44.app / known CDN URLs
   2. Download blob (service role / api_key)
   3. Re-validate mime + magic bytes
-  4. Upload to bizflow-files/{company_id}/...
+  4. Upload to bizflow-files/{company_id}/{category}/{file_id}.ext
   5. Insert file_asset (source='migration', legacy_url=original)
   6. Rewrite doc field to file_ref or staging URL pattern
   7. Log failures → migration_errors (auditable, retryable)</div>
@@ -451,9 +549,9 @@ link.href = fileUrl;
     </div>
   </div>
 
-  <!-- 10 COMPARE -->
+  <!-- 11 COMPARE -->
   <div class="section" id="compare">
-    <div class="section-label">10 — Single-tenant vs staging target</div>
+    <div class="section-label">11 — Single-tenant vs staging target</div>
     <table>
       <thead><tr><th>Concern</th><th>Single-tenant (Base44)</th><th>Staging target</th></tr></thead>
       <tbody>
@@ -462,8 +560,9 @@ link.href = fileUrl;
         <tr><td>Who can upload</td><td>Session + entity ACL</td><td>JWT + <code>entityRbacGateway</code> permissions</td></tr>
         <tr><td>Who can read</td><td>Entity RBAC on metadata only</td><td>Entity RBAC + <code>fileGateway/sign</code></td></tr>
         <tr><td>URL in browser</td><td>Long-lived public URL</td><td>Short-lived signed URL</td></tr>
-        <tr><td>Cross-tenant</td><td>N/A</td><td><code>company_id</code> on registry + path + sign check</td></tr>
-        <tr><td>Branch scope</td><td>Partial in some functions</td><td>Enforced at <code>sign</code> via parent entity</td></tr>
+        <tr><td>Cross-tenant</td><td>N/A</td><td><code>company_id</code> prefix + sign check</td></tr>
+        <tr><td>Branch scope</td><td>Partial on entity APIs</td><td>Only at <code>sign</code>, only if parent has <code>branchId</code></td></tr>
+        <tr><td>Path shape</td><td>Base44 opaque URL</td><td><code>{tenant}/{id}.ext</code> or <code>{tenant}/{category}/{id}.ext</code></td></tr>
       </tbody>
     </table>
     <div class="answer" style="margin-top:14px">
@@ -471,9 +570,9 @@ link.href = fileUrl;
     </div>
   </div>
 
-  <!-- 11 NEXT -->
+  <!-- 12 NEXT -->
   <div class="section" id="next">
-    <div class="section-label">11 — Recommended next steps</div>
+    <div class="section-label">12 — Recommended next steps</div>
     <div class="grid2">
       <div class="card">
         <ol style="padding-left:18px">
@@ -503,9 +602,9 @@ link.href = fileUrl;
     </div>
   </div>
 
-  <!-- 12 SLICE -->
+  <!-- 13 SLICE -->
   <div class="section" id="slice">
-    <div class="section-label">12 — MVP vertical slice</div>
+    <div class="section-label">13 — MVP vertical slice</div>
     <div class="card green">
       <h3>Smallest proof: AccountingDocument.documentFile</h3>
       <p>Proves the full loop before touching ~15 other file-bearing entities:</p>
