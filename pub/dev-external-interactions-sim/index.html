@@ -130,19 +130,19 @@
         <span class="pill push">PUSH · they call us</span>
         <h3>Mock = payload injector</h3>
         <p class="sub">Compose a webhook body and POST it to the <b>real</b> staging function. It runs for real, writes entities, fires downstream.</p>
-        <p class="muted" style="font-size:12px">FillFaster signed-doc · Meta/website/public leads · WhatsApp inbound · Slack actions</p>
+        <p class="muted" style="font-size:12px">FillFaster signed-doc · Meta/website/public leads · WhatsApp inbound</p>
       </div>
       <div class="card">
         <span class="pill pull">PULL · we call them</span>
         <h3>Mock = fake API responder</h3>
         <p class="sub">Point the function’s base-URL env at a mock gateway that returns canned, scriptable responses.</p>
-        <p class="muted" style="font-size:12px">Google Places · API-Football · Komo · Tabit (via Supabase) · FillFaster PDF download · Meta Graph</p>
+        <p class="muted" style="font-size:12px">FillFaster PDF download · Meta Graph (lead detail) · Google Places · Tabit (via Supabase)</p>
       </div>
       <div class="card">
         <span class="pill sink">SINK · we send out</span>
         <h3>Mock = capture, don’t send</h3>
         <p class="sub">Divert real outbound sends into a recorder so no real WhatsApp/email/Slack leaves staging.</p>
-        <p class="muted" style="font-size:12px">WhatsApp templates · Slack posts · Make webhooks · Meta conversions</p>
+        <p class="muted" style="font-size:12px">WhatsApp templates · Make webhooks · Meta conversions</p>
       </div>
     </div>
 
@@ -195,13 +195,12 @@
         <tr><td><b>WhatsApp bot</b> (Meta / 99digital)</td><td><span class="pill push">PUSH</span><span class="pill sink">SINK</span></td><td>receiveWhatsAppMessage, handleWhatsAppBotInbound, sendWhatsAppTemplate, sendFreeTextNotification</td><td>Fake WhatsApp chat loop (inject inbound, capture bot reply). testMode returns BotMessage synchronously</td><td>✅ asServiceRole</td></tr>
         <tr><td><b>Meta leads</b> (Graph webhook)</td><td><span class="pill push">PUSH</span><span class="pill pull">PULL</span></td><td>handleFacebookLeadWebhook, handleFacebookLeads, sendMetaConversionEvent, fireCandidateMetaEvent</td><td>Fake lead form → inject <code>entry[].changes[].value.leadgen_id</code>; fake Graph responder for lead-detail fetch; conversions captured by SINK</td><td>webhook needs HMAC + Graph fetch mock · <b>handleFacebookLeads</b> (direct JSON) ✅</td></tr>
         <tr><td><b>Website / public leads</b></td><td><span class="pill push">PUSH</span></td><td>handleWebsiteLeads, handlePublicLinkLead, publicApplicationForm</td><td>Fake lead form posts JSON straight to handler → real Candidate created</td><td>✅</td></tr>
-        <tr><td><b>Slack</b> (actions + posts)</td><td><span class="pill push">PUSH</span><span class="pill sink">SINK</span></td><td>receiveSlackAction, sendSlackNotification, sendBugToSlack, refreshSlackCanvas</td><td>Inject <code>block_actions</code> button payload; capture chat.postMessage / canvases.edit instead of hitting slack.com</td><td>✅ asServiceRole</td></tr>
         <tr><td><b>Make.com webhooks</b></td><td><span class="pill sink">SINK</span></td><td>sendOnboardingWebhook, sendFrontalMeetingScheduledWebhook, scheduleRejectionWebhook, processRejectionWebhookQueue</td><td>Capture the outbound webhook body; (most forward to internal fns, so already observable)</td><td>✅</td></tr>
         <tr><td><b>Google Places</b></td><td><span class="pill pull">PULL</span></td><td>googlePlacesAutocomplete</td><td>Fake predictions responder (low priority)</td><td>hardcoded host → env-ize</td></tr>
         <tr><td><b>Tabit</b> (POS, via Supabase)</td><td><span class="pill pull">PULL</span></td><td>dailyTabitAutoImport, enqueueTabitImports, getTabitCatalog</td><td>Supabase-native already; seed mock catalog/import rows (low priority)</td><td>Supabase pipeline, separate</td></tr>
       </tbody>
     </table>
-    <div class="note warn"><b>Out of scope: Humondial promo / sports.</b> API-Football, Komo loyalty, 99digital OTP and all <code>promo*</code> functions are excluded — not needed.</div>
+    <div class="note warn"><b>Out of scope:</b> Humondial promo / sports (API-Football, Komo, 99digital OTP, all <code>promo*</code>) <b>and Slack</b> (receiveSlackAction, sendBugToSlack, canvas/list sync) — excluded, not needed.</div>
     <div class="note">The MVP centers on the three highest-value flows — WhatsApp bot · Meta/website lead · FillFaster signing — which cover the “interact like production” ask and are already staging-portable.</div>
   </section>
 
@@ -225,8 +224,7 @@
         <div class="logrow"><div class="dir out">OUT</div><div><span class="who">WhatsApp template</span> <span class="det">new_lead · ל-972-50-123… · captured</span></div><span class="st cap">SINK</span></div>
         <div class="logrow"><div class="dir in">IN</div><div><span class="who">FillFaster signed doc</span> → <span class="det">receiveSignedDocument · ONBOARDING-c_19f</span></div><span class="st ok">process→signed</span></div>
         <div class="logrow"><div class="dir out">OUT</div><div><span class="who">Make: onboarding webhook</span> <span class="det">dispatchSigningForm · captured</span></div><span class="st cap">SINK</span></div>
-        <div class="logrow"><div class="dir out">OUT</div><div><span class="who">API-Football</span> <span class="det">fixtures?ids=1180… · canned</span></div><span class="st ok">PULL mock</span></div>
-        <div class="logrow"><div class="dir in">IN</div><div><span class="who">Slack action</span> → <span class="det">receiveSlackAction · set_closed · fb_77</span></div><span class="st ok">feedback→closed</span></div>
+        <div class="logrow"><div class="dir out">OUT</div><div><span class="who">Make: meeting webhook</span> <span class="det">sendFrontalMeetingScheduledWebhook · captured</span></div><span class="st cap">SINK</span></div>
         <div class="logrow"><div class="dir out">OUT</div><div><span class="who">Google Places</span> <span class="det">autocomplete “תל אב…” · canned</span></div><span class="st ok">PULL mock</span></div>
         <div class="logrow"><div class="dir in">IN</div><div><span class="who">Website lead</span> → <span class="det">handleWebsiteLeads · 972-54-998…</span></div><span class="st err">dup → skipped</span></div>
       </div>
@@ -303,7 +301,6 @@
             <option value="meta">Meta lead webhook → handleFacebookLeadWebhook</option>
             <option value="signed">FillFaster signed doc → receiveSignedDocument</option>
             <option value="website">Website lead → handleWebsiteLeads</option>
-            <option value="slack">Slack action → receiveSlackAction</option>
           </select>
         </div>
         <div class="field"><label>Target (auto)</label><input id="injUrl" readonly></div>
@@ -346,12 +343,6 @@
         <div style="margin-top:10px"><button class="btn" onclick="fakeSign()">✍️ Sign &amp; submit</button></div>
         <div id="signOut" class="muted" style="font-size:12px;margin-top:8px"></div>
       </div>
-    </div>
-    <div class="card">
-      <span class="pill sink">Fake Slack action</span>
-      <p class="sub">Renders the bug-card buttons; clicking injects a <code>block_actions</code> payload to <code>receiveSlackAction</code>.</p>
-      <div class="row"><button class="btn sm ghost" onclick="fakeSlack('in-progress')">🔧 In progress</button><button class="btn sm ghost" onclick="fakeSlack('closed')">✅ Close</button><button class="btn sm ghost" onclick="fakeSlack('future')">📅 Future</button></div>
-      <div id="slackOut" class="muted" style="font-size:12px;margin-top:8px"></div>
     </div>
   </section>
 
@@ -442,22 +433,19 @@
     meta:{url:'POST {SUPA}/functions/v1/handleFacebookLeadWebhook',body:{entry:[{changes:[{field:'leadgen',value:{leadgen_id:'8842',form_id:'f_201'}}]}]}},
     signed:{url:'POST {SUPA}/functions/v1/receiveSignedDocument',body:{signingRef:'ONBOARDING-c_19f',signedDocumentBase64:'<base64-pdf>',fileName:'agreement.pdf',formId:'form_a'}},
     website:{url:'POST {SUPA}/functions/v1/handleWebsiteLeads',body:{fullName:'ישראל ישראלי',phone:'050-555-0101',preferredBranchId:'br_ta',desiredPositionId:'pos_waiter',source:'website'}},
-    slack:{url:'POST {SUPA}/functions/v1/receiveSlackAction',body:{type:'block_actions',actions:[{action_id:'set_closed',value:'fb_77',type:'button'}],message:{ts:'1718000000.001'},channel:{id:'C_BUGS'}}}
   };
   function injPreset(){const k=document.getElementById('injSel').value;document.getElementById('injUrl').value=presets[k].url;
     document.getElementById('injBody').value=JSON.stringify(presets[k].body,null,2);document.getElementById('injOut').textContent='— fire to see the response + entity side-effects —';}
   function injFire(){const k=document.getElementById('injSel').value;
     const map={meta:'200 · Candidate c_'+Math.floor(Math.random()*900+100)+' created\n→ SINK: new_lead WhatsApp captured\n→ ConversationAssignmentQueue +1',
       signed:'200 · EmploymentAgreementProcess → signed\n→ CandidateNote created\n→ SINK: next-form dispatch captured',
-      website:'200 · Candidate created (source=website)\n→ SINK: welcome WhatsApp captured',
-      slack:'200 · SystemFeedback fb_77 → closed\n→ SINK: chat.update captured'};
+      website:'200 · Candidate created (source=website)\n→ SINK: welcome WhatsApp captured'};
     document.getElementById('injOut').textContent=map[k];}
   injPreset();
 
   // ---- fake world ----
   function fakeLead(){document.getElementById('leadOut').innerHTML='✅ Injected → handleWebsiteLeads → Candidate created · welcome WhatsApp captured in console.';}
   function fakeSign(){document.getElementById('signOut').innerHTML='✅ Posted base64 PDF → receiveSignedDocument → process signed · stored via fileGateway (supafile:).';}
-  function fakeSlack(s){document.getElementById('slackOut').innerHTML='✅ block_actions → receiveSlackAction → SystemFeedback → <b>'+s+'</b>.';}
 </script>
 </body>
 </html>
