@@ -145,6 +145,21 @@
   .sw::after{content:"";position:absolute;top:2px;left:19px;width:17px;height:17px;border-radius:50%;background:#fff;transition:.2s}
   .sw.off{background:#3a4561}.sw.off::after{left:2px}
   .mini{font-size:11px;color:var(--dim);margin:4px 0 8px}
+
+  /* fake-whatsapp conversation list */
+  .wconv{display:flex;align-items:center;gap:9px;padding:9px 8px;border-radius:10px;cursor:pointer;border:1px solid transparent}
+  .wconv:hover{background:var(--panel2);border-color:var(--line)}
+  .wconv .av{width:34px;height:34px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:15px}
+  .av.cand{background:#1f3a5c}.av.mgr{background:#0a8f7e}.av.sys{background:#3a2d6b}
+  .wconv .ct{flex:1;min-width:0}
+  .wconv .ct b{font-size:12.5px;color:#fff;display:block}
+  .wconv .ct .rl{font-size:10px;color:#8aa0c8}
+  .wconv .ct .lm{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:rtl}
+  .wconv .ub{flex:none;min-width:18px;height:18px;border-radius:9px;background:#33d6a6;color:#063;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px}
+  .wthead{display:flex;align-items:center;gap:8px;background:var(--wa);color:#e9edef;padding:8px 10px;border-radius:10px 10px 0 0}
+  .wthead .bk{cursor:pointer;font-size:17px;color:#cfe}
+  .wthead small{display:block;color:#bfe7df;font-size:10px}
+  .fwd{font-size:10.5px;color:#ffce85;text-align:center;margin:6px 0;padding:4px;border:1px dashed #8a6a2c;border-radius:7px}
 </style>
 </head>
 <body>
@@ -215,13 +230,26 @@
           <div class="dwr-tab" data-p="d_set">⚙️ Settings</div>
         </div>
         <div class="dwr-body">
-          <!-- fake whatsapp pane -->
+          <!-- fake whatsapp pane: conversation list + thread -->
           <div class="dwr-pane on" id="d_wa">
-            <div class="mini">Chat the real bot (<code>handleWhatsAppBotInbound?testMode=true</code>). Replies render live.</div>
-            <div style="background:var(--wa-bg);border-radius:12px;overflow:hidden;border:1px solid var(--line)">
-              <div class="wa-top" style="padding:9px 12px"><div class="wa-av" style="width:28px;height:28px;font-size:13px">🤖</div><div><b style="font-size:13px">BizFlow Bot</b><small>staging mock</small></div></div>
-              <div class="wa-body" id="dwBody" style="height:230px"></div>
-              <div class="wa-input" style="padding:7px"><input id="dwInput" placeholder="הקלד…" onkeydown="if(event.key==='Enter')dwSend()"><button onclick="dwSend()" style="width:34px;height:34px">➤</button></div>
+            <!-- list view -->
+            <div id="waList">
+              <div class="mini">One thread per phone — every send/reply lands in the right conversation. Watch a reply hop between threads.</div>
+              <div id="waConvs"></div>
+            </div>
+            <!-- thread view -->
+            <div id="waThread" style="display:none">
+              <div class="wthead">
+                <span class="bk" onclick="waBack()">‹</span>
+                <div class="wa-av" id="waTAv" style="width:30px;height:30px;font-size:14px">👤</div>
+                <div><b id="waTName" style="font-size:13px"></b><small id="waTSub"></small></div>
+              </div>
+              <div class="wa-body" id="dwBody" style="height:215px;border-inline:1px solid var(--line)"></div>
+              <div class="wa-input" style="padding:7px;border:1px solid var(--line);border-top:none;border-radius:0 0 10px 10px">
+                <input id="dwInput" placeholder="הקלד כ…" onkeydown="if(event.key==='Enter')dwSend()">
+                <button onclick="dwSend()" style="width:34px;height:34px">➤</button>
+              </div>
+              <div class="mini" id="waTHint" style="margin-top:7px"></div>
             </div>
           </div>
           <!-- inject pane -->
@@ -601,28 +629,67 @@
   function fakeSign(){document.getElementById('signOut').innerHTML='✅ Posted base64 PDF → receiveSignedDocument → process signed · stored via fileGateway (supafile:).';}
 
   // ---- dev overlay drawer ----
-  function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('scrim').classList.add('open');document.getElementById('launcher').style.opacity=.25;if(!document.getElementById('dwBody').childElementCount)dwReset();}
+  function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('scrim').classList.add('open');document.getElementById('launcher').style.opacity=.25;
+    document.getElementById('waThread').style.display='none';document.getElementById('waList').style.display='block';renderConvs();}
   function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('scrim').classList.remove('open');document.getElementById('launcher').style.opacity=1;}
   document.getElementById('dwrTabs').addEventListener('click',e=>{const t=e.target.closest('.dwr-tab');if(!t)return;
     document.querySelectorAll('.dwr-tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.dwr-pane').forEach(x=>x.classList.remove('on'));
     t.classList.add('on');document.getElementById(t.dataset.p).classList.add('on');});
 
   const dwBody=document.getElementById('dwBody');
-  function dbub(side,html){const d=document.createElement('div');d.className='bub '+side;d.style.fontSize='12.5px';
-    if(side==='in'){d.textContent=html;}else{d.innerHTML=html;}
-    dwBody.appendChild(d);dwBody.scrollTop=dwBody.scrollHeight;return d;}
-  function dbtns(text,btns){const d=dbub('out',text);const w=document.createElement('div');w.className='btns';btns.forEach(b=>{const x=document.createElement('button');x.textContent=b.title;x.onclick=()=>dwUser(b.title,b.id);w.appendChild(x);});d.appendChild(w);dwBody.scrollTop=dwBody.scrollHeight;}
-  function dwUser(text,id){dbub('in',text);setTimeout(()=>dwReply(text,id),420);}
-  function dwSend(){const i=document.getElementById('dwInput');if(!i.value.trim())return;dwUser(i.value.trim(),null);i.value='';}
-  function dwReply(text,id){const t=(id||text||'').toString();
-    if(/דיווח|menu|תפריט|היי|שלום|hi|hello/i.test(t)){dbtns('שלום דני 👋 מה תרצה?',[{id:'r',title:'📝 הגשת דיווח'},{id:'a',title:'✅ אישורים'}]);return;}
-    if(id==='r'){dbtns('איזה דיווח?',[{id:'tip',title:'טיפים'},{id:'abs',title:'היעדרות'}]);return;}
-    if(id==='tip'){dbub('out','הזן סכום טיפים (₪):');return;}
-    if(/^\d+$/.test(t)){dbtns(`קיבלתי ${t}₪. לשלוח?`,[{id:'ok',title:'✅ שליחה'}]);return;}
-    if(id==='ok'){dbub('out','נשלח למנהל ✓ (EmployeeEvent נוצר · נרשם בלוג)');return;}
-    if(id==='a'){dbub('out','אין אישורים ממתינים.');return;}
-    dbub('out','כתוב "דיווח" לתפריט.');}
-  function dwReset(){dwBody.innerHTML='';dbub('out','כתוב "דיווח" כדי להתחיל.');}
+  const threads={
+    mgr:{name:'דני',role:'מנהל',cls:'mgr',icon:'📋',phone:'972-54-555-0102',kind:'bot',
+         hint:'את/ה דני — שיחה ישירה עם הבוט (handleWhatsAppBotInbound).',unread:0,
+         msgs:[{f:'sys',t:'כתוב "דיווח" כדי להתחיל.'}]},
+    cand1:{name:'ישראל ישראלי',role:'מועמד',cls:'cand',icon:'👤',phone:'972-50-555-0101',kind:'recruit',
+         hint:'תגובה כאן מועברת אוטומטית למנהל (notifyManagerInboundWhatsApp).',unread:1,
+         msgs:[{f:'sys',t:'שלום ישראל! קיבלנו את הפנייה שלך 🙌 ניצור קשר בקרוב.'}]},
+    cand2:{name:'דנה כהן',role:'מועמדת',cls:'cand',icon:'👤',phone:'972-50-555-0103',kind:'sign',
+         hint:'מסלול חתימה — קישור נשלח מ-dispatchSigningForm.',unread:0,
+         msgs:[{f:'sys',t:'דנה, מסמך ההעסקה מוכן לחתימה 📄 go.humongous.co.il/d_19f'}]}
+  };
+  let cur=null;
+  function renderConvs(){const w=document.getElementById('waConvs');w.innerHTML='';
+    Object.entries(threads).forEach(([k,t])=>{const last=t.msgs[t.msgs.length-1];
+      const r=document.createElement('div');r.className='wconv';r.onclick=()=>openThread(k);
+      const av=document.createElement('div');av.className='av '+t.cls;av.textContent=t.icon;
+      const ct=document.createElement('div');ct.className='ct';
+      const nm=document.createElement('b');nm.textContent=t.name+' ';const rl=document.createElement('span');rl.className='rl';rl.textContent='· '+t.role;nm.appendChild(rl);
+      const lm=document.createElement('div');lm.className='lm';lm.textContent=last?last.t:'';
+      const ph=document.createElement('div');ph.className='rl';ph.textContent=t.phone;
+      ct.append(nm,lm,ph);r.append(av,ct);
+      if(t.unread){const b=document.createElement('div');b.className='ub';b.textContent=t.unread;r.appendChild(b);}
+      w.appendChild(r);});}
+  function openThread(k){cur=k;const t=threads[k];t.unread=0;
+    document.getElementById('waList').style.display='none';document.getElementById('waThread').style.display='block';
+    document.getElementById('waTName').textContent=t.name;
+    document.getElementById('waTSub').textContent=t.role+' · '+t.phone;
+    const av=document.getElementById('waTAv');av.className='wa-av '+t.cls;av.textContent=t.icon;
+    document.getElementById('waTHint').textContent=t.hint;
+    document.getElementById('dwInput').placeholder='הקלד כ'+t.name+'…';
+    renderMsgs();}
+  function waBack(){cur=null;document.getElementById('waThread').style.display='none';document.getElementById('waList').style.display='block';renderConvs();}
+  function renderMsgs(){dwBody.innerHTML='';threads[cur].msgs.forEach(paint);}
+  function paint(m){const d=document.createElement('div');d.className='bub '+(m.f==='me'?'in':'out');d.style.fontSize='12.5px';d.textContent=m.t;
+    if(m.btns){const wrp=document.createElement('div');wrp.className='btns';m.btns.forEach(b=>{const x=document.createElement('button');x.textContent=b.title;x.onclick=()=>userMsg(b.title,b.id);wrp.appendChild(x);});d.appendChild(wrp);}
+    dwBody.appendChild(d);dwBody.scrollTop=dwBody.scrollHeight;}
+  function addMsg(key,f,t,btns){const m={f,t,btns};threads[key].msgs.push(m);
+    if(key===cur){paint(m);}else{threads[key].unread=(threads[key].unread||0)+1;}}
+  function fwdNote(txt){const n=document.createElement('div');n.className='fwd';n.textContent=txt;dwBody.appendChild(n);dwBody.scrollTop=dwBody.scrollHeight;}
+  function userMsg(text,id){addMsg(cur,'me',text);const t=threads[cur];
+    if(t.kind==='bot'){setTimeout(()=>botReplyT(text,id),420);}
+    else if(t.kind==='recruit'){fwdNote('↪ הועבר למנהל · notifyManagerInboundWhatsApp');
+      setTimeout(()=>addMsg('mgr','sys','📨 הליד '+t.name+' הגיב: "'+text+'"'),300);}
+    else{setTimeout(()=>addMsg(cur,'sys','תודה! נחזור אליך בהקדם.'),350);}}
+  function dwSend(){const i=document.getElementById('dwInput');if(!i.value.trim()||!cur)return;userMsg(i.value.trim(),null);i.value='';}
+  function botReplyT(text,id){const t=(id||text||'').toString();
+    if(/דיווח|menu|תפריט|היי|שלום|hi|hello/i.test(t)){addMsg(cur,'sys','שלום דני 👋 מה תרצה?',[{id:'r',title:'📝 הגשת דיווח'},{id:'a',title:'✅ אישורים'}]);return;}
+    if(id==='r'){addMsg(cur,'sys','איזה דיווח?',[{id:'tip',title:'טיפים'},{id:'abs',title:'היעדרות'}]);return;}
+    if(id==='tip'){addMsg(cur,'sys','הזן סכום טיפים (₪):');return;}
+    if(/^\d+$/.test(t)){addMsg(cur,'sys','קיבלתי '+t+'₪. לשלוח?',[{id:'ok',title:'✅ שליחה'}]);return;}
+    if(id==='ok'){addMsg(cur,'sys','נשלח למנהל ✓ (EmployeeEvent נוצר · נרשם בלוג)');return;}
+    if(id==='a'){addMsg(cur,'sys','אין אישורים ממתינים כרגע.');return;}
+    addMsg(cur,'sys','כתוב "דיווח" לתפריט.');}
   function dwInject(){const v=document.getElementById('dwInjSel').value;
     document.getElementById('dwInjOut').textContent= v.indexOf('Meta')>=0?'200 · Candidate created\n→ SINK: welcome WhatsApp captured':
       v.indexOf('Website')>=0?'200 · Candidate (source=website)\n→ SINK: welcome captured':'200 · process → signed\n→ stored supafile:';}
