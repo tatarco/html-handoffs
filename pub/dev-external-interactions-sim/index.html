@@ -197,14 +197,12 @@
         <tr><td><b>Website / public leads</b></td><td><span class="pill push">PUSH</span></td><td>handleWebsiteLeads, handlePublicLinkLead, publicApplicationForm</td><td>Fake lead form posts JSON straight to handler → real Candidate created</td><td>✅</td></tr>
         <tr><td><b>Slack</b> (actions + posts)</td><td><span class="pill push">PUSH</span><span class="pill sink">SINK</span></td><td>receiveSlackAction, sendSlackNotification, sendBugToSlack, refreshSlackCanvas</td><td>Inject <code>block_actions</code> button payload; capture chat.postMessage / canvases.edit instead of hitting slack.com</td><td>✅ asServiceRole</td></tr>
         <tr><td><b>Make.com webhooks</b></td><td><span class="pill sink">SINK</span></td><td>sendOnboardingWebhook, sendFrontalMeetingScheduledWebhook, scheduleRejectionWebhook, processRejectionWebhookQueue</td><td>Capture the outbound webhook body; (most forward to internal fns, so already observable)</td><td>✅</td></tr>
-        <tr><td><b>API-Football</b> (sports feed)</td><td><span class="pill pull">PULL</span></td><td>syncLiveFixtureScores, syncPromoFixtureSchedule</td><td>Fake fixtures responder — scripted scores to drive grading/achievements deterministically</td><td>hardcoded URL → needs env-ization</td></tr>
-        <tr><td><b>Komo</b> (loyalty)</td><td><span class="pill pull">PULL</span></td><td>komoSync, resyncPromoPlayerKomoTier</td><td>Fake Komo API — register/tier-sync 200/400 responses</td><td>env <code>KOMO_API_URL</code> ✅ already</td></tr>
-        <tr><td><b>99digital OTP</b></td><td><span class="pill sink">SINK</span></td><td>promoRequestOtp, promoVerifyOtp</td><td>Capture the OTP template send + surface the code in the console so you can “receive” it</td><td>env-ize <code>D99_BASE</code></td></tr>
-        <tr><td><b>Google Places</b></td><td><span class="pill pull">PULL</span></td><td>googlePlacesAutocomplete</td><td>Fake predictions responder</td><td>hardcoded host → env-ize</td></tr>
-        <tr><td><b>Tabit</b> (POS, via Supabase)</td><td><span class="pill pull">PULL</span></td><td>dailyTabitAutoImport, enqueueTabitImports, getTabitCatalog</td><td>Supabase-native already; seed mock catalog/import rows (lowest priority)</td><td>Supabase pipeline, separate</td></tr>
+        <tr><td><b>Google Places</b></td><td><span class="pill pull">PULL</span></td><td>googlePlacesAutocomplete</td><td>Fake predictions responder (low priority)</td><td>hardcoded host → env-ize</td></tr>
+        <tr><td><b>Tabit</b> (POS, via Supabase)</td><td><span class="pill pull">PULL</span></td><td>dailyTabitAutoImport, enqueueTabitImports, getTabitCatalog</td><td>Supabase-native already; seed mock catalog/import rows (low priority)</td><td>Supabase pipeline, separate</td></tr>
       </tbody>
     </table>
-    <div class="note">~30 boundary functions across 10 systems. The MVP doesn’t need all of them — the three highest-value flows (WhatsApp bot · Meta/website lead · FillFaster signing) cover the “interact like production” ask and are already staging-portable.</div>
+    <div class="note warn"><b>Out of scope: Humondial promo / sports.</b> API-Football, Komo loyalty, 99digital OTP and all <code>promo*</code> functions are excluded — not needed.</div>
+    <div class="note">The MVP centers on the three highest-value flows — WhatsApp bot · Meta/website lead · FillFaster signing — which cover the “interact like production” ask and are already staging-portable.</div>
   </section>
 
   <!-- ============ CONSOLE ============ -->
@@ -376,20 +374,19 @@
         <li>Env-ize the finite list of outbound base-URLs (99digital, Slack, Graph, API-Football, Komo, Places) → point at gateway when <code>MOCK_MODE</code>.</li>
         <li>No real WhatsApp/email/Slack leaves staging; all captured in the log.</li></ul>
       </div>
-      <div class="phase"><h3>Phase 3 · Fake WhatsApp + Fake World <span class="tag">~2 days</span> <span class="pill push">headline</span></h3>
+      <div class="phase"><h3>Phase 3 · Fake WhatsApp + Fake World <span class="tag">~2 days</span> <span class="pill push">headline · end of v1</span></h3>
         <ul><li>Fake WhatsApp chat loop over <code>handleWhatsAppBotInbound?testMode=true</code>.</li>
         <li>Fake Meta/website lead form · Fake FillFaster signing page · Fake Slack card.</li></ul>
       </div>
-      <div class="phase"><h3>Phase 4 · PULL responders (promo/sports) <span class="tag">~1–2 days</span></h3>
-        <ul><li>Scriptable fake API-Football fixtures, Komo, Google Places, Tabit catalog.</li>
-        <li>Deterministic match scores to drive grading / achievements / leaderboard on demand.</li></ul>
+      <div class="phase" style="border-inline-start-color:#3a4561;opacity:.7"><h3>Phase 4 · (optional, later) minor PULL responders <span class="tag">~½ day</span></h3>
+        <ul><li>Fake Google Places autocomplete + Tabit catalog stub — only if those flows need exercising.</li>
+        <li class="muted">Promo / sports (API-Football, Komo, OTP) — <b>excluded, not needed.</b></li></ul>
       </div>
     </div>
 
     <div class="card">
       <h3 style="margin-top:0">Open questions for the morning</h3>
       <ul>
-        <li><b>Scope of v1</b> — ship Phases 0–3 (the “interact like production” story) and defer Phase 4 promo/sports?</li>
         <li><b>SINK invasiveness</b> — OK to make the ~6 outbound base-URLs env-configurable in <code>base44/functions</code>, or prefer a network-level intercept to touch zero handlers?</li>
         <li><b>receiveFillfasterWebhook</b> — port its raw entity-API calls to <code>asServiceRole</code> now (so the PDF-download variant works on staging), or stay on the already-portable <code>receiveSignedDocument</code> only?</li>
         <li><b>Dev vs staging parity</b> — same mock gateway for both, or a local stub for pure-dev?</li>
