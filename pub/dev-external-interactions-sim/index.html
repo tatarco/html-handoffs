@@ -550,7 +550,10 @@
 
   // ---- fake whatsapp scripted bot ----
   const waBody=document.getElementById('waBody');
-  function bub(side,html,meta){const d=document.createElement('div');d.className='bub '+side;d.innerHTML=html+(meta?`<span class="meta">${meta}</span>`:'');waBody.appendChild(d);waBody.scrollTop=waBody.scrollHeight;return d;}
+  function bub(side,html,meta){const d=document.createElement('div');d.className='bub '+side;
+    if(side==='in'){d.textContent=html;if(meta){const m=document.createElement('span');m.className='meta';m.textContent=meta;d.appendChild(m);}}
+    else{d.innerHTML=html+(meta?`<span class="meta">${meta}</span>`:'');}
+    waBody.appendChild(d);waBody.scrollTop=waBody.scrollHeight;return d;}
   function botButtons(text,btns){const d=bub('out',text);const w=document.createElement('div');w.className='btns';btns.forEach(b=>{const x=document.createElement('button');x.textContent=b.title;x.onclick=()=>{waUser(b.title,b.id)};w.appendChild(x);});d.appendChild(w);waBody.scrollTop=waBody.scrollHeight;}
   function waUser(text,id){bub('in',text,'נשלח ✓✓');setTimeout(()=>botReply(text,id),450);}
   function waSend(){const i=document.getElementById('waInput');if(!i.value.trim())return;waUser(i.value.trim(),null);i.value='';}
@@ -605,7 +608,9 @@
     t.classList.add('on');document.getElementById(t.dataset.p).classList.add('on');});
 
   const dwBody=document.getElementById('dwBody');
-  function dbub(side,html){const d=document.createElement('div');d.className='bub '+side;d.style.fontSize='12.5px';d.innerHTML=html;dwBody.appendChild(d);dwBody.scrollTop=dwBody.scrollHeight;return d;}
+  function dbub(side,html){const d=document.createElement('div');d.className='bub '+side;d.style.fontSize='12.5px';
+    if(side==='in'){d.textContent=html;}else{d.innerHTML=html;}
+    dwBody.appendChild(d);dwBody.scrollTop=dwBody.scrollHeight;return d;}
   function dbtns(text,btns){const d=dbub('out',text);const w=document.createElement('div');w.className='btns';btns.forEach(b=>{const x=document.createElement('button');x.textContent=b.title;x.onclick=()=>dwUser(b.title,b.id);w.appendChild(x);});d.appendChild(w);dwBody.scrollTop=dwBody.scrollHeight;}
   function dwUser(text,id){dbub('in',text);setTimeout(()=>dwReply(text,id),420);}
   function dwSend(){const i=document.getElementById('dwInput');if(!i.value.trim())return;dwUser(i.value.trim(),null);i.value='';}
