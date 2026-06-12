@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Humondial — Source Attribution Links: Change Summary (2026-06-13)</title>
+<style>
+  :root{
+    --bg:#0d1117;--panel:#161b22;--panel2:#1c2430;--border:#2b3441;
+    --text:#e6edf3;--muted:#9aa7b4;--accent:#58a6ff;--green:#3fb950;
+    --amber:#d29922;--red:#f85149;--mono:'SFMono-Regular',ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1000px;margin:0 auto;padding:40px 24px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:24px;margin-bottom:32px}
+  h1{font-size:1.7rem;margin:0 0 6px;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:.95rem}
+  h2{font-size:1.15rem;margin:38px 0 14px;display:flex;align-items:center;gap:10px}
+  h2 .n{display:inline-flex;width:26px;height:26px;border-radius:7px;background:var(--panel2);
+    border:1px solid var(--border);align-items:center;justify-content:center;font-size:.85rem;color:var(--accent)}
+  .badges{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 4px}
+  .badge{display:inline-flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--border);
+    border-radius:20px;padding:6px 14px;font-size:.85rem}
+  .dot{width:8px;height:8px;border-radius:50%}
+  .ok{background:var(--green)} .warn{background:var(--amber)} .info{background:var(--accent)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:4px 0;overflow:hidden;margin:14px 0}
+  table{border-collapse:collapse;width:100%;font-size:.9rem}
+  th,td{text-align:left;padding:10px 16px;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+  tr:last-child td{border-bottom:none}
+  code,.mono{font-family:var(--mono);font-size:.85em}
+  .pill{font-family:var(--mono);font-size:.78rem;padding:2px 8px;border-radius:6px;background:var(--panel2);border:1px solid var(--border)}
+  .src{color:var(--accent)}
+  .tag{font-size:.72rem;padding:2px 8px;border-radius:6px;font-weight:600}
+  .tag.ok{background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3)}
+  .tag.br{background:rgba(88,166,255,.15);color:var(--accent);border:1px solid rgba(88,166,255,.3)}
+  .tag.skip{background:rgba(210,153,34,.15);color:var(--amber);border:1px solid rgba(210,153,34,.3)}
+  p{color:var(--text)} .muted{color:var(--muted)}
+  ul{padding-left:20px} li{margin:6px 0}
+  .note{background:var(--panel2);border-left:3px solid var(--amber);border-radius:0 8px 8px 0;padding:12px 16px;margin:14px 0;font-size:.9rem}
+  .note.info{border-left-color:var(--accent)}
+  .arrow{color:var(--muted)}
+  footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--border);color:var(--muted);font-size:.82rem}
+  .kv{font-family:var(--mono);font-size:.82rem;color:var(--muted)}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Humondial — Source Attribution Links</h1>
+  <div class="sub">Change summary · 2026-06-13 · Short.io rewrite + <code>registration_sources</code> alignment</div>
+  <div class="badges">
+    <span class="badge"><span class="dot ok"></span>15 links rewritten · HTTP 200</span>
+    <span class="badge"><span class="dot ok"></span>Redirects verified live</span>
+    <span class="badge"><span class="dot ok"></span>DB alignment applied (Bizflow-dev)</span>
+    <span class="badge"><span class="dot info"></span>PWA code aligned</span>
+    <span class="badge"><span class="dot warn"></span>Funnel dashboard: pending</span>
+  </div>
+</header>
+
+<p>Every Humondial campaign short link now carries <code>?source=&lt;canonical-slug&gt;</code> on its destination,
+so a click on <code>go.humongous.co.il/&lt;slug&gt;</code> lands on
+<code>https://humondial.humongous.co.il/?source=&lt;slug&gt;</code> and the registration is attributed to its
+marketing channel. This closes the loop with the already-shipped PWA capture (<code>origin_source</code>) and
+backend allowlist validation.</p>
+
+<h2><span class="n">1</span> Short.io links rewritten</h2>
+<p class="muted">Domain <code>go.humongous.co.il</code> (id 1543971). 15 marketing links updated via
+<code>POST api.short.io/links/&lt;id&gt;</code>. All returned <strong>HTTP 200</strong>; current destination was a bare
+<code>https://humondial.humongous.co.il</code> with no param.</p>
+<div class="card">
+<table>
+  <thead><tr><th>Short.io slug</th><th></th><th>New destination</th><th>Type</th></tr></thead>
+  <tbody>
+    <tr><td><span class="pill">Facebook</span></td><td class="arrow">→</td><td class="mono src">…/?source=facebook</td><td><span class="tag ok">marketing</span></td></tr>
+    <tr><td><span class="pill">FLYER</span></td><td class="arrow">→</td><td class="mono src">…/?source=flyer</td><td><span class="tag ok">marketing</span></td></tr>
+    <tr><td><span class="pill">Instagram</span></td><td class="arrow">→</td><td class="mono src">…/?source=instagram</td><td><span class="tag ok">marketing</span></td></tr>
+    <tr><td><span class="pill">KAPPA</span></td><td class="arrow">→</td><td class="mono src">…/?source=kappa</td><td><span class="tag br">branch QR ▾</span></td></tr>
+    <tr><td><span class="pill">SHIRT</span></td><td class="arrow">→</td><td class="mono src">…/?source=shirt</td><td><span class="tag br">branch QR ▾</span></td></tr>
+    <tr><td><span class="pill">Shmanman-Banner</span></td><td class="arrow">→</td><td class="mono src">…/?source=shmanman-banner</td><td><span class="tag ok">marketing</span></td></tr>
+    <tr><td><span class="pill">Sponsored</span></td><td class="arrow">→</td><td class="mono src">…/?source=sponsored</td><td><span class="tag ok">marketing</span></td></tr>
+    <tr><td><span class="pill">TELEVISION</span></td><td class="arrow">→</td><td class="mono src">…/?source=television</td><td><span class="tag br">branch QR ▾</span></td></tr>
+    <tr><td><span class="pill">TikTok</span></td><td class="arrow">→</td><td class="mono src">…/?source=tiktok</td><td><span class="tag ok">marketing</span></td></tr>
+    <tr><td><span class="pill">Website-Banner</span></td><td class="arrow">→</td><td class="mono src">…/?source=website-banner</td><td><span class="tag ok">marketing</span></td></tr>
+    <tr><td><span class="pill">Website-Branches</span></td><td class="arrow">→</td><td class="mono src">…/?source=website-branches</td><td><span class="tag ok">marketing</span></td></tr>
+    <tr><td><span class="pill">Website-Icon</span></td><td class="arrow">→</td><td class="mono src">…/?source=website-icon</td><td><span class="tag ok">marketing</span></td></tr>
+    <tr><td><span class="pill">WhatsApp</span></td><td class="arrow">→</td><td class="mono src">…/?source=whatsapp</td><td><span class="tag ok">marketing</span></td></tr>
+    <tr><td><span class="pill">Workers</span></td><td class="arrow">→</td><td class="mono src">…/?source=workers</td><td><span class="tag ok">marketing</span></td></tr>
+    <tr><td><span class="pill">Youtube</span></td><td class="arrow">→</td><td class="mono src">…/?source=youtube</td><td><span class="tag ok">marketing</span></td></tr>
+    <tr><td><span class="pill">DailyCodes</span></td><td class="arrow">→</td><td class="mono muted">unchanged — staff link (…pages.dev/staff#/home)</td><td><span class="tag skip">left as-is</span></td></tr>
+  </tbody>
+</table>
+</div>
+<div class="note info"><strong>Verified live:</strong> followed the short links and confirmed the redirect target —
+<code>Instagram→?source=instagram</code>, <code>KAPPA→?source=kappa</code>, <code>TELEVISION→?source=television</code>,
+<code>Workers→?source=workers</code>. The other 134 links on the domain (FillFaster / payroll) were not touched.</div>
+
+<h2><span class="n">2</span> In-venue QR codes → branch dropdown</h2>
+<p><code>television</code>, <code>shirt</code> and <code>kappa</code> are the printed in-venue QR codes. They are generic
+(no per-branch granularity), so each now triggers the <strong>mandatory Origin-branch dropdown</strong> at
+registration — the player selects the venue. No <code>&amp;branch=</code> param is used.</p>
+<div class="card"><table>
+  <thead><tr><th>Source</th><th>Hebrew</th><th>requires_branch</th><th>short_io_slug (join key)</th></tr></thead>
+  <tbody>
+    <tr><td><code>television</code></td><td>טלוויזיה</td><td><span class="tag br">true ▾</span></td><td><span class="pill">TELEVISION</span></td></tr>
+    <tr><td><code>shirt</code></td><td>חולצה</td><td><span class="tag br">true ▾</span></td><td><span class="pill">SHIRT</span></td></tr>
+    <tr><td><code>kappa</code></td><td>KAPPA</td><td><span class="tag br">true ▾</span></td><td><span class="pill">KAPPA</span></td></tr>
+  </tbody>
+</table></div>
+<p class="muted">The legacy placeholder sources <code>branch-tv</code> / <code>branch-shirt</code> / <code>branch-sign</code>
+(which had no Short.io link) are now <strong>deactivated</strong> to keep the funnel clean.</p>
+
+<h2><span class="n">3</span> Database alignment — Bizflow-dev</h2>
+<p class="kv">project <code>qnbogoyoqbkewkdbhxuy</code> · <code>promo_campaigns.registration_sources</code> ·
+campaign <code>bf987a45-…f145473</code></p>
+<ul>
+  <li>Applied as tracked migration <code>promo_registration_sources_branch_dropdown</code>.</li>
+  <li><code>television / shirt / kappa</code> → <code>requires_branch: true</code>.</li>
+  <li><code>branch-tv / branch-shirt / branch-sign</code> → <code>active: false</code>.</li>
+  <li>Array integrity verified: <strong>19 total, 16 active</strong>; <code>short_io_slug</code> mappings preserved so
+      click↔registration joins in reporting stay correct.</li>
+</ul>
+
+<h2><span class="n">4</span> Code &amp; migration changes (repos)</h2>
+<div class="card"><table>
+  <thead><tr><th>Repo</th><th>File</th><th>Change</th></tr></thead>
+  <tbody>
+    <tr><td>humondial-promo</td><td class="mono">src/lib/registrationSource.js</td><td><code>BRANCH_REGISTRATION_SOURCES</code> fallback → <code>['television','shirt','kappa']</code> (was the <code>branch-*</code> trio)</td></tr>
+    <tr><td>bizflow-erp</td><td class="mono">supabase/migrations/20260816000100_…branch_dropdown.sql</td><td>New migration mirroring the Bizflow-dev data change so it never regresses</td></tr>
+  </tbody>
+</table></div>
+<div class="note">Both edits are <strong>uncommitted</strong> in their working trees — review, then commit/deploy
+(PWA via Base44 push auto-deploys).</div>
+
+<h2><span class="n">5</span> Remaining work — funnel dashboard</h2>
+<p>The per-source conversion view (clicks ÷ registrations) Tal requested is <strong>not yet built</strong>.
+Plan:</p>
+<ul>
+  <li>Extend <code>bizflow-erp/base44/functions/getPromoReporting</code> to group registrations by
+      <code>origin_source</code> and join Short.io click counts via <code>short_io_slug</code>.</li>
+  <li>Read the Short.io key from the <strong>Base44 runtime env var <code>SHORT_IO_API_KEY</code></strong>
+      (same pattern as <code>rotateVenueCodes</code> / <code>storeSigningLink</code>) — never in the repo.</li>
+  <li>Add a <code>registration_sources</code> editor tab to <code>HumondialCampaignConfig.jsx</code>
+      (save plumbing <code>save_section:'sources'</code> already exists).</li>
+</ul>
+
+<div class="note warn"><strong>Security:</strong> the Short.io API key was shared in chat for this run — rotate it in the
+Short.io dashboard once the dashboard work picks it up from the Base44 env.</div>
+
+<footer>
+  Generated 2026-06-13 · Humondial promo source-attribution funnel · all 15 link PATCHes returned HTTP&nbsp;200 and were redirect-verified.
+</footer>
+</div>
+</body>
+</html>
