@@ -58,7 +58,7 @@
     <span class="badge"><span class="dot ok"></span>Redirects verified live</span>
     <span class="badge"><span class="dot ok"></span>DB alignment applied (Bizflow-dev)</span>
     <span class="badge"><span class="dot info"></span>PWA code aligned</span>
-    <span class="badge"><span class="dot warn"></span>Funnel dashboard: pending</span>
+    <span class="badge"><span class="dot ok"></span>Funnel dashboard wired (Short.io clicks live)</span>
   </div>
 </header>
 
@@ -136,17 +136,27 @@ campaign <code>bf987a45-…f145473</code></p>
 <div class="note">Both edits are <strong>uncommitted</strong> in their working trees — review, then commit/deploy
 (PWA via Base44 push auto-deploys).</div>
 
-<h2><span class="n">5</span> Remaining work — funnel dashboard</h2>
-<p>The per-source conversion view (clicks ÷ registrations) Tal requested is <strong>not yet built</strong>.
-Plan:</p>
+<h2><span class="n">5</span> Funnel dashboard — built &amp; verified</h2>
+<p>The per-source <strong>clicks ÷ registrations → conversion %</strong> view Tal requested is now wired into
+<code>getPromoReporting</code> (both <code>base44/…/entry.ts</code> and <code>supabase/…/index.ts</code>). The UI
+(<code>HumondialReporting.jsx</code> → "הרשמות לפי מקור") already rendered the columns, so they light up automatically.</p>
 <ul>
-  <li>Extend <code>bizflow-erp/base44/functions/getPromoReporting</code> to group registrations by
-      <code>origin_source</code> and join Short.io click counts via <code>short_io_slug</code>.</li>
-  <li>Read the Short.io key from the <strong>Base44 runtime env var <code>SHORT_IO_API_KEY</code></strong>
-      (same pattern as <code>rotateVenueCodes</code> / <code>storeSigningLink</code>) — never in the repo.</li>
-  <li>Add a <code>registration_sources</code> editor tab to <code>HumondialCampaignConfig.jsx</code>
-      (save plumbing <code>save_section:'sources'</code> already exists).</li>
+  <li>Groups registrations by <code>origin_source</code>, joins Short.io <code>humanClicks</code> via
+      <code>short_io_slug</code> over the selected date window, computes conversion %.</li>
+  <li>Short.io key read from the <strong>Base44 runtime env var <code>SHORT_IO_API_KEY</code></strong> — never in the repo.
+      Fully non-fatal: if the key/API is unavailable, clicks show blank and the rest of the report still renders.</li>
+  <li>Includes active sources <em>with zero registrations but non-zero clicks</em> → surfaces funnel leaks.</li>
+  <li>Per-branch click granularity intentionally omitted (in-venue QRs are generic).</li>
 </ul>
+<div class="note info"><strong>Verified against live Short.io data</strong> (humanClicks, custom window):
+Instagram&nbsp;339 · Shmanman-Banner&nbsp;491 · SHIRT&nbsp;130 · TELEVISION&nbsp;83 · KAPPA&nbsp;78 · FLYER&nbsp;74 ·
+Workers&nbsp;74 · Website-Banner&nbsp;69 · DailyCodes&nbsp;42 · TikTok&nbsp;32 · … <strong>1,456 total</strong>.
+Both functions <code>deno check</code> clean.</div>
+
+<h2><span class="n">6</span> Optional follow-up</h2>
+<p class="muted">A <code>registration_sources</code> editor tab in <code>HumondialCampaignConfig.jsx</code> (add/reorder/activate
+sources without SQL) is the one remaining nice-to-have — the save plumbing (<code>save_section:'sources'</code>)
+already exists. Not required for the funnel to work; left pending a scope decision.</p>
 
 <div class="note warn"><strong>Security:</strong> the Short.io API key was shared in chat for this run — rotate it in the
 Short.io dashboard once the dashboard work picks it up from the Base44 env.</div>
