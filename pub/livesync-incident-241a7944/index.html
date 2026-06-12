@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>דוח אירוע — סנכרון משחקים חיים (Humondial)</title>
+<style>
+  :root{
+    --bg:#0b1020; --card:#141b30; --card2:#1b2440; --line:#27304d;
+    --ink:#eef2ff; --muted:#9aa7c7; --accent:#5b8cff; --good:#2fbf71; --warn:#f5b13d; --bad:#ef5a6f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#0b1020,#0e1530 60%,#0b1020);color:var(--ink);
+    font-family:'Segoe UI',Rubik,Arial,Helvetica,sans-serif;line-height:1.65}
+  .wrap{max-width:880px;margin:0 auto;padding:32px 20px 80px}
+  header.hero{background:radial-gradient(1200px 300px at 80% -50%,rgba(91,140,255,.35),transparent),
+    linear-gradient(135deg,#16203f,#0e1530);border:1px solid var(--line);border-radius:20px;padding:30px 28px;margin-bottom:22px}
+  .pill{display:inline-flex;align-items:center;gap:8px;background:rgba(47,191,113,.13);color:var(--good);
+    border:1px solid rgba(47,191,113,.4);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px}
+  .pill .dot{width:9px;height:9px;border-radius:50%;background:var(--good);box-shadow:0 0 0 4px rgba(47,191,113,.18)}
+  h1{font-size:28px;margin:16px 0 6px;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:15px;margin:0}
+  .meta{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px 22px;color:var(--muted);font-size:13px}
+  .meta b{color:var(--ink);font-weight:600}
+  h2{font-size:19px;margin:34px 0 12px;display:flex;align-items:center;gap:10px}
+  h2 .ic{width:26px;height:26px;border-radius:8px;background:var(--card2);display:inline-flex;align-items:center;justify-content:center;font-size:15px;border:1px solid var(--line)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin:12px 0}
+  .card.tight{padding:16px 20px}
+  p{margin:8px 0}
+  .muted{color:var(--muted)}
+  ul{margin:8px 0;padding-inline-start:22px}
+  li{margin:6px 0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:14px 0}
+  .stat{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .stat .n{font-size:26px;font-weight:800;color:#fff}
+  .stat .l{font-size:13px;color:var(--muted);margin-top:2px}
+  .stat .n.good{color:var(--good)}
+  table{width:100%;border-collapse:collapse;margin:6px 0;font-size:14px}
+  th,td{text-align:right;padding:10px 12px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:13px}
+  td .ok{color:var(--good);font-weight:700}
+  .timeline{position:relative;margin:6px 0;padding:0}
+  .tl{display:flex;gap:14px;padding:10px 0}
+  .tl .when{flex:0 0 92px;color:var(--accent);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+  .tl .what{flex:1}
+  .tl .what b{color:#fff}
+  .banner{border-radius:14px;padding:14px 18px;margin:14px 0;border:1px solid}
+  .banner.good{background:rgba(47,191,113,.1);border-color:rgba(47,191,113,.4)}
+  .banner.warn{background:rgba(245,177,61,.1);border-color:rgba(245,177,61,.4)}
+  .chip{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:6px;background:var(--card2);border:1px solid var(--line);color:var(--muted)}
+  .foot{margin-top:40px;color:var(--muted);font-size:12.5px;text-align:center}
+  code{background:#0d1426;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:13px;color:#cdd8ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="pill"><span class="dot"></span>נפתר ואומת בייצור</span>
+    <h1>דוח אירוע — סנכרון משחקים חיים</h1>
+    <p class="sub">מנגנון הניחושים החי בקמפיין Humondial: נעילה בשריקת פתיחה → שידור חי → סגירה וחלוקת נקודות.</p>
+    <div class="meta">
+      <span>תאריך: <b>11–12 ביוני 2026</b></span>
+      <span>סביבה: <b>Base44 dev / Bizflow-dev</b></span>
+      <span>סטטוס: <b style="color:var(--good)">סגור</b></span>
+    </div>
+  </header>
+
+  <h2><span class="ic">⚠️</span> מה קרה</h2>
+  <div class="card">
+    <p>משחק שהסתיים במציאות (מקסיקו 2:0 דרום אפריקה) המשיך להופיע באפליקציה כ<b>"בשידור חי"</b> בתוצאה 0:0, והנקודות לא חולקו לשחקנים. הבעיה לא הייתה באפליקציית השחקן — אלא בשלב הסגירה והניקוד בצד השרת.</p>
+    <p class="muted">בקצרה: המשחק נכנס ל"שידור חי" בזמן הנכון, אבל <b>לעולם לא יצא ממנו</b> — כי התהליך שאמור למשוך את התוצאה הסופית, לסגור את המשחק ולחלק נקודות מעולם לא הופעל.</p>
+  </div>
+
+  <h2><span class="ic">🔎</span> הסיבות שמצאנו</h2>
+  <div class="card tight">
+    <p><b>1. האוטומציה של סנכרון התוצאות מעולם לא הופעלה.</b> התהליך שאמור לרוץ כל כמה דקות (משיכת תוצאות חי, סגירת משחק, חלוקת נקודות) לא היה מתוזמן כלל — אומת ש-<b>0 מתוך 136</b> המשחקים סונכרנו אי-פעם.</p>
+  </div>
+  <div class="card tight">
+    <p><b>2. מנגנון נעילת הניחושים חסם את המערכת עצמה.</b> הנעילה שנועדה למנוע משחקן לשנות ניחוש אחרי השריקה חסמה בטעות גם את כתיבת התוצאה ע"י המערכת — כך שגם כשהניקוד רץ, סימון "צדק/טעה" לא נשמר וההישגים לא חולקו.</p>
+  </div>
+
+  <h2><span class="ic">🛠️</span> מה תוקן</h2>
+  <div class="card">
+    <table>
+      <tr><th>תיקון</th><th>סטטוס</th></tr>
+      <tr><td>חלוקת נקודות ידנית למשחק שנתקע (גיבוי מיידי לשחקנים)</td><td class="ok">✓ בוצע</td></tr>
+      <tr><td>תיקון נעילת הניחושים — חוסמת רק שינוי ניחוש של שחקן, לא כתיבת מערכת</td><td class="ok">✓ הוטמע</td></tr>
+      <tr><td>הקמת אוטומציה לסנכרון תוצאות — רצה כל 5 דקות, פעילה</td><td class="ok">✓ פעיל</td></tr>
+      <tr><td>תצוגת ניהול: מתי סונכרן לאחרונה + התרעה אדומה אם נעצר מעל 10 דק'</td><td class="ok">✓ הוטמע</td></tr>
+      <tr><td>חיזוק הניקוד — קודם מחלקים נקודות, רק אז סוגרים (ניתן להתאוששות)</td><td class="ok">✓ הוטמע</td></tr>
+    </table>
+  </div>
+
+  <h2><span class="ic">⏱️</span> ציר הזמן</h2>
+  <div class="card">
+    <div class="timeline">
+      <div class="tl"><div class="when">~23:00</div><div class="what"><b>זוהה:</b> משחק מקסיקו–ד.אפריקה תקוע כ"חי" בתוצאה 0:0; השחקנים לא קיבלו נקודות.</div></div>
+      <div class="tl"><div class="when">חקירה</div><div class="what"><b>אובחן:</b> ספק התוצאות מדווח שהמשחק הסתיים 2:0, אך מערכתנו לא קלטה זאת — האוטומציה מעולם לא רצה.</div></div>
+      <div class="tl"><div class="when">תיקון</div><div class="what"><b>גובה:</b> המשחק נסגר 2:0 ידנית והנקודות חולקו; שני באגים תוקנו ונפרסו.</div></div>
+      <div class="tl"><div class="when">~00:55</div><div class="what"><b>הופעלה</b> אוטומציית הסנכרון (כל 5 דק') — ואומת בלוג הריצות שהיא יורה בפועל.</div></div>
+      <div class="tl"><div class="when">04:00</div><div class="what"><b>הוכחה אוטונומית:</b> המשחק הבא (קוריאה–צ'כיה) נסגר וחולקו נקודות <b>לבד, ללא נגיעה ידנית</b>.</div></div>
+    </div>
+  </div>
+
+  <h2><span class="ic">✅</span> ההוכחה — קוריאה נגד צ'כיה (אוטונומי לחלוטין)</h2>
+  <div class="banner good">
+    המערכת סגרה וניקדה את המשחק לבדה, בלי מעורבות אדם — בדיוק כפי שאמורה לעבוד בהמשך הטורניר.
+  </div>
+  <div class="grid">
+    <div class="stat"><div class="n good">2:1</div><div class="l">תוצאה סופית (נסגר אוטומטית)</div></div>
+    <div class="stat"><div class="n">192</div><div class="l">ניחושים במשחק</div></div>
+    <div class="stat"><div class="n good">80</div><div class="l">זוכים שקיבלו נקודות</div></div>
+    <div class="stat"><div class="n">1,800</div><div class="l">נקודות חולקו</div></div>
+  </div>
+  <p class="muted" style="font-size:13px">פירוט: 40 ניחושי בול (תוצאה מדויקת) + 40 ניחושי כיוון נכון · סומנו 80 "צדקו" ו-112 "טעו" · אפס שגיאות סנכרון.</p>
+
+  <h2><span class="ic">🛡️</span> מה זה אומר להמשך</h2>
+  <div class="card">
+    <ul>
+      <li>הזרימה רצה לבד לאורך כל הטורניר: נעילה בשריקה → תוצאה חי תוך עד 5 דק' → סגירה בסיום → חלוקת נקודות.</li>
+      <li>אם הסנכרון אי-פעם ייעצר — מסך הניהול יציג <b>התרעה אדומה</b> תוך 10 דקות, כך שאפשר לזהות מבלי שמישהו יצטרך להתקשר.</li>
+      <li>אם ניקוד נכשל באמצע — הוא <b>מנסה שוב לבד</b> במחזור הבא, בלי לתקוע משחק כ"סגור אך לא שולם".</li>
+    </ul>
+  </div>
+
+  <p class="foot">דוח פנימי · Humondial Promo · נוצר אוטומטית לאחר אימות בייצור על משחק חי אמיתי.</p>
+
+</div>
+</body>
+</html>
