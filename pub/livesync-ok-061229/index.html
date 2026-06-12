@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Humondial — המערכת עובדת</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(1000px 500px at 50% -10%,#1b2a52,#0b1020 70%);
+    color:#eef2ff;font-family:'Segoe UI',Rubik,Arial,sans-serif;padding:24px}
+  .card{width:100%;max-width:560px;background:linear-gradient(160deg,#16203f,#101732);
+    border:1px solid #27304d;border-radius:24px;padding:34px 30px;text-align:center;
+    box-shadow:0 30px 80px rgba(0,0,0,.45)}
+  .pill{display:inline-flex;align-items:center;gap:8px;background:rgba(47,191,113,.14);color:#46d986;
+    border:1px solid rgba(47,191,113,.45);border-radius:999px;padding:7px 16px;font-weight:800;font-size:14px}
+  .pill .dot{width:9px;height:9px;border-radius:50%;background:#2fbf71;box-shadow:0 0 0 4px rgba(47,191,113,.2)}
+  h1{font-size:23px;margin:16px 0 4px;font-weight:800}
+  .lead{color:#9aa7c7;font-size:15px;margin-bottom:22px}
+  .match{display:flex;align-items:center;justify-content:center;gap:18px;margin:6px 0 4px}
+  .team{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1}
+  .flag{font-size:54px;line-height:1}
+  .team .name{font-size:15px;color:#cdd8ff;font-weight:600}
+  .score{font-size:46px;font-weight:900;letter-spacing:2px;color:#fff;min-width:96px}
+  .live-note{margin:10px auto 24px;display:inline-block;color:#46d986;font-weight:700;font-size:14px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .stat{background:#1b2440;border:1px solid #27304d;border-radius:16px;padding:18px 10px}
+  .stat .n{font-size:30px;font-weight:900;color:#fff}
+  .stat .n.good{color:#46d986}
+  .stat .l{font-size:13px;color:#9aa7c7;margin-top:4px}
+  .foot{margin-top:24px;color:#6f7da3;font-size:12.5px}
+</style>
+</head>
+<body>
+  <div class="card">
+    <span class="pill"><span class="dot"></span>הכל עובד — אוטומטי לחלוטין</span>
+    <h1>משחק חי נסגר וחולקו נקודות — לבד</h1>
+    <p class="lead">שלב הבתים · מחזור 1 · הבוקר</p>
+
+    <div class="match">
+      <div class="team"><div class="flag">🇰🇷</div><div class="name">דרום קוריאה</div></div>
+      <div class="score">2 : 1</div>
+      <div class="team"><div class="flag">🇨🇿</div><div class="name">צ'כיה</div></div>
+    </div>
+    <span class="live-note">✓ נסגר בשריקת הסיום וחולקו נקודות — ללא נגיעה ידנית</span>
+
+    <div class="stats">
+      <div class="stat"><div class="n">192</div><div class="l">ניחושים</div></div>
+      <div class="stat"><div class="n good">80</div><div class="l">זכו</div></div>
+      <div class="stat"><div class="n">1,800</div><div class="l">נקודות חולקו</div></div>
+    </div>
+
+    <p class="foot">Humondial Promo · המערכת מנהלת את הזרימה לבד לאורך כל הטורניר</p>
+  </div>
+</body>
+</html>
