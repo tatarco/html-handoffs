@@ -153,10 +153,23 @@ Instagram&nbsp;339 · Shmanman-Banner&nbsp;491 · SHIRT&nbsp;130 · TELEVISION&n
 Workers&nbsp;74 · Website-Banner&nbsp;69 · DailyCodes&nbsp;42 · TikTok&nbsp;32 · … <strong>1,456 total</strong>.
 Both functions <code>deno check</code> clean.</div>
 
-<h2><span class="n">6</span> Optional follow-up</h2>
-<p class="muted">A <code>registration_sources</code> editor tab in <code>HumondialCampaignConfig.jsx</code> (add/reorder/activate
-sources without SQL) is the one remaining nice-to-have — the save plumbing (<code>save_section:'sources'</code>)
-already exists. Not required for the funnel to work; left pending a scope decision.</p>
+<h2><span class="n">6</span> CMS editor tab — already shipped</h2>
+<p>The <code>registration_sources</code> editor (tab <strong>🔗 מקורות הרשמה</strong> in
+<code>HumondialCampaignConfig.jsx</code>) already exists and is complete: add / edit / activate / reorder sources
+with all fields — label, slug, <code>short_io_slug</code>, <em>requires_branch</em>, <em>active</em> — saving via
+<code>saveCard('sources')</code> → <code>saveCampaignConfig</code> (<code>save_section:'sources'</code> →
+<code>registration_sources</code>). No build needed; verified backend wiring.</p>
+
+<h2><span class="n">7</span> Shipped to <code>main</code></h2>
+<div class="card"><table>
+  <thead><tr><th>Repo</th><th>Branch</th><th>Commit</th></tr></thead>
+  <tbody>
+    <tr><td>humondial-promo</td><td>main</td><td class="mono">9f1c724 — fix(promo): in-venue QR sources → branch-dropdown fallback</td></tr>
+    <tr><td>bizflow-erp</td><td>main</td><td class="mono">60ad706 — feat(promo-reporting): per-source Short.io clicks → conversion %</td></tr>
+  </tbody>
+</table></div>
+<p class="muted">Both pushed; Base44 auto-deploys from <code>main</code>. The Bizflow-dev migration was applied
+live during this work.</p>
 
 <div class="note warn"><strong>Security:</strong> the Short.io API key was shared in chat for this run — rotate it in the
 Short.io dashboard once the dashboard work picks it up from the Base44 env.</div>
