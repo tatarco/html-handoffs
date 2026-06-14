@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Humondial · מקורות הרשמה וקליקים מ-Short.io — מדריך BI</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --ink:#e6edf3; --muted:#9da7b3;
+    --line:#283040; --accent:#5aa9ff; --accent2:#7ee787; --warn:#ffd479; --pink:#ff9bd2;
+    --code:#0a0e14;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Segoe UI",Arial,Helvetica,"Noto Sans Hebrew",sans-serif;line-height:1.65;font-size:16px}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 96px}
+  header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:27px;margin:0 0 6px}
+  h2{font-size:21px;margin:40px 0 12px;border-right:3px solid var(--accent);padding-right:10px}
+  h3{font-size:17px;margin:26px 0 8px;color:var(--accent2)}
+  .sub{color:var(--muted);font-size:14px}
+  p{margin:10px 0}
+  code{font-family:"SF Mono",Consolas,Menlo,monospace;background:#222b3a;color:#9bd1ff;
+    padding:1px 6px;border-radius:5px;font-size:13.5px;direction:ltr;display:inline-block}
+  pre{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:14px 16px;
+    overflow:auto;direction:ltr;text-align:left;font-size:13px;line-height:1.5}
+  pre code{background:none;color:#cdd9e5;padding:0}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:16px 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:right;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)}
+  td code{font-size:12.5px}
+  .tag{display:inline-block;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:600}
+  .t-paid{background:#3a2030;color:#ff9bd2}
+  .t-org{background:#13321f;color:#7ee787}
+  .t-rest{background:#33260f;color:#ffd479}
+  .t-web{background:#102a3a;color:#7fd0ff}
+  .t-crm{background:#2a2440;color:#c9b6ff}
+  .t-null{background:#262c36;color:#9da7b3}
+  .note{border-right:4px solid var(--warn);background:#241f10;padding:12px 16px;border-radius:8px;margin:14px 0}
+  .ok{border-right:4px solid var(--accent2);background:#0f2418;padding:12px 16px;border-radius:8px;margin:14px 0}
+  .flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin:18px 0}
+  .box{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;text-align:center;min-width:150px}
+  .box b{color:var(--accent)}
+  .arrow{color:var(--muted);font-size:22px}
+  a{color:var(--accent)}
+  .toc{font-size:14px;columns:2}
+  @media(max-width:720px){.toc{columns:1}}
+  .toc a{display:block;padding:3px 0;color:#bcd}
+  footer{margin-top:50px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:13px}
+  .kbd{direction:ltr;display:inline-block}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Humondial — מקורות הרשמה וקליקים מ-Short.io</h1>
+  <div class="sub">מדריך גישה ל-BI · משלים את מדריך ה-BI הראשי · עודכן 2026-06-14</div>
+</header>
+
+<div class="panel">
+  <strong>בקצרה — שתי מערכות נפרדות:</strong>
+  <ul>
+    <li><b>קליקים על הלינקים</b> (כמה לחצו על הפלייר / האינסטגרם / וכו') חיים ב-<b>Short.io</b> — לא ב-Supabase. זהו ראש המשפך (חשיפה).</li>
+    <li><b>הרשמות בפועל</b> (מי נרשם ומאיזה מקור/סניף) חיים ב-<b>Supabase</b>, בעמודה <code>origin_source</code> / <code>origin_branch</code>. זהו תחתית המשפך (המרה).</li>
+    <li>מפתח החיבור בין השתיים הוא <code>short_io_slug</code> שמוגדר לכל מקור בטבלת <code>promo_campaigns.registration_sources</code>.</li>
+  </ul>
+</div>
+
+<h2>תוכן עניינים</h2>
+<div class="toc panel">
+  <a href="#model">1. מודל הנתונים — איפה כל דבר יושב</a>
+  <a href="#join">2. מפתח החיבור (short_io_slug)</a>
+  <a href="#sources">3. רשימת המקורות + קטגוריות</a>
+  <a href="#branches">4. הסניפים</a>
+  <a href="#access">5. גישה ל-Supabase (חיבור + JWT)</a>
+  <a href="#sql">6. שאילתות SQL מוכנות</a>
+  <a href="#curl">7. דוגמאות cURL (REST)</a>
+  <a href="#shortio">8. גישה לקליקים ב-Short.io</a>
+  <a href="#gotchas">9. דברים שחשוב לדעת (Gotchas)</a>
+</div>
+
+<h2 id="model">1. מודל הנתונים — איפה כל דבר יושב</h2>
+<div class="flow">
+  <div class="box"><b>Short.io</b><br><span class="sub">קליקים / חשיפה<br>(לא ב-DB שלנו)</span></div>
+  <div class="arrow">←</div>
+  <div class="box"><b>הלינק נלחץ</b><br><span class="sub">?source=&lt;slug&gt;</span></div>
+  <div class="arrow">←</div>
+  <div class="box"><b>הרשמה</b><br><span class="sub">promo_players.origin_source</span></div>
+  <div class="arrow">←</div>
+  <div class="box"><b>מימוש בסניף</b><br><span class="sub">promo_branch_daily_stats</span></div>
+</div>
+<p>הקורא מימין לשמאל: כל לינק שיווקי (Short.io) טוען עם פרמטר <code>?source=&lt;slug&gt;</code>. כשנגלל עד הרשמה, ה-slug נשמר פעם אחת על השחקן ב-<code>origin_source</code>. מקורות מסוג "סניף" מבקשים גם בחירת <code>origin_branch</code>. הקליקים עצמם — כמה אנשים לחצו אך לא בהכרח נרשמו — קיימים רק ב-Short.io.</p>
+
+<h3>הטבלאות/Views הרלוונטיות (כולן בהרשאת bi_readonly)</h3>
+<table>
+  <tr><th>אובייקט</th><th>מה יש בו</th><th>עמודות מפתח</th></tr>
+  <tr><td><code>promo_campaigns</code></td><td>הגדרת הקמפיין; כולל את <b>allowlist המקורות</b> כ-JSONB</td><td><code>registration_sources</code> (jsonb)</td></tr>
+  <tr><td><code>promo_players_bi</code></td><td>View ממוסך (ללא טלפון) של השחקנים = ההרשמות</td><td><code>origin_source</code>, <code>origin_branch</code>, <code>created_at</code></td></tr>
+  <tr><td><code>promo_branch_daily_stats</code></td><td>KPI יומי לכל סניף (הצטרפויות, מימושים, מנות)</td><td><code>branch_name</code>, <code>business_date</code>, <code>new_joins</code>, <code>redemptions</code>, <code>mains_served</code></td></tr>
+  <tr><td><code>promo_qr_scan_log_bi</code></td><td>View ממוסך של סריקות QR בסניף</td><td><code>branch_id</code>, <code>tier</code>, <code>scanned_at</code></td></tr>
+</table>
+<div class="note"><b>אין טבלת קליקים ב-Supabase.</b> אם מישהו מחפש "טבלת הקליקים" — היא לא קיימת אצלנו. ה-DB שלנו רושם רק את מי ש<b>נרשם בפועל</b>. ספירת הלחיצות נמצאת ב-Short.io (סעיף 8).</div>
+
+<h2 id="join">2. מפתח החיבור — <code>short_io_slug</code></h2>
+<p>בתוך <code>promo_campaigns.registration_sources</code> כל מקור הוא אובייקט עם השדות:</p>
+<pre><code>{
+  "slug":            "flyer",          // הערך שמגיע ב-?source= ונשמר ב-origin_source
+  "label_he":        "פלייר",          // שם לתצוגה
+  "short_io_slug":   "FLYER",          // ← מזהה הלינק ב-Short.io (מפתח החיבור)
+  "active":          true,
+  "requires_branch": false,            // האם דורש בחירת סניף בהרשמה
+  "sort_order":      15
+}</code></pre>
+<p>כדי לחבר <b>קליקים (Short.io)</b> אל <b>הרשמות (Supabase)</b>: התאימו את <code>short_io_slug</code> של המקור ללינק התואם ב-Short.io, ואת ספירת ההרשמות שלו לפי <code>origin_source = slug</code>.</p>
+
+<h2 id="sources">3. רשימת המקורות + קטגוריות</h2>
+<p>אין עמודת "קטגוריה" ב-DB — זו מיפוי עסקי. להלן המיפוי המומלץ (5 קבוצות) שאפשר ליישם כ-<code>CASE</code> בשאילתה (ראו סעיף 6). הטבלה משקפת את ה-allowlist הנוכחי.</p>
+<table>
+  <tr><th>slug (origin_source)</th><th>label_he</th><th>short_io_slug</th><th>קטגוריה</th><th>סניף?</th></tr>
+  <tr><td><code>sponsored</code></td><td>קידום ממומן</td><td><code>Sponsored</code></td><td><span class="tag t-paid">paid</span></td><td>—</td></tr>
+  <tr><td><code>instagram</code></td><td>אינסטגרם</td><td><code>Instagram</code></td><td><span class="tag t-org">organic_social</span></td><td>—</td></tr>
+  <tr><td><code>tiktok</code></td><td>טיקטוק</td><td><code>TikTok</code></td><td><span class="tag t-org">organic_social</span></td><td>—</td></tr>
+  <tr><td><code>facebook</code></td><td>פייסבוק</td><td><code>Facebook</code></td><td><span class="tag t-org">organic_social</span></td><td>—</td></tr>
+  <tr><td><code>youtube</code></td><td>יוטיוב</td><td><code>Youtube</code></td><td><span class="tag t-org">organic_social</span></td><td>—</td></tr>
+  <tr><td><code>whatsapp</code></td><td>וואטסאפ</td><td><code>WhatsApp</code></td><td><span class="tag t-org">organic_social</span></td><td>—</td></tr>
+  <tr><td><code>television</code></td><td>טלוויזיה</td><td><code>TELEVISION</code></td><td><span class="tag t-rest">restaurant</span></td><td>✓</td></tr>
+  <tr><td><code>shirt</code></td><td>חולצה</td><td><code>SHIRT</code></td><td><span class="tag t-rest">restaurant</span></td><td>✓</td></tr>
+  <tr><td><code>kappa</code></td><td>KAPPA</td><td><code>KAPPA</code></td><td><span class="tag t-rest">restaurant</span></td><td>✓</td></tr>
+  <tr><td><code>flyer</code></td><td>פלייר</td><td><code>FLYER</code></td><td><span class="tag t-rest">restaurant</span></td><td>—</td></tr>
+  <tr><td><code>website-banner</code></td><td>אתר - באנר</td><td><code>Website-Banner</code></td><td><span class="tag t-web">website</span></td><td>—</td></tr>
+  <tr><td><code>website-icon</code></td><td>אתר - אייקון</td><td><code>Website-Icon</code></td><td><span class="tag t-web">website</span></td><td>—</td></tr>
+  <tr><td><code>website-branches</code></td><td>אתר - סניפים</td><td><code>Website-Branches</code></td><td><span class="tag t-web">website</span></td><td>—</td></tr>
+  <tr><td><code>shmanman-banner</code></td><td>באנר שמנמן</td><td><code>Shmanman-Banner</code></td><td><span class="tag t-crm">crm_internal</span></td><td>—</td></tr>
+  <tr><td><code>workers</code></td><td>עובדים</td><td><code>Workers</code></td><td><span class="tag t-crm">crm_internal</span></td><td>—</td></tr>
+  <tr><td><code>dailycodes</code></td><td>קודים יומיים</td><td><code>DailyCodes</code></td><td><span class="tag t-crm">crm_internal</span></td><td>—</td></tr>
+  <tr><td><code>(null)</code></td><td>—</td><td>—</td><td><span class="tag t-null">direct / untracked</span></td><td>—</td></tr>
+</table>
+<div class="note">מקורות ה-<code>branch-tv</code> / <code>branch-shirt</code> / <code>branch-sign</code> הישנים <b>מושבתים</b> (<code>active:false</code>) ואין להם <code>short_io_slug</code>. אל תכללו אותם בדוחות חיים.</div>
+<div class="note"><code>origin_source = null</code> = הרשמות לפני שהתיוג הופעל, או כניסה ישירה בלי לינק ממותג. כיום זו הקבוצה הגדולה ביותר — אל תייחסו אותה למקור ספציפי.</div>
+
+<h2 id="branches">4. הסניפים</h2>
+<p><code>origin_branch</code> ב-<code>promo_players_bi</code> מכיל את ה-<code>tabit_org_id</code> של הסניף שהשחקן בחר (רק כשהמקור הוא מסוג "סניף"). מיפוי שם↔מזהה:</p>
+<table>
+  <tr><th>שם הסניף</th><th>tabit_org_id (origin_branch)</th></tr>
+  <tr><td>יהוד</td><td><code>6707d900ee6c51b72796fbf1</code></td></tr>
+  <tr><td>באר שבע</td><td><code>5dd66c7a775398f3a69022b8</code></td></tr>
+  <tr><td>כפר סבא</td><td><code>579487ca92f8401e0000da20</code></td></tr>
+  <tr><td>כפר יונה</td><td><code>62528de3bc0d3754454176cb</code></td></tr>
+  <tr><td>תל חנן</td><td><code>59256f1016c2e4220080a088</code></td></tr>
+  <tr><td>קריות</td><td><code>6911cae874d1ffc13623c168</code></td></tr>
+  <tr><td>גבעת ברנר</td><td><code>579e766f2063921e00fb4551</code></td></tr>
+</table>
+<div class="ok">לדוחות סניפים מוכנים (KPI יומי) עדיף להשתמש ב-<code>promo_branch_daily_stats</code> — שם <code>branch_name</code> כבר קריא, ואין צורך במיפוי ידני.</div>
+
+<h2 id="access">5. גישה ל-Supabase</h2>
+<h3>חיבור Postgres ישיר (psql / Power BI / Metabase / DBeaver)</h3>
+<pre><code>Host:     aws-1-eu-west-2.pooler.supabase.com
+Port:     5432
+Database: postgres
+User:     bi_readonly.qnbogoyoqbkewkdbhxuy   ← הסיומת .qnbogoyoqbkewkdbhxuy חובה
+Password: (נמסר בנפרד; ניתן לרוטציה)
+SSL:      require</code></pre>
+<pre><code>psql "postgresql://bi_readonly.qnbogoyoqbkewkdbhxuy:PASSWORD@aws-1-eu-west-2.pooler.supabase.com:5432/postgres?sslmode=require"</code></pre>
+<div class="note">הפרויקט נמצא על אשכול ה-Supavisor <b>aws-1</b> (לא aws-0). חובה לשמור את הסיומת <code>.qnbogoyoqbkewkdbhxuy</code> בשם המשתמש, אחרת תתקבל שגיאה "no tenant identifier".</div>
+<p>ההרשאה <code>bi_readonly</code> היא קריאה-בלבד, מוגבלת ל-<code>promo_*</code> בלבד, עם timeout של 120 שניות. טבלאות ERP אחרות יחזירו "permission denied".</p>
+
+<h2 id="sql">6. שאילתות SQL מוכנות</h2>
+
+<h3>א. הרשמות לפי מקור (כולל label)</h3>
+<pre><code>SELECT p.origin_source,
+       s.label_he,
+       s.short_io_slug,
+       count(*) AS registrations
+FROM   promo_players_bi p
+LEFT JOIN LATERAL (
+  SELECT (e->>'label_he')      AS label_he,
+         (e->>'short_io_slug') AS short_io_slug
+  FROM   promo_campaigns c,
+         jsonb_array_elements(c.registration_sources) e
+  WHERE  e->>'slug' = p.origin_source
+  LIMIT 1
+) s ON true
+GROUP BY 1,2,3
+ORDER BY registrations DESC;</code></pre>
+
+<h3>ב. הרשמות לפי קטגוריה (המיפוי המומלץ)</h3>
+<pre><code>SELECT CASE origin_source
+         WHEN 'sponsored' THEN 'paid'
+         WHEN 'instagram' THEN 'organic_social'
+         WHEN 'tiktok'    THEN 'organic_social'
+         WHEN 'facebook'  THEN 'organic_social'
+         WHEN 'youtube'   THEN 'organic_social'
+         WHEN 'whatsapp'  THEN 'organic_social'
+         WHEN 'television' THEN 'restaurant'
+         WHEN 'shirt'     THEN 'restaurant'
+         WHEN 'kappa'     THEN 'restaurant'
+         WHEN 'flyer'     THEN 'restaurant'
+         WHEN 'website-banner'   THEN 'website'
+         WHEN 'website-icon'     THEN 'website'
+         WHEN 'website-branches' THEN 'website'
+         WHEN 'shmanman-banner'  THEN 'crm_internal'
+         WHEN 'workers'   THEN 'crm_internal'
+         WHEN 'dailycodes' THEN 'crm_internal'
+         ELSE 'direct / untracked'
+       END AS category,
+       count(*) AS registrations
+FROM   promo_players_bi
+GROUP BY 1
+ORDER BY registrations DESC;</code></pre>
+
+<h3>ג. הרשמות לפי סניף (מקורות מסוג סניף)</h3>
+<pre><code>SELECT b.name AS branch_name,
+       count(*) AS registrations
+FROM   promo_players_bi p
+JOIN   promo_campaigns c ON true
+CROSS JOIN LATERAL jsonb_array_elements(c.branches) bx
+JOIN   LATERAL (SELECT bx->>'name' AS name, bx->>'tabit_org_id' AS org) b
+       ON b.org = p.origin_branch
+WHERE  p.origin_branch IS NOT NULL
+GROUP BY 1
+ORDER BY registrations DESC;</code></pre>
+
+<h3>ד. KPI יומי לכל סניף (מוכן, ללא JSON)</h3>
+<pre><code>SELECT business_date, branch_name,
+       new_joins, redemptions, mains_served,
+       acquisition, redemption
+FROM   promo_branch_daily_stats
+ORDER  BY business_date DESC, branch_name;</code></pre>
+
+<h3>ה. משפך: קליקים (Short.io) מול הרשמות (Supabase)</h3>
+<p>הרשמות מ-Supabase לפי <code>short_io_slug</code>; את עמודת הקליקים ממלאים מ-Short.io (סעיף 8) ומחברים על אותו slug:</p>
+<pre><code>SELECT s.short_io_slug,
+       s.label_he,
+       count(p.id) AS registrations   -- clicks ← מ-Short.io, join על short_io_slug
+FROM   promo_campaigns c,
+       jsonb_array_elements(c.registration_sources) e
+       CROSS JOIN LATERAL (SELECT e->>'slug' slug,
+                                  e->>'label_he' label_he,
+                                  e->>'short_io_slug' short_io_slug) s
+LEFT JOIN promo_players_bi p ON p.origin_source = s.slug
+WHERE  (e->>'active')::bool
+GROUP BY 1,2
+ORDER BY registrations DESC;</code></pre>
+
+<h2 id="curl">7. דוגמאות cURL (PostgREST / REST)</h2>
+<p>בסיס ה-REST: <code>https://qnbogoyoqbkewkdbhxuy.supabase.co/rest/v1</code>. נדרש JWT שנושא <code>{"role":"bi_readonly"}</code> (נטבע מסוד ה-JWT של הפרויקט ע"י אדמין — לא נגיש דרך SQL). שמים אותו גם ב-<code>apikey</code> וגם ב-<code>Authorization</code>.</p>
+
+<h3>הרשמות לפי מקור</h3>
+<pre><code>curl -s "https://qnbogoyoqbkewkdbhxuy.supabase.co/rest/v1/promo_players_bi?select=origin_source" \
+  -H "apikey: $BI_JWT" \
+  -H "Authorization: Bearer $BI_JWT"
+# צד-לקוח: קיבוץ לפי origin_source. ל-aggregation בצד-שרת השתמשו ב-RPC/SQL (סעיף 6).</code></pre>
+
+<h3>ה-allowlist של המקורות (slug ↔ short_io_slug ↔ label)</h3>
+<pre><code>curl -s "https://qnbogoyoqbkewkdbhxuy.supabase.co/rest/v1/promo_campaigns?select=registration_sources&id=eq.bf987a45-9783-4507-9a26-acfd5f145473" \
+  -H "apikey: $BI_JWT" \
+  -H "Authorization: Bearer $BI_JWT"</code></pre>
+
+<h3>KPI יומי לפי סניף</h3>
+<pre><code>curl -s "https://qnbogoyoqbkewkdbhxuy.supabase.co/rest/v1/promo_branch_daily_stats?select=business_date,branch_name,new_joins,redemptions,mains_served&order=business_date.desc" \
+  -H "apikey: $BI_JWT" \
+  -H "Authorization: Bearer $BI_JWT"</code></pre>
+<div class="note">תקרת REST: PostgREST מחזיר עד <b>1000 שורות</b> בכל קריאה (ללא קשר ל-Range). לסכומים — העדיפו SQL/RPC על-פני שליפת הכל וקיבוץ ב-JS, או דפדפו עם <code>Range</code>.</div>
+
+<h2 id="shortio">8. גישה לקליקים ב-Short.io</h2>
+<p>הקליקים <b>אינם ב-Supabase</b>. מקור האמת הוא Short.io. שתי דרכים:</p>
+<h3>א. דאשבורד</h3>
+<p>נכנסים ל-<a href="https://app.short.io">app.short.io</a> → הדומיין של הקמפיין → Statistics. לכל לינק (לפי ה-<code>short_io_slug</code> מסעיף 3) יש Clicks, Unique clicks, פילוח לפי מקור/מכשיר/זמן. בקשו מהאדמין הזמנה ל-workspace אם אין גישה.</p>
+<h3>ב. Short.io API</h3>
+<pre><code># רשימת הלינקים בדומיין (לאתר את ה-link id לפי ה-path/slug)
+curl -s "https://api.short.io/api/links?domain_id=$DOMAIN_ID&limit=150" \
+  -H "Authorization: $SHORTIO_API_KEY"
+
+# סטטיסטיקת קליקים ללינק בודד בטווח תאריכים
+curl -s "https://api-v2.short.io/statistics/link/$LINK_ID?period=custom&startDate=2026-06-01&endDate=2026-06-30" \
+  -H "Authorization: $SHORTIO_API_KEY"</code></pre>
+<p>את <code>$SHORTIO_API_KEY</code> מנפיקים ב-Short.io → Settings → Integrations &amp; API. מחברים את הקליקים להרשמות ב-Supabase דרך התאמת path/slug של הלינק ל-<code>short_io_slug</code>.</p>
+<div class="note"><b>שים לב להתאמת אותיות:</b> ה-<code>short_io_slug</code> אצלנו נשמר ב-PascalCase (למשל <code>Instagram</code>, <code>FLYER</code>) בעוד <code>origin_source</code> ב-Supabase הוא lowercase (<code>instagram</code>, <code>flyer</code>). בצעו את ההתאמה case-insensitive.</div>
+
+<h2 id="gotchas">9. דברים שחשוב לדעת</h2>
+<ul>
+  <li><b>קליקים ≠ הרשמות.</b> Short.io סופר לחיצות (כולל בוטים/חזרות); Supabase סופר הרשמות שהושלמו. אל תחשבו יחס המרה בלי לתאם טווחי תאריכים.</li>
+  <li><b><code>origin_source</code>/<code>origin_branch</code> נכתבים פעם אחת</b> בהרשמה הראשונה ולעולם לא נדרסים.</li>
+  <li><b>חלון יום</b> ב-<code>promo_branch_daily_stats</code>: חיתוך 06:00 שעון ישראל (תואם Tabit businessDate).</li>
+  <li><b>שתי שורות campaign.</b> ב-DB יש שורת קמפיין נוספת (decoy). תמיד סננו לפי <code>id = bf987a45-9783-4507-9a26-acfd5f145473</code>.</li>
+  <li><b>NULL הוא הקבוצה הגדולה.</b> רוב ההרשמות עדיין ללא מקור מתויג — הציגו אותה כ-"direct/untracked", לא כאפס.</li>
+</ul>
+
+<footer>
+  Humondial BI · מסמך פנימי (noindex) · משלים את מדריך ה-BI הראשי · 2026-06-14<br>
+  פרויקט Supabase: Bizflow-dev <code>qnbogoyoqbkewkdbhxuy</code> · קמפיין <code>bf987a45-9783-4507-9a26-acfd5f145473</code>
+</footer>
+</div>
+</body>
+</html>
