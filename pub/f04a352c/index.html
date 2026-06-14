@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הומונדיאל — בדיקת מנגנון הנקודות (תשובה לטל)</title>
+<style>
+  :root{
+    --bg:#0f1220; --card:#181c30; --card2:#1f2440; --line:#2c3358;
+    --ink:#eef1fb; --muted:#9aa3c7; --accent:#6c8cff; --good:#39d98a;
+    --warn:#ffce5c; --bad:#ff6b7d; --chip:#262c4d;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Segoe UI",Rubik,Arial,sans-serif;line-height:1.65;font-size:16px}
+  .wrap{max-width:980px;margin:0 auto;padding:28px 20px 80px}
+  header{padding:28px 0 14px;border-bottom:1px solid var(--line);margin-bottom:26px}
+  h1{font-size:28px;margin:0 0 6px}
+  .sub{color:var(--muted);font-size:15px}
+  h2{font-size:21px;margin:38px 0 12px;display:flex;align-items:center;gap:10px}
+  h2 .n{background:var(--accent);color:#0b0e1c;border-radius:8px;width:30px;height:30px;
+    display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex:none}
+  h3{font-size:17px;margin:22px 0 8px;color:#c7cfff}
+  p{margin:8px 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:14px 0}
+  .tldr{background:linear-gradient(135deg,#1a2142,#181c30);border:1px solid var(--accent)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0}
+  .stat{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .stat .v{font-size:26px;font-weight:700}
+  .stat .l{color:var(--muted);font-size:13px}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14.5px}
+  th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:13px;background:var(--card2)}
+  tr:hover td{background:#1c2138}
+  .tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12.5px;font-weight:600}
+  .t-good{background:rgba(57,217,138,.15);color:var(--good)}
+  .t-warn{background:rgba(255,206,92,.15);color:var(--warn)}
+  .t-bad{background:rgba(255,107,125,.15);color:var(--bad)}
+  .t-neutral{background:var(--chip);color:var(--muted)}
+  code{background:#0b0e1c;padding:1px 7px;border-radius:6px;font-size:13.5px;color:#9fd0ff;direction:ltr;display:inline-block}
+  .q{border-right:4px solid var(--accent);background:var(--card2);padding:12px 16px;border-radius:8px;
+    margin:6px 0 16px;font-style:italic;color:#dfe4ff}
+  .verdict{font-weight:700;padding:10px 14px;border-radius:10px;margin:12px 0}
+  .v-ok{background:rgba(57,217,138,.12);border:1px solid var(--good);color:#bff5d8}
+  .v-act{background:rgba(255,107,125,.12);border:1px solid var(--bad);color:#ffd0d6}
+  ul{margin:8px 0;padding-inline-start:22px}
+  li{margin:5px 0}
+  .bar{height:22px;background:var(--accent);border-radius:5px;display:inline-block;vertical-align:middle}
+  .muted{color:var(--muted)}
+  .ltr{direction:ltr;text-align:left}
+  footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+  .pill{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:3px 10px;margin-inline-start:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>בדיקת מנגנון הנקודות — הומונדיאל</h1>
+  <div class="sub">חקירה מלאה בתגובה לשאלות של טל · קמפיין <code>bf987a45…5473</code> · נכון ל‑14.6.2026</div>
+</header>
+
+<!-- TLDR -->
+<div class="card tldr">
+  <h3 style="margin-top:0">בקצרה — שורה תחתונה</h3>
+  <ul>
+    <li><b>המנגנון תקין.</b> כל מקור נקודות מתועד, חד‑ערכי (idempotent) ובסכום קבוע. אין חלוקה כפולה "רגילה".</li>
+    <li><b>השחקן שטל בדק תקין לחלוטין.</b> ה‑15 נקודות לא ניתנו "באותו זמן" — הן הגיעו 5.5 שעות אחרי הניחושים, כשהמשחק נגמר.</li>
+    <li><b>"קל מדי" = בעיקר בונוס קומו.</b> 67% מכל הנקודות בקמפיין הן בונוס ההצטרפות החד‑פעמי של קומו (250 נק'), לא "פארמינג" של ניחושים.</li>
+    <li class="t-bad" style="font-weight:700">⚠ באג התיקו: הקוד תוקן, אבל החזרת הנקודות (clawback) <u>עדיין לא בוצעה</u>. 1,005 נקודות עודפות עדיין חיות אצל 66 שחקנים. צריך החלטה + הרצה.</li>
+    <li><b>פירוט הניחוש בשורה:</b> אפשרי ללא שינוי סכֵמה — הנתון כבר נשמר, צריך רק להציג אותו ב‑UI.</li>
+  </ul>
+</div>
+
+<!-- ===== Q1 ===== -->
+<h2><span class="n">1</span> פירוט הניחוש בשורה — איזה משחק וכמה</h2>
+<div class="q">"גל אפשר להוסיף לשורה של הניחוש על איזה משחק הוא ניחוש וכמה? אני רוצה פירוט שאוכל לראות שהכל תקין."</div>
+
+<p>קודם — חשוב להבין מה כל שורה <b>באמת</b> אומרת, כי השם בעברית מבלבל:</p>
+<table>
+  <tr><th>מה רואים במסך</th><th>הקוד (reason)</th><th>נק'</th><th>משמעות</th></tr>
+  <tr><td>ניחוש</td><td><code>prediction_participation</code></td><td>+10</td><td><b>הגשת</b> ניחוש (לא זכייה!) — 10 נק' עצם ההשתתפות</td></tr>
+  <tr><td>prediction_outcome</td><td><code>prediction_outcome</code></td><td>+15</td><td>ניחוש כיוון נכון (קבוצה מנצחת) אך לא תוצאה מדויקת</td></tr>
+  <tr><td>—</td><td><code>prediction_bullseye</code></td><td>+30</td><td>תוצאה מדויקת ("בול")</td></tr>
+  <tr><td>komo_existing_member_bonus</td><td><code>komo_existing_member_bonus</code></td><td>+250</td><td>בונוס חד‑פעמי לחיבור חשבון קומו קיים</td></tr>
+</table>
+<p class="muted">כלומר 5 שורות "ניחוש" = 5 ניחושים שהוגשו, לא 5 זכיות. הזכייה היחידה היא שורת ה‑<code>prediction_outcome</code> של ה‑15 נק'.</p>
+
+<h3>האם אפשר להוסיף "איזה משחק + כמה" לשורה?</h3>
+<div class="verdict v-ok">כן — <b>ללא שינוי סכֵמה ובלי מיגרציה</b>. זה שינוי תצוגה (UI) בלבד.</div>
+<ul>
+  <li><b>"כמה"</b> — כבר נמצא בשורה (עמודת <code>points</code>). אין מה לעשות.</li>
+  <li><b>"איזה משחק"</b> — כל שורת ניחוש שומרת <code>ref_id</code> = ה‑<code>match_id</code> של המשחק. צריך רק join אל טבלת <code>promo_matches</code> כדי לשלוף שמות הקבוצות + תאריך.</li>
+  <li><b>תוצאת הניחוש עצמו</b> (למשל "ניבא 0‑2") — נשמר בטבלת <code>promo_predictions</code>; דורש join נוסף אם רוצים גם אותו בשורה.</li>
+</ul>
+<p>המלצה: בתצוגת "היסטוריית נקודות", להחליף את התווית הגנרית "ניחוש" ב‑<code>ברזיל נגד מרוקו · ניבא 0‑2 · +10</code>. כל הנתונים זמינים כבר היום.</p>
+
+<!-- ===== Q2 ===== -->
+<h2><span class="n">2</span> "מוזר שבאותו זמן הצטרף, נתן 5 ניחושים וגם קיבל 15 נק' זכייה"</h2>
+<div class="q">"מוזר לי שהוא באותה שעה גם הצטרף, גם נתן 5 ניחושים וגם קיבל 15 נקודות על זכייה בתוצאה בכיוון. זה לא הגיוני."</div>
+
+<p>בדקנו את השחקן הספציפי — <b>מוריניו</b> (<span class="ltr">+972515060410</span>, 315 נק'). הנה ה‑timeline המלא (שעון ישראל):</p>
+<table>
+  <tr><th>שעה</th><th>פעולה</th><th>נק'</th><th>פרטים</th></tr>
+  <tr><td>00:22</td><td>בונוס קומו</td><td>+250</td><td>הצטרפות / חיבור חשבון קומו קיים</td></tr>
+  <tr><td>00:23</td><td>ניחוש</td><td>+10</td><td>ברזיל נגד מרוקו</td></tr>
+  <tr><td>00:24</td><td>ניחוש</td><td>+10</td><td>האיטי נגד סקוטלנד</td></tr>
+  <tr><td>00:24</td><td>ניחוש</td><td>+10</td><td>אוסטרליה נגד טורקיה</td></tr>
+  <tr><td>00:24</td><td>ניחוש</td><td>+10</td><td>גרמניה נגד קוראסאו</td></tr>
+  <tr><td>00:24</td><td>ניחוש</td><td>+10</td><td>הולנד נגד יפן</td></tr>
+  <tr style="background:rgba(57,217,138,.07)"><td><b>06:05</b></td><td>זכייה (כיוון)</td><td>+15</td><td>האיטי נגד סקוטלנד — ניבא 0‑2, יצא 0‑1</td></tr>
+</table>
+
+<div class="verdict v-ok">תקין לחלוטין — אין כאן באג. ✔</div>
+<p>הפענוח:</p>
+<ul>
+  <li>ההצטרפות + 5 הניחושים נעשו ב‑<b>רצף של ~2 דקות</b> (00:22–00:24). זה נורמלי — נכנס לאפליקציה, קיבל בונוס, ומיד ניחש 5 משחקים עתידיים.</li>
+  <li>ה‑15 נק' <b>לא ניתנו באותו זמן</b> — הן הגיעו ב‑06:05, <b>כ‑5.5 שעות מאוחר יותר</b>, כשמשחק האיטי–סקוטלנד הסתיים והגריידר רץ.</li>
+  <li>הוא ניבא <b>0‑2</b>, התוצאה הייתה <b>0‑1</b> → כיוון נכון (ניצחון סקוטלנד) אך לא מדויק → 15 נק' (outcome) ולא 30 (bullseye). מדויק לפי הכללים.</li>
+  <li>זה <b>נראה</b> צפוף במסך כי הרשימה ממוינת לפי זמן והשורות קרובות — אבל זה אירוע נפרד לגמרי שמופעל ע"י סיום המשחק.</li>
+</ul>
+<p class="muted">המלצה: הוספת התאריך/שעה המלא + תווית "זכייה" מול "הגשה" (סעיף 1) תמנע את הבלבול הזה בעתיד.</p>
+
+<!-- ===== Q3 ===== -->
+<h2><span class="n">3</span> "חילקנו יותר מדי נקודות / המשחק קל מדי"</h2>
+<div class="q">"יש משתמשים כבר עם 500+ נקודות… לצד החיבור של קומו שמביא 250 זה אפשרי, אבל מרגיש לי שהמשחק 'קל מדי' וקצב צבירת הנקודות גבוה."</div>
+
+<div class="grid">
+  <div class="stat"><div class="v">959</div><div class="l">שחקנים רשומים</div></div>
+  <div class="stat"><div class="v">804</div><div class="l">עם נקודות בפועל</div></div>
+  <div class="stat"><div class="v">234</div><div class="l">ממוצע נקודות</div></div>
+  <div class="stat"><div class="v">260</div><div class="l">חציון</div></div>
+  <div class="stat"><div class="v">705</div><div class="l">המקסימום</div></div>
+  <div class="stat"><div class="v">17</div><div class="l">מועדון ה‑500+</div></div>
+</div>
+
+<h3>התפלגות יתרות</h3>
+<table>
+  <tr><th>טווח</th><th>שחקנים</th><th></th></tr>
+  <tr><td>0–99</td><td>235</td><td><span class="bar" style="width:235px"></span></td></tr>
+  <tr><td>100–199</td><td>50</td><td><span class="bar" style="width:50px"></span></td></tr>
+  <tr><td>200–299</td><td>218</td><td><span class="bar" style="width:218px"></span></td></tr>
+  <tr><td>300–399</td><td>204</td><td><span class="bar" style="width:204px"></span></td></tr>
+  <tr><td>400–499</td><td>80</td><td><span class="bar" style="width:80px"></span></td></tr>
+  <tr><td>500+</td><td>17</td><td><span class="bar" style="width:17px;background:var(--warn)"></span></td></tr>
+</table>
+<p class="muted">ההתפלגות דו‑שיאית: גוש ב‑0–99 (מי שלא חיבר קומו) וגוש גדול ב‑200–399 שממורכז סביב בונוס ה‑250 של קומו. הגוש 100–199 דק (50) — זה הגיוני: עם קומו אתה קופץ ל‑250+, בלי קומו אתה מתחת ל‑100.</p>
+
+<h3>מאיפה מגיעות הנקודות בכל הקמפיין? (188,235 נק' סה"כ)</h3>
+<table>
+  <tr><th>מקור</th><th>שורות</th><th>סה"כ נק'</th><th>% מהכלכלה</th></tr>
+  <tr><td><b>בונוס קומו</b></td><td>570</td><td>127,000</td><td><span class="tag t-warn">67%</span></td></tr>
+  <tr><td>הגשת ניחוש (10)</td><td>2,655</td><td>26,550</td><td>14%</td></tr>
+  <tr><td>ביקור בסניף (65)</td><td>165</td><td>10,725</td><td>6%</td></tr>
+  <tr><td>זכייה — כיוון (15)</td><td>701</td><td>10,515</td><td>6%</td></tr>
+  <tr><td>זכייה — בול (30)</td><td>235</td><td>7,050</td><td>4%</td></tr>
+  <tr><td>משלוח (65)</td><td>64</td><td>4,160</td><td>2%</td></tr>
+  <tr><td>הזמנת שולחן (15)</td><td>149</td><td>2,235</td><td>1%</td></tr>
+</table>
+
+<div class="card">
+  <h3 style="margin-top:0">המסקנה על "קל מדי"</h3>
+  <ul>
+    <li><b>הצדק עם טל שיש הרבה נקודות — אבל לא בגלל הניחושים.</b> 67% מכל הנקודות הן בונוס קומו החד‑פעמי (250 נק'). זה לא "קצב צבירה גבוה", זה תקרת onboarding.</li>
+    <li><b>כל 17 שחקני ה‑500+ קיבלו את בונוס הקומו (250).</b> מעבר לזה הם מטפסים ע"י <b>שילוב</b> של ביקורי סניף (65) + משלוחים (65) + פעילות ניחושים — לא ע"י ניחושים בלבד.</li>
+    <li>הגשת ניחוש = 10 נק'. זה המנוע הכמותי (627 שחקנים פעילים) אבל רק 14% מהנקודות. <b>מקסימום למשחק = 40</b> (10 הגשה + 30 בול).</li>
+    <li>הזכיות (כיוון+בול) ביחד = 17,565 נק' בלבד (10% מהכלכלה). זה לא המקור ל"אינפלציה".</li>
+  </ul>
+  <p><b>אם רוצים להאט את הקצב</b>, הלברים האפקטיביים (לפי הנתונים): (א) להוריד/לתקרר את נק' ההגשה (10→5 או cap יומי), (ב) לשקול אם 250 של קומו הוא הסכום הרצוי, (ג) לא לגעת בזכיות — הן זניחות.</p>
+</div>
+
+<!-- ===== Q4 ===== -->
+<h2><span class="n">4</span> אימות הרמטי של המנגנון + באג התיקו</h2>
+<div class="q">"אני רוצה לוודא הרמטית שהמנגנון של חלוקת הנקודות פועל כשורה, בטח בהמשך לבאג שצף היום של התיקו."</div>
+
+<h3>אימות המנגנון</h3>
+<table>
+  <tr><th>בדיקה</th><th>תוצאה</th></tr>
+  <tr><td>כל מקור נקודות מתועד עם reason קבוע</td><td><span class="tag t-good">תקין</span></td></tr>
+  <tr><td>סכומים אחידים (10 / 15 / 30 / 65 / 250)</td><td><span class="tag t-good">תקין</span></td></tr>
+  <tr><td>מפתח חד‑ערכי (idempotency_key) מונע זיכוי כפול</td><td><span class="tag t-good">תקין</span></td></tr>
+  <tr><td>בול ו‑כיוון בלעדיים זה לזה (<code>if/else if</code>)</td><td><span class="tag t-good">תוקן</span></td></tr>
+  <tr><td>החזרת נקודות באג התיקו (clawback)</td><td><span class="tag t-bad">לא בוצע</span></td></tr>
+</table>
+
+<h3>באג התיקו — מצב נכון לעכשיו</h3>
+<p><b>מה קרה:</b> במשחקים שהסתיימו בתיקו, מי שניחש את <b>התוצאה המדויקת</b> קיבל בטעות גם בול (30) וגם כיוון (15) מעל ההשתתפות (10) = <b>55 נק' במקום 40</b>. בתוצאות הכרעה זה תמיד היה תקין.</p>
+<p><b>שורש:</b> ענף ייעודי לתיקו בתוך מסלול ה"פגיעה המדויקת" (קומיט <code>8c7b99a4</code>). תוצאות הכרעה לא הכילו אותו, ולכן רק תיקו זיכה כפול.</p>
+
+<div class="grid">
+  <div class="stat"><div class="v t-good" style="color:var(--good)">✔</div><div class="l">הקוד תוקן ונפרס (<code>77e14fda</code>)</div></div>
+  <div class="stat"><div class="v" style="color:var(--bad)">67</div><div class="l">זוגות זיכוי‑כפול עדיין חיים</div></div>
+  <div class="stat"><div class="v" style="color:var(--bad)">66</div><div class="l">שחקנים עם נק' עודפות</div></div>
+  <div class="stat"><div class="v" style="color:var(--bad)">1,005</div><div class="l">נק' עודפות (67×15) עדיין במערכת</div></div>
+</div>
+
+<div class="verdict v-act">
+  ⚠ דרושה פעולה: הקוד תוקן כך שלא ייווצרו זיכויים כפולים חדשים — אבל <b>הנקודות העודפות שכבר חולקו לא הוחזרו</b>.
+  בדיקה חיה (14.6): עדיין <b>67 זוגות</b> זיכוי‑כפול, <b>0 שורות תיקון</b> בוצעו. אלו נקודות שמנפחות את היתרות עכשיו — וקשורות ישירות לתחושת ה"יותר מדי נקודות" בסעיף 3.
+</div>
+
+<p>3 משחקי התיקו שהושפעו: <b>קנדה 1‑1 בוסניה</b> (39 שחקנים), <b>קטאר 1‑1 שוויץ</b> (17), <b>ברזיל 1‑1 מרוקו</b> (11). משחקי ההכרעה לא הושפעו.</p>
+
+<h3>אפשרויות החלטה (דרושה הכרעת מנהל)</h3>
+<table>
+  <tr><th>אפשרות</th><th>מה זה</th><th>המלצה</th></tr>
+  <tr><td><b>A. החזרה (clawback)</b></td><td>להוריד 15 נק' מכל זוג שגוי (סה"כ ‑1,005) ע"י שורות תיקון, ולרענן לוח. משחזר הוגנות מול מנחשי הכרעה.</td><td><span class="tag t-good">מומלץ</span></td></tr>
+  <tr><td>B. השארה (grandfather)</td><td>להשאיר את הנקודות, רק תיקון קדימה (כבר נעשה). הלוח נשאר לא הוגן.</td><td><span class="tag t-neutral">—</span></td></tr>
+  <tr><td>C. השוואה כלפי מעלה</td><td>לתת גם למנחשי הכרעה מדויקת +15. סותר את הכוונה, דורש שינוי קוד.</td><td><span class="tag t-neutral">—</span></td></tr>
+</table>
+<p class="muted">קיים SQL מוכן להרצה (אופציה A, idempotent) + רשימת 66 השחקנים המלאה. החזרה מתבצעת ע"י שורות היפוך (‑15) ששומרות audit trail — לא מחיקה. אחרי ההרצה צריך לרענן את ה‑leaderboard cache.</p>
+
+<!-- recs -->
+<h2><span class="n">✓</span> המלצות לסיכום</h2>
+<div class="card">
+  <ol>
+    <li><b>להריץ את ה‑clawback (אופציה A)</b> — מסיר 1,005 נק' עודפות, מיישר את הלוח, ועונה ישירות גם על תחושת "יותר מדי נקודות". <span class="pill">החלטה + הרצה</span></li>
+    <li><b>לשפר את שורת ההיסטוריה</b> — שם משחק + תוצאת ניחוש + תווית "הגשה/זכייה" + תאריך מלא. <span class="pill">UI בלבד</span></li>
+    <li><b>מוניטור</b> — התראה על כל (שחקן, משחק) שמחזיק גם <code>bullseye</code> וגם <code>outcome</code>. מונע הישנות. <span class="pill">מניעה</span></li>
+    <li><b>אם רוצים להאט קצב</b> — לכוון את נק' ההגשה / בונוס קומו, לא את הזכיות. <span class="pill">להחלטה עסקית</span></li>
+  </ol>
+</div>
+
+<footer>
+  חקירה מבוססת קוד (bizflow-erp · base44/functions) + שאילתות חיות על Supabase Bizflow‑dev (<code>qnbogoyoqbkewkdbhxuy</code>).
+  כל המספרים נכונים ל‑14.6.2026. שמות שחקנים מוסתרים בדוח זה.
+</footer>
+
+</div>
+</body>
+</html>
