@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Late-Match In-App Reservations — E2E Test Report</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --card2:#172033; --line:#334155;
+    --text:#e2e8f0; --muted:#94a3b8; --green:#22c55e; --amber:#f59e0b;
+    --red:#ef4444; --blue:#38bdf8; --violet:#a78bfa;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:1040px;margin:0 auto;padding:32px 20px 80px}
+  h1{font-size:30px;margin:0 0 6px;letter-spacing:-.5px}
+  h2{font-size:21px;margin:40px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h3{font-size:16px;margin:22px 0 8px}
+  .sub{color:var(--muted);margin:0 0 22px}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;vertical-align:middle}
+  .pass{background:rgba(34,197,94,.15);color:#86efac;border:1px solid rgba(34,197,94,.4)}
+  .partial{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.4)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 8px}
+  .badge{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:12.5px;color:var(--muted)}
+  .badge b{color:var(--text)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .card.k{border-left:4px solid var(--blue)}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  td.ok{color:#86efac;font-weight:600}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  pre{background:#0b1220;border:1px solid var(--line);border-radius:10px;padding:13px 15px;
+    overflow:auto;font-size:12.5px;color:#cbd5e1;margin:10px 0}
+  .hl{color:var(--green)}
+  .step{display:flex;gap:14px;margin:14px 0}
+  .num{flex:0 0 30px;height:30px;border-radius:50%;background:var(--violet);color:#0f172a;
+    font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .step .body{flex:1}
+  .shot{background:var(--card2);border:1px dashed var(--line);border-radius:10px;padding:10px 14px;
+    margin:8px 0;color:var(--muted);font-size:13px}
+  .shot b{color:var(--text)}
+  .small{font-size:12.5px;color:var(--muted)}
+  a{color:var(--blue)}
+  .flag{color:var(--amber)}
+  ul{margin:8px 0;padding-left:20px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Late-Match In-App Reservations — End-to-End Test Report</h1>
+  <p class="sub">Player PWA + Manager view + Backoffice (HQ overview &amp; CMS toggle), with database verification at every step.</p>
+
+  <div class="meta">
+    <span class="badge"><b>Date:</b> 2026-06-14</span>
+    <span class="badge"><b>PWA:</b> humondial-promo.pages.dev (Cloudflare Pages)</span>
+    <span class="badge"><b>API:</b> Base44 dev</span>
+    <span class="badge"><b>DB:</b> Supabase Bizflow-dev <code>qnbogoyoqbkewkdbhxuy</code></span>
+    <span class="badge"><b>Tester:</b> redbull2002 (0503843427)</span>
+  </div>
+
+  <div class="card k">
+    <h3 style="margin-top:0">Result summary</h3>
+    <table>
+      <tr><th>#</th><th>Test</th><th>Result</th></tr>
+      <tr><td>1</td><td>Regular game (20:00) routes to the existing <b>Tabit</b> branch-booking flow — nothing broken</td><td class="ok">PASS</td></tr>
+      <tr><td>2</td><td>Late game (23:00) routes to the new <b>in-app reservation</b> form; reservation created</td><td class="ok">PASS</td></tr>
+      <tr><td>3</td><td>Reservation + pending points written to DB correctly</td><td class="ok">PASS</td></tr>
+      <tr><td>4</td><td>Manager view <code>#manager</code> shows reservation (nickname, party, tap-to-call phone)</td><td class="ok">PASS</td></tr>
+      <tr><td>5</td><td><b>Approve</b> from manager → DB <code>confirmed</code>; points stay pending</td><td class="ok">PASS</td></tr>
+      <tr><td>6</td><td>Re-reserve → row reactivated, party updated, points idempotent (no double-award)</td><td class="ok">PASS</td></tr>
+      <tr><td>7</td><td><b>Cancel</b> from manager → DB <code>cancelled</code> + pending points voided (all directions)</td><td class="ok">PASS</td></tr>
+      <tr><td>8</td><td>Backoffice <b>HQ reservations overview</b> screen renders &amp; groups by branch</td><td class="ok">PASS</td></tr>
+      <tr><td>9</td><td>Backoffice <b>HumondialMatches</b> page renders with new "booked-at-branch" column; <code>reservation_mode</code> CMS select</td><td><span class="pill partial">PARTIAL</span></td></tr>
+    </table>
+    <p class="small" style="margin-bottom:0">8 / 9 fully verified end-to-end. Item 9: page renders and the supporting code is deployed &amp; build-verified; the per-match edit-dialog could not be opened through the Base44 editor-preview iframe this session (tooling limitation, not a code defect). Detail below.</p>
+  </div>
+
+  <h2>Test setup &amp; baseline</h2>
+  <p>Logged in to the PWA with phone <code>0503843427</code> via WhatsApp OTP. The trigger rule under test: a match resolves to the in-app flow when its local kickoff hour is <b>23:00 (Asia/Jerusalem)</b> or <code>reservation_mode = in_app</code>; otherwise it uses the Tabit flow.</p>
+  <div class="grid2">
+    <div class="card" style="margin:0">
+      <h3 style="margin-top:0">Matches chosen (both today)</h3>
+      <table>
+        <tr><th>Match</th><th>Kickoff IL</th><th>Mode</th><th>Routes to</th></tr>
+        <tr><td>Germany – Curaçao</td><td>20:00</td><td>auto</td><td>Tabit</td></tr>
+        <tr><td>Netherlands – Japan</td><td>23:00</td><td>auto</td><td>In-app</td></tr>
+      </table>
+    </div>
+    <div class="card" style="margin:0">
+      <h3 style="margin-top:0">Player baseline (before test)</h3>
+      <table>
+        <tr><td>Reservations</td><td class="ok">0</td></tr>
+        <tr><td>Ledger total</td><td>345</td></tr>
+        <tr><td>Pending points</td><td>0</td></tr>
+        <tr><td>Booking award</td><td>15 (pending)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h2>1 — Regular game → Tabit <span class="pill pass">PASS</span></h2>
+  <div class="step"><div class="num">1</div><div class="body">
+    On the home screen, expanded <b>Germany – Curaçao</b> (20:00) and tapped <b>המשך להזמנה</b> (continue to booking).
+    <div class="shot"><b>Screen:</b> URL became <code>#/booking?matchId=b65f7183…</code> and rendered the existing <b>Tabit branch-booking screen</b> — branch tiles (באר שבע, יהוד, כפר יונה…) each with a <b>הזמן</b> button and the "+65 points after you arrive" banner. The new in-app form did <i>not</i> appear. Confirms the regular path is untouched.</div>
+  </div></div>
+
+  <h2>2 &amp; 3 — Late game → in-app reservation + DB <span class="pill pass">PASS</span></h2>
+  <div class="step"><div class="num">2</div><div class="body">
+    Expanded <b>Netherlands – Japan</b> (23:00) and tapped <b>המשך להזמנה</b>.
+    <div class="shot"><b>Screen:</b> URL <code>#/booking?matchId=12a40332…</code> rendered the <b>new in-app ReservationScreen</b> — title "הזמנת מקום למשחק", branch tiles (יהוד pre-selected), a party-size stepper, and a green <b>אשר הזמנה</b> button. Selected branch <b>יהוד</b>, party size <b>4</b>, confirmed → "רשום ל-4 אנשים · נתראה ביהוד 🎉".</div>
+  </div></div>
+  <p>Database immediately after confirm:</p>
+  <pre>promo_reservations  →  { id: 5c684675…, match_id: 12a40332 (Netherlands–Japan),
+                         branch_id: 696e355f… (יהוד), party_size: <span class="hl">4</span>,
+                         status: <span class="hl">"active"</span>, created 16:25 IL }
+
+promo_ledger        →  { points: <span class="hl">15</span>, reason: "table_booking", pending: <span class="hl">true</span>,
+                         idempotency_key: table_booking_pending:&lt;player&gt;:&lt;campaign&gt;:&lt;match&gt; }
+
+player totals       →  ledger_total <span class="hl">360</span> (was 345, +15) · pending <span class="hl">15</span></pre>
+
+  <h2>4 — Manager view <code>#manager</code> <span class="pill pass">PASS</span></h2>
+  <div class="step"><div class="num">4</div><div class="body">
+    Logged in at <code>/staff</code> as branch <b>יהוד</b> (this creates the staff session the manager view reuses), then opened <code>#manager</code>.
+    <div class="shot"><b>Screen:</b> "הזמנות להיום" listed exactly one game — <b>Netherlands – Japan · 4 👥 (1)</b>. Expanding it showed the reservation row: <b>redbull2002 · 4 👥</b>, a tappable phone link <b>972503843427</b> (<code>tel:</code>), and <b>אישר</b> / <b>ביטול</b> action buttons. Confirms branch-scoping (only יהוד's reservation), headcount, and contact details for call-to-confirm.</div>
+  </div></div>
+
+  <h2>5 — Approve (confirm) <span class="pill pass">PASS</span></h2>
+  <div class="step"><div class="num">5</div><div class="body">
+    Tapped <b>אישר</b>.
+    <div class="shot"><b>Screen:</b> the row gained a <b>✓</b> and the green confirm button disappeared, leaving only <b>ביטול</b> — exactly the "confirmed" UI state.</div>
+  </div></div>
+  <pre>promo_reservations  →  status <span class="hl">"confirmed"</span>, confirmed_at 16:28 IL, cancelled_at null
+player totals       →  pending <span class="hl">15</span> (unchanged) · ledger_total 360
+                       (confirm = manager acknowledgement only; points realize on venue visit)</pre>
+
+  <h2>6 — Re-reserve (reactivate + idempotent) <span class="pill pass">PASS</span></h2>
+  <div class="step"><div class="num">6</div><div class="body">
+    Re-opened the in-app form for the same match and confirmed again with party size <b>3</b> → "רשום ל-3 אנשים".
+    <div class="shot"><b>Why:</b> tests the upsert/reactivation path before the cancel cycle.</div>
+  </div></div>
+  <pre>promo_reservations  →  status <span class="hl">"active"</span> (reactivated), party_size <span class="hl">3</span> (updated from 4),
+                       confirmed_at <span class="hl">null</span> (cleared)
+promo_ledger        →  table_booking rows = <span class="hl">1</span> (no duplicate — idempotency held)
+player totals       →  pending 15 (unchanged) · ledger_total 360</pre>
+
+  <h2>7 — Cancel (all directions) <span class="pill pass">PASS</span></h2>
+  <div class="step"><div class="num">7</div><div class="body">
+    Back in <code>#manager</code> (headcount now showed <b>3</b>), expanded the game and tapped <b>ביטול</b>.
+    <div class="shot"><b>Screen:</b> headcount dropped to <b>0 👥 (0)</b> and the reservation row became <b>struck-through / greyed</b> with no action buttons — the "cancelled" UI state.</div>
+  </div></div>
+  <pre>promo_reservations  →  status <span class="hl">"cancelled"</span>, cancelled_at 16:32 IL,
+                       cancelled_by <span class="hl">"branch:696e355f…"</span> (יהוד — correct attribution)
+promo_ledger        →  table_booking rows = <span class="hl">0</span> (pending points voided on cancel)
+player totals       →  pending <span class="hl">0</span> · ledger_total <span class="hl">345</span> (back to baseline)</pre>
+
+  <div class="card">
+    <h3 style="margin-top:0">Ledger trajectory (single source of truth)</h3>
+    <table>
+      <tr><th>Step</th><th>Reservation</th><th>Pending pts</th><th>Ledger total</th></tr>
+      <tr><td>Baseline</td><td>—</td><td>0</td><td>345</td></tr>
+      <tr><td>Create (party 4)</td><td>active</td><td class="ok">15</td><td>360</td></tr>
+      <tr><td>Approve</td><td>confirmed</td><td>15</td><td>360</td></tr>
+      <tr><td>Re-reserve (party 3)</td><td>active</td><td>15</td><td>360</td></tr>
+      <tr><td>Cancel</td><td>cancelled</td><td class="ok">0</td><td class="ok">345</td></tr>
+    </table>
+    <p class="small" style="margin-bottom:0">Net effect on the real player: returned to baseline (ledger 345, 0 pending). One <code>cancelled</code> reservation row remains as a record of the test.</p>
+  </div>
+
+  <h2>8 — Backoffice: HQ reservations overview <span class="pill pass">PASS</span></h2>
+  <div class="step"><div class="num">8</div><div class="body">
+    Opened the new <b>סקירת הזמנות (HQ)</b> screen in the Base44 editor preview (the direct deployed route is RBAC-gated for this account, so the editor preview is the intended path).
+    <div class="shot"><b>Screen:</b> header "סקירת הזמנות (HQ)" + "view only" description, then a card for today's in-app game <b>Netherlands – Japan</b> with a <b>0 סועדים</b> badge and a per-branch row <b>696e355f… (יהוד) · 0 👥 · 1 הזמנות</b> — correctly reflecting the now-cancelled reservation (headcount 0, 1 total). Read-only HQ chain-wide view works and groups by branch.</div>
+  </div></div>
+
+  <h2>9 — Backoffice: matches CMS &amp; reservation_mode select <span class="pill partial">PARTIAL</span></h2>
+  <div class="step"><div class="num">9</div><div class="body">
+    Opened <b>HumondialMatches</b> in the editor preview.
+    <div class="shot"><b>Screen:</b> the match-management page rendered fully — "משחקי Humondial", filter chips (incl. <b>משודר בלבד</b>), the <b>הזמנות כלליות</b> banner, and the matches table now including a <b>"הזמינו בסניף"</b> (booked-at-branch) column.</div>
+    <p class="flag">⚠ The per-match edit dialog — which contains the new 3-way <code>reservation_mode</code> select (auto / in-app / tabit) — could not be opened through the Base44 editor-preview <i>iframe</i> using coordinate clicks (find/scroll tools don't reach iframe content). This is a tooling limitation of driving the preview iframe, not a code defect:</p>
+    <ul class="small">
+      <li>The page itself renders cleanly, proving the <code>HumondialMatches.jsx</code> edits did not break it (the select lives inside the dialog, which is dialog-gated and cannot affect page load).</li>
+      <li>Local production build passes (<code>npm run build</code>, exit 0); the select reuses the exact <code>&lt;Select&gt;</code> component already used two fields above it.</li>
+      <li>The backend write path — <code>upsertPromoMatch</code> with <code>reservation_mode</code> validation (auto/in_app/tabit) — is committed and auto-deployed.</li>
+      <li>Reads are already proven: <code>listMatches</code> returns <code>reservation_mode</code> and the whole player flow above resolved routing from it correctly.</li>
+    </ul>
+    <p class="small">Recommended follow-up: open one match in the backoffice and confirm the "אופן הזמנת שולחן" select saves (1-minute visual check by an account with full Humondial RBAC).</p>
+  </div></div>
+
+  <h2>Environment notes</h2>
+  <ul class="small">
+    <li><b>Deploys:</b> PWA commits auto-deploy to Cloudflare Pages (verified the latest deploy succeeded before testing). Base44 backoffice changes sync from GitHub; the editor preview confirmed both new/changed pages synced (routes resolve in the preview address bar). The just-synced page chunks took a couple of minutes to build — the HQ screen and HumondialMatches both rendered once the build caught up.</li>
+    <li><b>RBAC:</b> the deployed Humondial backoffice routes return "no access" for this account on direct navigation; the Base44 editor preview is the working path (as previously noted for the reporting dashboard).</li>
+    <li><b>Data left behind:</b> one <code>cancelled</code> test reservation for the player; ledger restored to baseline (345). Can be hard-deleted on request.</li>
+  </ul>
+
+  <p class="small" style="margin-top:34px;color:#64748b">Generated 2026-06-14 · live browser screenshots were shown inline during execution; this report consolidates the database evidence and verified screen states for each step.</p>
+
+</div>
+</body>
+</html>
