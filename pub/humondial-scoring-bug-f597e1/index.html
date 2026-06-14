@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>דוח תקלה — חישוב נקודות בתחזיות · Humondial</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b27; --panel2:#1d2433; --line:#2a3346;
+    --ink:#eef2fb; --mut:#9aa6c2; --acc:#5b8cff; --good:#46d39a; --warn:#ffb84d; --dang:#ff6b6b;
+    --chip:#243056;
+    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+    --sans:"Heebo","Assistant",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    font-size:16px;line-height:1.75}
+  .wrap{max-width:860px;margin:0 auto;padding:38px 22px 120px}
+  a{color:var(--acc)}
+  header.page{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:8px}
+  .kick{color:var(--good);font-weight:800;letter-spacing:.02em;font-size:13px}
+  h1{font-size:30px;margin:10px 0 6px;line-height:1.25}
+  .sub{color:var(--mut);font-size:14px}
+  .meta{color:var(--mut);font-size:13px;margin-top:10px}
+  .status{display:inline-block;background:#143020;border:1px solid #2c5a45;color:var(--good);
+    border-radius:20px;padding:3px 13px;font-size:13px;font-weight:700;margin-top:8px}
+  h2{font-size:22px;margin:38px 0 10px;padding-top:24px;border-top:1px solid var(--line)}
+  h3{font-size:18px;margin:22px 0 6px}
+  p{margin:10px 0}
+  code{font-family:var(--mono);direction:ltr;unicode-bidi:embed;background:var(--panel2);
+    padding:1px 6px;border-radius:5px;font-size:14px;color:#cfe0ff}
+  .lead{font-size:17px;color:#cfd6ea}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center}
+  .stat .n{font-size:30px;font-weight:800}
+  .stat .l{color:var(--mut);font-size:13px;margin-top:2px}
+  .stat.bad .n{color:var(--dang)}
+  .note{border:1px solid var(--line);border-right:4px solid var(--acc);background:var(--panel);
+    padding:13px 16px;border-radius:10px;margin:16px 0}
+  .note.good{border-right-color:var(--good)} .note.warn{border-right-color:var(--warn)}
+  .note.dang{border-right-color:var(--dang)} .note b{color:#fff}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14.5px}
+  th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:right}
+  th{color:var(--mut);font-size:13px;font-weight:700}
+  tr:hover td{background:#11172b}
+  .ok{color:var(--good);font-weight:700}
+  .err{color:var(--dang);font-weight:700}
+  .draw td{background:#241a12}
+  .eqbox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:14px 0}
+  .eq{direction:ltr;text-align:left;font-family:var(--mono);font-size:15px;margin:6px 0}
+  .eq .bull{color:var(--good)} .eq .out{color:var(--dang)} .eq .part{color:var(--mut)}
+  /* options */
+  .opt{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .opt.rec{border-color:#2c5a45;box-shadow:0 0 0 1px #2c5a4555 inset}
+  .opt h3{margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .badge{font-size:12px;font-weight:800;border-radius:20px;padding:2px 10px}
+  .badge.rec{background:#143020;color:var(--good);border:1px solid #2c5a45}
+  .opt .who{color:var(--mut);font-size:13px}
+  .pro{color:var(--good)} .con{color:var(--warn)}
+  ul{margin:8px 0;padding-inline-start:22px} li{margin:4px 0}
+  footer{color:var(--mut);font-size:13px;border-top:1px solid var(--line);margin-top:46px;padding-top:18px}
+  .quote{background:var(--panel2);border-radius:10px;padding:12px 16px;color:#d4dcf0;font-size:15px;margin:8px 0}
+  @media(max-width:640px){.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="page">
+  <div class="kick">דוח תקלה · פנימי</div>
+  <h1>חישוב נקודות בתחזיות — ניחוש תוצאה מדויקת בתיקו</h1>
+  <div class="sub">מבצע Humondial 2026 · חקירה, סיבת שורש, ואפשרויות החלטה לבעלי העניין</div>
+  <div class="meta">עודכן: 14 ביוני 2026 · קמפיין <code>bf987a45…</code></div>
+  <div class="status">✓ התיקון קוד בוצע ונפרס — לא ייווצרו מקרים חדשים</div>
+</header>
+
+<h2>תקציר מנהלים</h2>
+<p class="lead">דווח שֶׁשחקן שניחש תוצאה מדויקת קיבל נקודות גם על <b>כיוון נכון</b> וגם על <b>ניחוש מדויק</b>.
+הבדיקה אישרה זאת — אך רק במשחקים שהסתיימו ב<b>תיקו</b>. בכל משחק הכרעה הניקוד היה תקין. מדובר
+בתקלה ממוקדת בלוגיקת הזיכוי על תיקו.</p>
+<div class="cards">
+  <div class="stat bad"><div class="n">66</div><div class="l">שחקנים מושפעים</div></div>
+  <div class="stat bad"><div class="n">67</div><div class="l">ניחושים שזוכו ביתר</div></div>
+  <div class="stat bad"><div class="n">1,005</div><div class="l">נקודות עודפות שחולקו</div></div>
+</div>
+<div class="note good"><b>הטיפול שכבר בוצע:</b> הקוד תוקן בכל ארבעת נתיבי הזיכוי (הדירוג האוטומטי בזמן אמת
+והדירוג הידני) ונפרס לסביבת הייצור. מהרגע הזה, ניחוש מדויק — בתיקו או בהכרעה — מזכה ב<b>בונוס הדיוק בלבד</b>.</div>
+<div class="note warn"><b>ההחלטה שנותרה:</b> מה עושים עם 1,005 הנקודות שכבר חולקו ל-66 השחקנים?
+שלוש אפשרויות מובאות בהמשך — <a href="#decision">לקפיצה להחלטה</a>.</div>
+
+<h2>מה דווח</h2>
+<div class="quote">"גל שים לב שהמשתתף הזה קיבל נקודות גם על כיוון וגם על ניחוש מדויק."</div>
+<div class="quote">"אם הוא הימר 1-1 ויצא 1-1, הוא בפועל צריך לקבל 30 נקודות על פגיעה בול בתוצאה.
+(בנוסף הוא היה צריך לקבל לפני 10 נק' על הניחוש עצמו כמובן.)"</div>
+<p>כלומר — ההֶסְכֵּם הצפוי לניחוש מדויק הוא <b>40 נקודות</b> (10 השתתפות + 30 דיוק), ולא 55.</p>
+
+<h2>מבנה הניקוד</h2>
+<table>
+  <thead><tr><th>סוג זיכוי</th><th>נקודות</th><th>מתי</th></tr></thead>
+  <tbody>
+    <tr><td>השתתפות (<code>prediction_participation</code>)</td><td>10</td><td>על עצם הגשת התחזית</td></tr>
+    <tr><td>כיוון נכון (<code>prediction_outcome</code>)</td><td>15</td><td>ניחש נכון מי ינצח / תיקו — אך לא תוצאה מדויקת</td></tr>
+    <tr><td>ניחוש מדויק / בול (<code>prediction_bullseye</code>)</td><td>30</td><td>ניחש את התוצאה המדויקת</td></tr>
+  </tbody>
+</table>
+<div class="eqbox">
+  <div class="eq"><span class="part">10</span> + <span class="bull">30</span> = <b>40</b> &nbsp;← ניחוש מדויק (התנהגות נכונה)</div>
+  <div class="eq"><span class="part">10</span> + <span class="out">15</span> + <span class="bull">30</span> = <b>55</b> &nbsp;← מה שקרה בתיקו (התקלה)</div>
+  <div class="eq"><span class="part">10</span> + <span class="out">15</span> = <b>25</b> &nbsp;← כיוון נכון בלבד (תקין)</div>
+</div>
+
+<h2>מה מצאנו — הראיות</h2>
+<p>ניתחנו את כל 235 הניחושים המדויקים ב-7 המשחקים שדורגו עד כה. הזיכוי הכפול הופיע
+<b>אך ורק בשלושת משחקי התיקו</b>, ושם — אצל <b>כל</b> מי שניחש מדויק. בכל משחקי ההכרעה הניקוד היה תקין.</p>
+<table>
+  <thead><tr><th>משחק</th><th>תוצאה</th><th>ניחושים מדויקים</th><th>קיבלו גם כיוון (15)</th><th>סטטוס</th></tr></thead>
+  <tbody>
+    <tr><td>מקסיקו – דרום אפריקה</td><td>2-0</td><td>73</td><td>0</td><td class="ok">תקין ✓</td></tr>
+    <tr><td>דרום קוריאה – צ'כיה</td><td>2-1</td><td>40</td><td>0</td><td class="ok">תקין ✓</td></tr>
+    <tr class="draw"><td>קנדה – בוסניה</td><td>1-1</td><td>39</td><td>39</td><td class="err">תקלה ✗</td></tr>
+    <tr class="draw"><td>קטאר – שווייץ</td><td>1-1</td><td>17</td><td>17</td><td class="err">תקלה ✗</td></tr>
+    <tr class="draw"><td>ברזיל – מרוקו</td><td>1-1</td><td>11</td><td>11</td><td class="err">תקלה ✗</td></tr>
+    <tr><td>האיטי – סקוטלנד</td><td>0-1</td><td>48</td><td>0</td><td class="ok">תקין ✓</td></tr>
+    <tr><td>אוסטרליה – טורקיה</td><td>2-0</td><td>7</td><td>0</td><td class="ok">תקין ✓</td></tr>
+  </tbody>
+</table>
+<div class="note"><b>למה זה ראיה חד-משמעית:</b> אם הזיכוי הכפול היה מכוון — הוא היה מופיע בכל 235 הניחושים
+המדויקים. אם הוא היה אסור לגמרי — באף אחד. במקום זה הוא הופיע ב-100% מהתיקואים וב-0% מההכרעות.
+הפילוח המושלם הזה מצביע על באג בענף-התיקו של הקוד, לא על החלטת מוצר ולא על כפילות אקראית.</p></div>
+
+<h2>הסיבה הטכנית (סיבת שורש)</h2>
+<p>בקוד הדירוג היה ענף ייעודי לתיקו: כאשר התוצאה תיקו והניחוש מדויק, נרשמה גם שורת
+<code>prediction_bullseye</code> (30) וגם שורת <code>prediction_outcome</code> (15). שריד מהתקופה שבה
+היה "בונוס תיקו" נפרד, שמוזג בטעות לתוך זיכוי הכיוון. במשחקי הכרעה לא היה ענף כזה — ולכן שם הניקוד היה נכון.</p>
+<div class="note good"><b>התיקון:</b> הוסר ענף-התיקו. כעת ניחוש מדויק מזכה ב-<code>prediction_bullseye</code>
+בלבד, בכל סוגי התוצאות. עודכנו כל ארבעת עותקי הלוגיקה (<code>gradePromoMatch</code> ו-<code>syncLiveFixtureScores</code>),
+עברו בדיקת טיפוסים, ונפרסו לייצור.</div>
+
+<h2>היקף ההשפעה</h2>
+<ul>
+  <li><b>66 שחקנים</b> מושפעים (אחד מהם פגע מדויק בשני תיקואים → 30 נק' עודפות; כל השאר 15).</li>
+  <li><b>67 ניחושים</b> זוכו ביתר, סך הכל <b>1,005 נקודות</b> עודפות.</li>
+  <li>מרוכז בשלושה משחקי שלב הבתים בלבד — נתפס מוקדם, אך כל תיקו עתידי היה משחזר את התקלה עד לתיקון.</li>
+  <li>השחקנים המושפעים נמצאים בממוצע גבוה בלוח (≈341 נק' מול ≈237 ממוצע כללי) — חלקם בצמרת, ולכן יש השפעה אפשרית על הדירוג.</li>
+</ul>
+
+<h2 id="decision">ההחלטה הנדרשת — מה עושים עם הנקודות שכבר חולקו?</h2>
+<p>התיקון קדימה כבר בוצע. נותר להחליט על 1,005 הנקודות הקיימות. שלוש אפשרויות:</p>
+
+<div class="opt rec">
+  <h3>א. תיקון רטרואקטיבי (Clawback) <span class="badge rec">מומלץ</span></h3>
+  <div class="who">הסרת 15 הנקודות העודפות מ-66 השחקנים (סה"כ 1,005), ורענון לוח התוצאות.</div>
+  <ul>
+    <li class="pro">✔ הוגן — מיישר קו עם כל מי שניחש תוצאה מדויקת במשחק הכרעה (שקיבל 40 כראוי).</li>
+    <li class="pro">✔ הלוח משקף את חוקי המבצע האמיתיים.</li>
+    <li class="con">✦ דורש "הורדת" נקודות מ-66 שחקנים — כדאי בליווי הודעה מסבירה. ההשפעה ליחיד קטנה (15, מקס' 30).</li>
+  </ul>
+</div>
+
+<div class="opt">
+  <h3>ב. השארת המצב כפי שהוא (Grandfather)</h3>
+  <div class="who">לא מורידים נקודות. מתקנים רק קדימה (כבר בוצע).</div>
+  <ul>
+    <li class="pro">✔ אין חוויית "לקחו לי נקודות" — עדיף תדמיתית.</li>
+    <li class="con">✦ הלוח נשאר לא-הוגן לצמיתות מול מי שפגע מדויק בהכרעה.</li>
+    <li class="con">✦ עלול ליצור תקדים ("קיבלתי וזה נשאר") לדיוני ניקוד עתידיים.</li>
+  </ul>
+</div>
+
+<div class="opt">
+  <h3>ג. השוואה כלפי מעלה (Level up)</h3>
+  <div class="who">לאמץ מודל מצטבר: לתת גם לכל מי שניחש מדויק בהכרעה +15, כך שכל ניחוש מדויק = 55.</div>
+  <ul>
+    <li class="pro">✔ אף אחד לא מאבד נקודות.</li>
+    <li class="con">✦ מנוגד לכוונה המקורית (ניחוש מדויק = 40) ולמה שדווח.</li>
+    <li class="con">✦ מנפח את כלכלת הנקודות ומחייב גם שינוי קוד נוסף (להחזיר את ענף הכיוון להכרעות).</li>
+  </ul>
+</div>
+
+<div class="note good"><b>המלצתנו:</b> אפשרות <b>א</b> (תיקון רטרואקטיבי) בליווי הודעת הסבר קצרה לשחקנים
+המושפעים, ובתוספת ניטור שמתריע אם אי-פעם יופיעו שוב גם <code>prediction_outcome</code> וגם
+<code>prediction_bullseye</code> לאותו שחקן באותו משחק.</div>
+
+<h2>הצעדים הבאים</h2>
+<ul>
+  <li><b>בוצע:</b> תיקון הקוד בכל נתיבי הדירוג + פריסה לייצור.</li>
+  <li><b>ממתין להחלטתכם:</b> בחירה בין א / ב / ג עבור הנקודות הקיימות.</li>
+  <li><b>לאחר בחירה:</b> אם א — נריץ תיקון נתונים (1,005 נק') + רענון לוח, ונכין רשימת שחקנים להודעה.</li>
+  <li><b>מומלץ בכל מקרה:</b> הוספת בדיקת ניטור לזיכוי כפול.</li>
+</ul>
+
+<footer>
+  Humondial 2026 · דוח תקלת ניקוד · נתונים מתוך מסד הנתונים החי (קמפיין <code>bf987a45…</code>) ·
+  שימוש פנימי. התיקון בקוד נפרס; אפשרות הטיפול הרטרואקטיבי ממתינה להחלטת בעלי העניין.
+</footer>
+</div>
+</body>
+</html>
