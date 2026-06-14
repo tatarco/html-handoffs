@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Late-Match Reservations — Implementation Plan</title>
+<style>
+  :root{--bg:#0f172a;--panel:#172033;--line:#26324a;--ink:#eef2fb;--mut:#93a0bd;
+    --create:#46d39a;--modify:#ffb84d;--test:#5b8cff;--acc:#5b8cff;
+    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+  .wrap{max-width:980px;margin:0 auto;padding:34px 20px 90px}
+  code,.path{font-family:var(--mono)}
+  .hero{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:26px}
+  .kick{color:var(--create);font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+  h1{font-size:28px;margin:8px 0 8px}
+  .hero p{color:var(--mut);margin:6px 0;max-width:75ch}
+  .pills{margin-top:12px}
+  .pill{display:inline-block;background:#1f2942;border:1px solid var(--line);color:#cfe0ff;
+    border-radius:20px;padding:3px 11px;font-size:12px;margin:3px 4px 0 0;font-family:var(--mono)}
+  h2{font-size:20px;margin:34px 0 12px;border-top:1px solid var(--line);padding-top:22px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .fcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;
+    border-left-width:4px;transition:transform .12s}
+  .fcard:hover{transform:translateY(-2px)}
+  .fcard.create{border-left-color:var(--create)} .fcard.modify{border-left-color:var(--modify)}
+  .fcard.test{border-left-color:var(--test)}
+  .fcard .p{font-family:var(--mono);font-size:12.5px;color:#cfe0ff;word-break:break-all}
+  .fcard .r{color:var(--mut);font-size:12.5px;margin-top:4px}
+  .tag{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:1px 7px;border-radius:20px}
+  .tag.create{background:#12331f;color:var(--create)} .tag.modify{background:#33260f;color:var(--modify)}
+  .tag.test{background:#16233f;color:var(--test)}
+  .phase{font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;margin:28px 0 6px;font-weight:700}
+  .task{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin:11px 0;
+    position:relative;transition:transform .12s}
+  .task:hover{transform:translateY(-2px)}
+  .task h3{margin:0 0 6px;font-size:16px}
+  .task .num{color:var(--acc);font-family:var(--mono)}
+  .task .files{margin:6px 0}
+  .task .files .path{font-size:12px;color:#cfe0ff;margin-inline-end:6px}
+  .task ul{margin:8px 0 0;padding-inline-start:20px;color:#d7e0f2;font-size:13.5px}
+  .task li{margin:2px 0}
+  .steps{position:absolute;top:14px;right:16px;font-size:11px;color:var(--mut);
+    border:1px solid var(--line);border-radius:20px;padding:1px 9px}
+  .warn{border:1px solid #5a3a12;border-left:4px solid var(--modify);background:#1c1810;
+    border-radius:10px;padding:14px 16px;margin-top:26px;color:#f2e6cf;font-size:14px}
+  footer{color:var(--mut);font-size:12.5px;border-top:1px solid var(--line);margin-top:34px;padding-top:16px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hero">
+  <div class="kick">Implementation Plan</div>
+  <h1>Late-Match In-App Reservations</h1>
+  <p><b>Goal:</b> Replace the Tabit reservation handoff with an in-app flow for matches after 23:00 (Asia/Jerusalem), plus a per-branch manager view (PWA) and a chain-wide HQ view (backoffice) of who's coming to each game.</p>
+  <p><b>Architecture:</b> New <code>promo_reservations</code> table + <code>promo_matches.reservation_mode</code>. Five Base44 functions (create/read for players, read/mutate for managers/HQ). PWA gets a reservation form + gated <code>/manager</code> route; backoffice gets a CMS toggle + read-only HQ screen. Points reuse the existing pending-<code>table_booking</code> mechanic.</p>
+  <div class="pills">
+    <span class="pill">Supabase Postgres 17</span><span class="pill">Deno · Base44 fns</span>
+    <span class="pill">React + Vite</span><span class="pill">Vitest</span><span class="pill">Tailwind</span>
+  </div>
+</div>
+
+<h2>File Map</h2>
+<div class="grid">
+  <div class="fcard create"><span class="tag create">create</span><div class="p">supabase/migrations/…_promo_reservations.sql</div><div class="r">Table + reservation_mode column</div></div>
+  <div class="fcard create"><span class="tag create">create</span><div class="p">base44/functions/createReservation/entry.ts</div><div class="r">Player creates/updates reservation + pending points</div></div>
+  <div class="fcard create"><span class="tag create">create</span><div class="p">base44/functions/getMyReservations/entry.ts</div><div class="r">Player reads own reservations</div></div>
+  <div class="fcard create"><span class="tag create">create</span><div class="p">base44/functions/getBranchReservations/entry.ts</div><div class="r">Manager: today's games + reservations (branch)</div></div>
+  <div class="fcard create"><span class="tag create">create</span><div class="p">base44/functions/setReservationStatus/entry.ts</div><div class="r">Confirm/cancel (cancel voids pending points)</div></div>
+  <div class="fcard create"><span class="tag create">create</span><div class="p">base44/functions/getReservationsOverview/entry.ts</div><div class="r">HQ chain-wide read-only</div></div>
+  <div class="fcard create"><span class="tag create">create</span><div class="p">src/lib/reservationMode.js</div><div class="r">Canonical trigger rule (vitest-tested)</div></div>
+  <div class="fcard test"><span class="tag test">test</span><div class="p">src/tests/reservationMode.test.js</div><div class="r">Trigger boundary tests</div></div>
+  <div class="fcard create"><span class="tag create">create</span><div class="p">src/screens/ReservationScreen.jsx</div><div class="r">Player form (branch + party size)</div></div>
+  <div class="fcard create"><span class="tag create">create</span><div class="p">src/screens/ManagerReservationsScreen.jsx</div><div class="r">Per-branch manager view</div></div>
+  <div class="fcard modify"><span class="tag modify">modify</span><div class="p">src/screens/BranchBookingScreen.jsx</div><div class="r">in_app → in-app form vs Tabit</div></div>
+  <div class="fcard modify"><span class="tag modify">modify</span><div class="p">src/App.jsx · src/lib/hashRoute.js</div><div class="r">Reservation routing + /manager route</div></div>
+  <div class="fcard modify"><span class="tag modify">modify</span><div class="p">bizflow-erp backoffice (HumondialCampaignConfig)</div><div class="r">reservation_mode toggle + HQ screen</div></div>
+</div>
+
+<div class="phase">Phase A — Database + backend functions (bizflow-erp)</div>
+<div class="task"><span class="steps">4 steps</span><h3><span class="num">A1.</span> Migration: table + reservation_mode</h3>
+  <div class="files"><span class="tag create">create</span> <span class="path">…_promo_reservations.sql</span></div>
+  <ul><li>Write DDL (table, RLS, indexes, matches column)</li><li>Apply to Bizflow-dev (MCP)</li><li>Verify table+column</li><li>Commit</li></ul></div>
+<div class="task"><span class="steps">5 steps · TDD</span><h3><span class="num">A2.</span> resolveReservationMode helper</h3>
+  <div class="files"><span class="tag create">create</span> <span class="path">src/lib/reservationMode.js</span> <span class="tag test">test</span> <span class="path">reservationMode.test.js</span></div>
+  <ul><li>Write failing vitest (23:00 boundary, overrides)</li><li>Run → fail</li><li>Implement Intl-based hour rule</li><li>Run → pass</li><li>Commit</li></ul></div>
+<div class="task"><span class="steps">4 steps</span><h3><span class="num">A3.</span> createReservation</h3>
+  <div class="files"><span class="tag create">create</span> <span class="path">createReservation/entry.ts</span></div>
+  <ul><li>Validate player token + in_app match + branch</li><li>Upsert active row; award pending points (idempotent)</li><li>deno check + smoke (re-submit = no double points)</li><li>Commit</li></ul></div>
+<div class="task"><span class="steps">3 steps</span><h3><span class="num">A4.</span> getMyReservations</h3>
+  <div class="files"><span class="tag create">create</span> <span class="path">getMyReservations/entry.ts</span></div>
+  <ul><li>Player token → own reservations</li><li>deno check</li><li>Commit</li></ul></div>
+<div class="task"><span class="steps">2 steps</span><h3><span class="num">A5.</span> getBranchReservations</h3>
+  <div class="files"><span class="tag create">create</span> <span class="path">getBranchReservations/entry.ts</span></div>
+  <ul><li>Staff token → branch's in_app games, headcounts, reservations (nickname/phone)</li><li>deno check + commit</li></ul></div>
+<div class="task"><span class="steps">3 steps</span><h3><span class="num">A6.</span> setReservationStatus</h3>
+  <div class="files"><span class="tag create">create</span> <span class="path">setReservationStatus/entry.ts</span></div>
+  <ul><li>Confirm/cancel; branch-scope 403; cancel voids pending ledger row</li><li>deno check + smoke</li><li>Commit</li></ul></div>
+<div class="task"><span class="steps">2 steps</span><h3><span class="num">A7.</span> getReservationsOverview (HQ)</h3>
+  <div class="files"><span class="tag create">create</span> <span class="path">getReservationsOverview/entry.ts</span></div>
+  <ul><li>Admin auth; chain-wide, grouped by branch, read-only</li><li>deno check + commit</li></ul></div>
+
+<div class="phase">Phase B — Player reservation flow (PWA)</div>
+<div class="task"><span class="steps">3 steps</span><h3><span class="num">B1.</span> ReservationScreen (player form)</h3>
+  <div class="files"><span class="tag create">create</span> <span class="path">src/screens/ReservationScreen.jsx</span></div>
+  <ul><li>Branch tiles + party-size stepper → createReservation</li><li>Confirmation state ("call branch to change")</li><li>build + commit</li></ul></div>
+<div class="task"><span class="steps">4 steps</span><h3><span class="num">B2.</span> Route late matches to the form</h3>
+  <div class="files"><span class="tag modify">modify</span> <span class="path">App.jsx · BranchBookingScreen.jsx</span></div>
+  <ul><li>resolveReservationMode → in_app shows form, else Tabit</li><li>build + manual check + commit</li></ul></div>
+
+<div class="phase">Phase C — Manager view + HQ + CMS</div>
+<div class="task"><span class="steps">3 steps</span><h3><span class="num">C1.</span> /manager route plumbing</h3>
+  <div class="files"><span class="tag modify">modify</span> <span class="path">hashRoute.js · App.jsx</span></div>
+  <ul><li>Parse manager route; pass staff token; build; commit</li></ul></div>
+<div class="task"><span class="steps">4 steps</span><h3><span class="num">C2.</span> ManagerReservationsScreen</h3>
+  <div class="files"><span class="tag create">create</span> <span class="path">src/screens/ManagerReservationsScreen.jsx</span></div>
+  <ul><li>Games list + headcount; expand → reservations</li><li>tap-to-call; אישר/ביטול → setReservationStatus</li><li>build + manual + commit</li></ul></div>
+<div class="task"><span class="steps">4 steps</span><h3><span class="num">C3.</span> CMS toggle + HQ backoffice screen</h3>
+  <div class="files"><span class="tag modify">modify</span> <span class="path">bizflow-erp backoffice</span></div>
+  <ul><li>Per-match reservation_mode select (auto/in_app/tabit)</li><li>HQ read-only overview via getReservationsOverview</li><li>verify + commit</li></ul></div>
+
+<div class="warn"><b>Intentional softness (flagged, not silent):</b> Task C3 specifies backoffice <i>behavior</i>, not exact JSX — that app's component layout lives in bizflow-erp and should follow its own patterns. Task A7's admin-auth uses an inline <code>base44.auth.me()</code> check with a note to swap in the repo's canonical admin wrapper if one exists.</div>
+
+<footer>Plan: <span class="path">humondial-promo/docs/superpowers/plans/2026-06-14-late-match-reservations.md</span> · Spec: <span class="path">…/specs/2026-06-14-late-match-reservations-design.md</span> · 13 tasks across 3 phases.</footer>
+</div>
+</body>
+</html>
