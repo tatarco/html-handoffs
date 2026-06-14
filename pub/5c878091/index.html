@@ -59,8 +59,8 @@
     <span class="badge"><b>Date:</b> 2026-06-14</span>
     <span class="badge"><b>PWA:</b> humondial-promo.pages.dev (Cloudflare Pages)</span>
     <span class="badge"><b>API:</b> Base44 dev</span>
-    <span class="badge"><b>DB:</b> Supabase Bizflow-dev <code>qnbogoyoqbkewkdbhxuy</code></span>
-    <span class="badge"><b>Tester:</b> redbull2002 (0503843427)</span>
+    <span class="badge"><b>DB:</b> Supabase Bizflow-dev <code>&lt;dev-project-ref&gt;</code></span>
+    <span class="badge"><b>Tester:</b> test player (number redacted)</span>
   </div>
 
   <div class="card k">
@@ -81,7 +81,7 @@
   </div>
 
   <h2>Test setup &amp; baseline</h2>
-  <p>Logged in to the PWA with phone <code>0503843427</code> via WhatsApp OTP. The trigger rule under test: a match resolves to the in-app flow when its local kickoff hour is <b>23:00 (Asia/Jerusalem)</b> or <code>reservation_mode = in_app</code>; otherwise it uses the Tabit flow.</p>
+  <p>Logged in to the PWA with the test player's phone via WhatsApp OTP. The trigger rule under test: a match resolves to the in-app flow when its local kickoff hour is <b>23:00 (Asia/Jerusalem)</b> or <code>reservation_mode = in_app</code>; otherwise it uses the Tabit flow.</p>
   <div class="grid2">
     <div class="card" style="margin:0">
       <h3 style="margin-top:0">Matches chosen (both today)</h3>
@@ -126,7 +126,7 @@ player totals       →  ledger_total <span class="hl">360</span> (was 345, +15)
   <h2>4 — Manager view <code>#manager</code> <span class="pill pass">PASS</span></h2>
   <div class="step"><div class="num">4</div><div class="body">
     Logged in at <code>/staff</code> as branch <b>יהוד</b> (this creates the staff session the manager view reuses), then opened <code>#manager</code>.
-    <div class="shot"><b>Screen:</b> "הזמנות להיום" listed exactly one game — <b>Netherlands – Japan · 4 👥 (1)</b>. Expanding it showed the reservation row: <b>redbull2002 · 4 👥</b>, a tappable phone link <b>972503843427</b> (<code>tel:</code>), and <b>אישר</b> / <b>ביטול</b> action buttons. Confirms branch-scoping (only יהוד's reservation), headcount, and contact details for call-to-confirm.</div>
+    <div class="shot"><b>Screen:</b> "הזמנות להיום" listed exactly one game — <b>Netherlands – Japan · 4 👥 (1)</b>. Expanding it showed the reservation row: <b>redbull2002 · 4 👥</b>, a tappable phone link <b>+972-XX-XXX-XXXX</b> (<code>tel:</code>), and <b>אישר</b> / <b>ביטול</b> action buttons. Confirms branch-scoping (only יהוד's reservation), headcount, and contact details for call-to-confirm.</div>
   </div></div>
 
   <h2>5 — Approve (confirm) <span class="pill pass">PASS</span></h2>
