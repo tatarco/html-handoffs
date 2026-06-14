@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Humondial Promo — BI Data Access Guide</title>
+<style>
+  :root{
+    --bg:#0c1020; --panel:#141a2e; --panel2:#1b2238; --line:#28304d;
+    --ink:#e8ecf6; --mut:#97a0bd; --acc:#5b8cff; --acc2:#46d39a;
+    --warn:#ffb84d; --dang:#ff6b6b; --code:#0a0e1c; --chip:#243056;
+    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline}
+  .wrap{display:grid;grid-template-columns:262px 1fr;max-width:1280px;margin:0 auto;min-height:100vh}
+  /* sidebar */
+  nav{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;
+    border-right:1px solid var(--line);padding:22px 16px;background:#0a0e1c}
+  nav h1{font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);margin:0 0 4px}
+  nav .sub{font-size:12px;color:var(--mut);margin-bottom:18px}
+  nav a{display:block;color:var(--mut);padding:5px 10px;border-radius:7px;font-size:13.5px}
+  nav a:hover{background:var(--panel2);color:var(--ink);text-decoration:none}
+  nav a.h2{padding-left:22px;font-size:12.5px;color:#7e88a8}
+  nav .grp{margin-top:14px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#5a6party;color:#5a6580;padding:0 10px}
+  /* content */
+  main{padding:34px 40px 120px;max-width:980px}
+  header.page{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:30px}
+  header.page .kick{color:var(--acc2);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+  header.page h1{font-size:30px;margin:8px 0 6px;line-height:1.2}
+  header.page p{color:var(--mut);margin:6px 0 0;max-width:70ch}
+  section{margin:38px 0;scroll-margin-top:18px}
+  h2{font-size:22px;margin:0 0 12px;padding-top:6px;border-top:1px solid var(--line);padding-top:26px}
+  h3{font-size:17px;margin:26px 0 8px;color:#cdd6f4}
+  h4{font-size:14px;margin:18px 0 6px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+  p{margin:10px 0}
+  code{font-family:var(--mono);background:var(--panel2);padding:2px 6px;border-radius:5px;font-size:13px;color:#cfe0ff}
+  .lead{font-size:16px;color:#c3cbe6}
+  /* callouts */
+  .note{border:1px solid var(--line);border-left:4px solid var(--acc);background:var(--panel);
+    padding:12px 16px;border-radius:8px;margin:16px 0}
+  .note.warn{border-left-color:var(--warn)} .note.danger{border-left-color:var(--dang)}
+  .note.good{border-left-color:var(--acc2)}
+  .note b{color:#fff}
+  /* cards */
+  .grid{display:grid;gap:14px}
+  .grid.c2{grid-template-columns:1fr 1fr}
+  .grid.c3{grid-template-columns:repeat(3,1fr)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .card .big{font-size:24px;font-weight:700}
+  .card .lbl{color:var(--mut);font-size:12.5px;text-transform:uppercase;letter-spacing:.04em}
+  .kv{display:grid;grid-template-columns:170px 1fr;gap:6px 14px;margin:12px 0}
+  .kv div:nth-child(odd){color:var(--mut)}
+  .kv .v{font-family:var(--mono);font-size:13px;color:#cfe0ff;word-break:break-all}
+  /* tables */
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  td code{font-size:12.5px;background:var(--code)}
+  tr:hover td{background:#11172b}
+  .pii{color:var(--dang);font-weight:600}
+  .pk{color:var(--acc2)}
+  .fk{color:var(--warn)}
+  /* code blocks + tabs */
+  .codewrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:14px 0;background:var(--code)}
+  .tabs{display:flex;gap:2px;background:#0a0e1c;border-bottom:1px solid var(--line);padding:6px 6px 0}
+  .tabs button{background:transparent;border:0;color:var(--mut);padding:8px 14px;cursor:pointer;
+    font-size:13px;border-radius:7px 7px 0 0;font-weight:600}
+  .tabs button.active{background:var(--code);color:#fff}
+  pre{margin:0;padding:16px 18px;overflow:auto;font-family:var(--mono);font-size:12.8px;line-height:1.6;color:#d7e2ff}
+  pre .c{color:#6b7799} pre .k{color:#ff9ecd} pre .s{color:#9be59b} pre .n{color:#ffce8a}
+  .tabpane{display:none} .tabpane.active{display:block}
+  .copy{float:right;background:var(--chip);border:1px solid var(--line);color:var(--ink);
+    font-size:11px;padding:3px 9px;border-radius:6px;cursor:pointer;margin:6px}
+  .copy:hover{background:#2d3a66}
+  .chip{display:inline-block;background:var(--chip);border:1px solid var(--line);border-radius:20px;
+    padding:2px 11px;font-size:12px;color:#cfe0ff;margin:2px 4px 2px 0;font-family:var(--mono)}
+  .secret{color:var(--warn);font-family:var(--mono)}
+  details{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:4px 16px;margin:10px 0}
+  summary{cursor:pointer;padding:10px 0;font-weight:600}
+  footer{color:var(--mut);font-size:12.5px;border-top:1px solid var(--line);margin-top:50px;padding-top:18px}
+  .pill{font-size:11px;padding:1px 8px;border-radius:20px;border:1px solid var(--line);color:var(--mut)}
+  .pill.ro{color:var(--acc2);border-color:#2c5a45}
+  @media(max-width:900px){.wrap{grid-template-columns:1fr}nav{display:none}main{padding:24px 18px 80px}.grid.c2,.grid.c3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <h1>BI Data Access</h1>
+  <div class="sub">Humondial Promo · read-only</div>
+  <a href="#overview">Overview</a>
+  <a href="#tldr">TL;DR — connect now</a>
+  <div class="grp">Platform</div>
+  <a href="#architecture">Architecture &amp; models</a>
+  <a href="#lifecycle">Data lifecycle &amp; sync</a>
+  <a href="#economy">Points economy</a>
+  <div class="grp">Access</div>
+  <a href="#credentials">Credentials &amp; scope</a>
+  <a href="#security">What you can &amp; can't see</a>
+  <div class="grp">Connecting</div>
+  <a href="#pg">Direct Postgres (BI tools)</a>
+  <a href="#pg" class="h2">Python</a>
+  <a href="#pg" class="h2">JavaScript / Node</a>
+  <a href="#pg" class="h2">psql / shell</a>
+  <a href="#rest">REST API (cURL / HTTP)</a>
+  <div class="grp">Reference</div>
+  <a href="#dictionary">Data dictionary</a>
+  <a href="#relationships">Relationships &amp; keys</a>
+  <a href="#enums">Enumerations</a>
+  <a href="#gotchas">Gotchas (read me)</a>
+  <a href="#queries">Suggested queries</a>
+  <a href="#support">Support</a>
+</nav>
+
+<main>
+<header class="page">
+  <div class="kick">Internal · BI onboarding</div>
+  <h1>Humondial Promo — Data Access Guide</h1>
+  <p>Everything a BI developer needs to connect to the Humondial football-prediction
+  promotion data: a dedicated <b>read-only</b> account, the full data model, how the
+  pieces talk to each other, the gotchas that will bite you, and a library of ready-to-run
+  analytical queries. <span class="pill ro">READ-ONLY</span> <span class="pill">PROMO SCOPE ONLY</span></p>
+</header>
+
+<!-- ================= OVERVIEW ================= -->
+<section id="overview">
+  <h2>Overview</h2>
+  <p class="lead">Humondial is a fan engagement promotion: players register on a mobile web
+  app (PWA), predict football match scorelines, earn points, climb tiers and a leaderboard,
+  and redeem perks at restaurant branches. You are being given a curated, read-only window
+  onto that data for analytics and reporting.</p>
+  <div class="grid c3">
+    <div class="card"><div class="lbl">Players</div><div class="big">~929</div></div>
+    <div class="card"><div class="lbl">Predictions</div><div class="big">~2,530</div></div>
+    <div class="card"><div class="lbl">Points ledger rows</div><div class="big">~4,380</div></div>
+  </div>
+  <div class="note good"><b>Two ways to connect, same account.</b> A native
+  <b>Postgres</b> connection (best for Power BI, Tableau, Metabase, Looker, dbt, pandas) and
+  a <b>REST/HTTP</b> endpoint (best for cURL and lightweight scripts). Both authenticate as the
+  same scoped, read-only identity. Pick whichever your tool speaks.</div>
+</section>
+
+<!-- ================= TL;DR ================= -->
+<section id="tldr">
+  <h2>TL;DR — connect now</h2>
+  <p>Coordinates below are non-secret. <b>The password and REST token are delivered to you
+  separately</b> (not printed on this page). Substitute them where you see
+  <span class="secret">&lt;DELIVERED SEPARATELY&gt;</span>.</p>
+  <div class="kv">
+    <div>Engine</div><div class="v">PostgreSQL 17 (Supabase · Bizflow-dev)</div>
+    <div>Project ref</div><div class="v">qnbogoyoqbkewkdbhxuy</div>
+    <div>Region</div><div class="v">eu-west-2 (London)</div>
+    <div>Database</div><div class="v">postgres</div>
+    <div>Username</div><div class="v">bi_readonly</div>
+    <div>Password</div><div class="v secret">&lt;DELIVERED SEPARATELY&gt;</div>
+    <div>Direct host</div><div class="v">db.qnbogoyoqbkewkdbhxuy.supabase.co : 5432</div>
+    <div>Pooler host (IPv4)</div><div class="v">aws-0-eu-west-2.pooler.supabase.com : 5432 (session) / 6543 (txn)</div>
+    <div>Pooler username</div><div class="v">bi_readonly.qnbogoyoqbkewkdbhxuy</div>
+    <div>REST base</div><div class="v">https://qnbogoyoqbkewkdbhxuy.supabase.co/rest/v1/</div>
+    <div>Campaign id</div><div class="v">bf987a45-9783-4507-9a26-acfd5f145473</div>
+  </div>
+  <div class="note warn"><b>Always filter <code>campaign_id = 'bf987a45-9783-4507-9a26-acfd5f145473'</code></b>
+  on any table that has that column. A second, decoy campaign row exists — see
+  <a href="#gotchas">Gotchas</a>.</div>
+</section>
+
+<!-- ================= ARCHITECTURE ================= -->
+<section id="architecture">
+  <h2>Architecture &amp; models — how the pieces talk</h2>
+  <p>Three systems cooperate. You are reading the <b>database at the bottom</b>; knowing the
+  layers above explains <i>why</i> the data looks the way it does.</p>
+  <div class="codewrap"><pre>
+  ┌──────────────────────────┐   player actions (register, predict, redeem)
+  │  Player PWA  (Vite/React)│   ───────────────────────────────────────────┐
+  │  humondial-promo         │                                              │
+  └────────────┬─────────────┘                                              │
+               │ HTTPS calls to named functions                            │
+               ▼                                                           │
+  ┌──────────────────────────┐   getPlayerCampaignConfig · getLeaderboard  │
+  │  Base44 backend functions│   getPromoReporting · syncLiveFixtureScores  │
+  │  (biz-flow-erp dev app)  │   syncBranchDailyStats · promoVerifyOtp ...  │
+  └────────────┬─────────────┘                                              │
+               │ SQL (service role)                                        │
+               ▼                                                           ▼
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  Supabase Postgres  (Bizflow-dev · qnbogoyoqbkewkdbhxuy)                  │
+  │  promo_* tables  ←─ YOU read these (read-only, masked)                    │
+  └─────────────────────────────────────────────────────────────────────────┘
+               ▲
+  ┌────────────┴─────────────┐
+  │  CMS / backoffice        │  campaign config, rules copy (writes promo_campaigns)
+  │  (bizflow-erp)           │
+  └──────────────────────────┘</pre></div>
+  <ul>
+    <li><b>PWA</b> never touches the DB directly — it calls Base44 functions, which hold the
+    privileged service credentials and enforce the rules.</li>
+    <li><b>Base44 functions</b> are the only writers. They award points, grade predictions,
+    sync live scores, and roll up branch stats. Every business rule lives here, not in the DB.</li>
+    <li><b>Supabase Postgres</b> is the system of record. It is a <b>shared multi-tenant ERP
+    database</b>; the promotion lives in the <code>promo_*</code> table family. Your account
+    can see <i>only</i> those.</li>
+    <li><b>CMS (bizflow-erp)</b> writes campaign configuration into <code>promo_campaigns</code>.</li>
+  </ul>
+  <div class="note"><b>Implication for BI:</b> the DB is the <i>output</i> of business logic, not
+  the logic itself. Points already reflect the rules; you sum them, you don't recompute them.
+  Some tables (<code>promo_leaderboard_cache</code>, <code>promo_stats_cache</code>) are
+  pre-computed snapshots refreshed on a timer — treat them as caches, not truth.</div>
+</section>
+
+<!-- ================= LIFECYCLE ================= -->
+<section id="lifecycle">
+  <h2>Data lifecycle &amp; synchronization</h2>
+  <table>
+    <thead><tr><th>What</th><th>Who updates it</th><th>Cadence</th><th>You should know</th></tr></thead>
+    <tbody>
+      <tr><td>Live &amp; final match scores</td><td><code>syncLiveFixtureScores</code> Base44 automation</td><td>~every 60s while a match is live</td><td>Writes <code>live_*</code> then <code>final_*</code> on <code>promo_matches</code>. <code>last_live_sync_at</code> tells you freshness.</td></tr>
+      <tr><td>Prediction grading</td><td>Base44 grader on final score</td><td>at full-time</td><td>Sets <code>promo_predictions.outcome</code> and writes <code>prediction_outcome</code>/<code>prediction_bullseye</code> ledger rows.</td></tr>
+      <tr><td>Leaderboard</td><td>cache refresh job</td><td>periodic snapshot</td><td><code>promo_leaderboard_cache.refreshed_at</code> = snapshot time. Lags the ledger slightly.</td></tr>
+      <tr><td>Per-branch KPIs</td><td><code>syncBranchDailyStats</code></td><td>every 5 min</td><td>Feeds the staff leaderboard (<code>promo_branch_daily_stats</code>).</td></tr>
+      <tr><td>Reporting payload</td><td><code>getPromoReporting</code></td><td>5-min TTL cache</td><td>Cached blob in <code>promo_stats_cache</code> (jsonb). The dashboard reads this.</td></tr>
+    </tbody>
+  </table>
+  <div class="note warn"><b>Match status is time-derived.</b> There is no single
+  <code>status</code> column. A match's state (upcoming / locked / live / finished) is computed
+  from <code>kickoff_utc</code>, <code>lock_offset_minutes</code> (5), and whether
+  <code>final_*</code> scores are present. Predictions lock at
+  <code>kickoff_utc − 5 minutes</code>. All timestamps are <b>UTC</b>; the campaign's display
+  timezone is <code>Asia/Jerusalem</code>.</div>
+</section>
+
+<!-- ================= ECONOMY ================= -->
+<section id="economy">
+  <h2>The points economy</h2>
+  <p><code>promo_ledger</code> is the heart of the dataset: one row per points event, append-only.
+  A player's true balance is <code>SUM(points)</code> over their non-pending ledger rows. The
+  <code>reason</code> column classifies every event:</p>
+  <table>
+    <thead><tr><th>reason</th><th>Meaning</th><th>Config base</th><th>Rows (sample)</th></tr></thead>
+    <tbody>
+      <tr><td><code>prediction_participation</code></td><td>Submitted a prediction for a match</td><td>10 pts</td><td>2,531</td></tr>
+      <tr><td><code>prediction_outcome</code></td><td>Got the result right (W/D/L)</td><td>15 pts</td><td>701</td></tr>
+      <tr><td><code>prediction_bullseye</code></td><td>Exact scoreline correct</td><td>30 pts</td><td>235</td></tr>
+      <tr><td><code>komo_existing_member_bonus</code></td><td>Enrollment bonus (already a member)</td><td>—</td><td>554</td></tr>
+      <tr><td><code>venue_visit</code></td><td>Verified visit to a branch</td><td>65 pts</td><td>157</td></tr>
+      <tr><td><code>table_booking</code></td><td>Booked a table via promo link</td><td>15 pts</td><td>144</td></tr>
+      <tr><td><code>delivery</code></td><td>Placed a delivery order via promo link</td><td>65 pts</td><td>62</td></tr>
+    </tbody>
+  </table>
+  <p>Other configured rewards you may see appear over time: <code>join</code> (50),
+  <code>adr</code> / draw-stripe specials (20 / 10). The authoritative amount is always the
+  <code>points</code> column on the row — never assume the config base, since it can change.</p>
+  <div class="note"><b><code>pending = true</code></b> marks provisional points (e.g. awarded
+  during a live match before final settlement). Exclude pending rows when reporting confirmed
+  balances. <b><code>idempotency_key</code></b> guarantees each event is booked once.</div>
+  <h3>Tiers</h3>
+  <p>Players are bucketed into tiers by total points. Configured tiers (ascending):
+  <span class="chip">bench</span><span class="chip">starter</span><span class="chip">striker</span>
+  <span class="chip">top_scorer</span><span class="chip">champion</span>. The current
+  <code>tier</code> per player is materialized on <code>promo_leaderboard_cache</code>.</p>
+</section>
+
+<!-- ================= CREDENTIALS ================= -->
+<section id="credentials">
+  <h2>Credentials &amp; scope</h2>
+  <p>You have one identity, <code>bi_readonly</code>, provisioned specifically for BI. It is:</p>
+  <ul>
+    <li><b>Read-only</b> — <code>SELECT</code> only. No INSERT/UPDATE/DELETE/DDL anywhere. Verified.</li>
+    <li><b>Scoped to the promotion</b> — it can read the <code>promo_*</code> analytics tables and
+    nothing else. Other tenants' ERP tables (orders, employees, payroll, …) return
+    <code>permission denied</code>.</li>
+    <li><b>PII-masked</b> — phone numbers, OTP/code hashes and session tokens are not exposed.
+    Player-level data comes through curated views (see next section).</li>
+    <li><b>Self-limiting</b> — a 120s statement timeout protects the shared DB from runaway queries.</li>
+  </ul>
+  <div class="note danger"><b>Handle as a credential.</b> The password / REST token are sent to
+  you privately. Don't paste them into shared docs, tickets, or this page. Ask for rotation if a
+  laptop is lost or someone leaves. This is a <b>dev</b> database — do not load this data into a
+  public dashboard.</div>
+</section>
+
+<!-- ================= SECURITY MATRIX ================= -->
+<section id="security">
+  <h2>What you can &amp; can't see</h2>
+  <div class="grid c2">
+    <div class="card"><h4 style="color:var(--acc2)">✓ Readable</h4>
+      <p style="font-size:13px;color:var(--mut)">All promotion analytics — campaign config,
+      matches &amp; scores, predictions, the points ledger, achievements, leaderboard,
+      per-branch daily KPIs, sessions, perk redemptions, WhatsApp delivery log, venue codes, and
+      player profiles <i>via masked views</i>.</p></div>
+    <div class="card"><h4 style="color:var(--dang)">✗ Blocked</h4>
+      <p style="font-size:13px;color:var(--mut)">Raw player phone numbers; OTP codes &amp; hashes;
+      session/staff tokens; and the entire non-promo ERP (orders, order_lines, employees, payroll,
+      suppliers, recruitment, …). These return <code>permission denied</code> by design.</p></div>
+  </div>
+  <h4>Masked views (use these instead of the base PII tables)</h4>
+  <table>
+    <thead><tr><th>Use this</th><th>Instead of</th><th>What's removed</th></tr></thead>
+    <tbody>
+      <tr><td><code>promo_players_bi</code></td><td><code>promo_players</code></td><td><span class="pii">phone</span></td></tr>
+      <tr><td><code>promo_otp_audit_bi</code></td><td><code>promo_otp_audit</code></td><td><span class="pii">phone</span> (keeps action + timestamp for funnel counts)</td></tr>
+      <tr><td><code>promo_qr_scan_log_bi</code></td><td><code>promo_qr_scan_log</code></td><td><span class="pii">phone, staff_token_hash</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= POSTGRES ================= -->
+<section id="pg">
+  <h2>Connecting — Direct Postgres (recommended for BI tools)</h2>
+  <p>This is the path Power BI, Tableau, Metabase, Looker, dbt, DBeaver and pandas all speak.
+  Use the <b>session pooler on port 5432</b> for the broadest compatibility (supports prepared
+  statements). If your network is IPv4-only, you <i>must</i> use the pooler host (the direct
+  <code>db.…</code> host is IPv6-first).</p>
+
+  <h4>Connection string (libpq / SQLAlchemy / JDBC URL)</h4>
+  <div class="codewrap">
+    <button class="copy" data-copy="postgresql://bi_readonly.qnbogoyoqbkewkdbhxuy:<PASSWORD>@aws-0-eu-west-2.pooler.supabase.com:5432/postgres?sslmode=require">Copy</button>
+    <pre>postgresql://bi_readonly.qnbogoyoqbkewkdbhxuy:<span class="n">&lt;PASSWORD&gt;</span>@aws-0-eu-west-2.pooler.supabase.com:5432/postgres?sslmode=require</pre>
+  </div>
+  <div class="note warn"><b>Two host shapes, don't mix them up.</b> On the <b>pooler</b> the
+  username carries the project ref: <code>bi_readonly.qnbogoyoqbkewkdbhxuy</code>. On the
+  <b>direct</b> host it's just <code>bi_readonly</code>. <code>sslmode=require</code> is mandatory.
+  If <code>aws-0-…</code> ever fails to resolve, copy the exact pooler host from the Supabase
+  dashboard → Settings → Database → Connection pooling.</div>
+
+  <div class="codewrap">
+    <div class="tabs" role="tablist">
+      <button class="active" data-tab="py-pg">Python</button>
+      <button data-tab="js-pg">JavaScript / Node</button>
+      <button data-tab="sh-pg">psql / shell</button>
+    </div>
+    <div class="tabpane active" id="py-pg">
+      <button class="copy">Copy</button>
+<pre><span class="c"># pip install "psycopg[binary]" pandas sqlalchemy</span>
+<span class="k">import</span> os, pandas <span class="k">as</span> pd
+<span class="k">from</span> sqlalchemy <span class="k">import</span> create_engine
+
+<span class="c"># keep the password in an env var, not in code</span>
+PWD = os.environ[<span class="s">"BI_PWD"</span>]
+URL = (
+  <span class="s">f"postgresql+psycopg://bi_readonly.qnbogoyoqbkewkdbhxuy:{PWD}"</span>
+  <span class="s">"@aws-0-eu-west-2.pooler.supabase.com:5432/postgres?sslmode=require"</span>
+)
+engine = create_engine(URL, pool_pre_ping=<span class="k">True</span>)
+
+CAMPAIGN = <span class="s">"bf987a45-9783-4507-9a26-acfd5f145473"</span>
+df = pd.read_sql(
+  <span class="s">"""
+  select reason, count(*) events, sum(points) pts
+  from promo_ledger
+  where campaign_id = %(c)s and not pending
+  group by reason order by pts desc
+  """</span>,
+  engine, params={<span class="s">"c"</span>: CAMPAIGN},
+)
+<span class="k">print</span>(df)</pre>
+    </div>
+    <div class="tabpane" id="js-pg">
+      <button class="copy">Copy</button>
+<pre><span class="c">// npm install pg</span>
+<span class="k">import</span> pg <span class="k">from</span> <span class="s">"pg"</span>;
+
+<span class="k">const</span> client = <span class="k">new</span> pg.Client({
+  host: <span class="s">"aws-0-eu-west-2.pooler.supabase.com"</span>,
+  port: <span class="n">5432</span>,
+  database: <span class="s">"postgres"</span>,
+  user: <span class="s">"bi_readonly.qnbogoyoqbkewkdbhxuy"</span>,
+  password: process.env.BI_PWD,
+  ssl: { rejectUnauthorized: <span class="k">true</span> },
+});
+
+<span class="k">await</span> client.connect();
+<span class="k">const</span> CAMPAIGN = <span class="s">"bf987a45-9783-4507-9a26-acfd5f145473"</span>;
+<span class="k">const</span> { rows } = <span class="k">await</span> client.query(
+  <span class="s">`select reason, count(*)::int events, sum(points)::int pts
+     from promo_ledger
+    where campaign_id = $1 and not pending
+    group by reason order by pts desc`</span>,
+  [CAMPAIGN]
+);
+console.table(rows);
+<span class="k">await</span> client.end();</pre>
+    </div>
+    <div class="tabpane" id="sh-pg">
+      <button class="copy">Copy</button>
+<pre><span class="c"># macOS/Linux. Keep the password out of shell history via PGPASSWORD.</span>
+<span class="k">export</span> PGPASSWORD=<span class="s">'&lt;PASSWORD&gt;'</span>
+
+psql <span class="s">"host=aws-0-eu-west-2.pooler.supabase.com port=5432 dbname=postgres \
+  user=bi_readonly.qnbogoyoqbkewkdbhxuy sslmode=require"</span> \
+  -c <span class="s">"select tier, count(*) from promo_leaderboard_cache
+       where campaign_id='bf987a45-9783-4507-9a26-acfd5f145473'
+       group by tier order by 2 desc;"</span></pre>
+    </div>
+  </div>
+  <div class="note good"><b>BI tool setup (Power BI / Tableau / Metabase):</b> choose the generic
+  <b>PostgreSQL</b> connector, host <code>aws-0-eu-west-2.pooler.supabase.com</code>, port
+  <code>5432</code>, database <code>postgres</code>, user
+  <code>bi_readonly.qnbogoyoqbkewkdbhxuy</code>, SSL <b>required</b>. Import the
+  <code>public</code> schema and you'll see the <code>promo_*</code> objects you're allowed to read.</div>
+</section>
+
+<!-- ================= REST ================= -->
+<section id="rest">
+  <h2>Connecting — REST API (cURL / lightweight HTTP)</h2>
+  <p>The same account is reachable over Supabase's PostgREST gateway. Every request needs
+  <b>two</b> headers: <code>apikey</code> (the public publishable key, identifies the project to
+  the gateway) and <code>Authorization: Bearer &lt;BI_TOKEN&gt;</code> (a read-only token for the
+  <code>bi_readonly</code> role, delivered to you separately).</p>
+  <div class="kv">
+    <div>Base URL</div><div class="v">https://qnbogoyoqbkewkdbhxuy.supabase.co/rest/v1/</div>
+    <div>apikey (public)</div><div class="v">sb_publishable_xUbuU4kDebUd56ShNNVTMQ_2vT31YdN</div>
+    <div>Bearer token</div><div class="v secret">&lt;DELIVERED SEPARATELY&gt;</div>
+  </div>
+  <div class="note warn"><b>1,000-row hard cap.</b> The REST gateway returns at most 1,000 rows
+  per request regardless of <code>Range</code>. For anything bigger, paginate with
+  <code>Range</code> headers or — far better — push aggregation into the query
+  (<code>select=...&amp;...=...</code>) or just use the Postgres connection above, which has no cap.</div>
+
+  <div class="codewrap">
+    <div class="tabs" role="tablist">
+      <button class="active" data-tab="sh-rest">cURL</button>
+      <button data-tab="py-rest">Python</button>
+      <button data-tab="js-rest">JavaScript</button>
+    </div>
+    <div class="tabpane active" id="sh-rest">
+      <button class="copy">Copy</button>
+<pre><span class="k">export</span> APIKEY=<span class="s">'sb_publishable_xUbuU4kDebUd56ShNNVTMQ_2vT31YdN'</span>
+<span class="k">export</span> BI_TOKEN=<span class="s">'&lt;DELIVERED SEPARATELY&gt;'</span>
+<span class="k">export</span> CAMPAIGN=<span class="s">'bf987a45-9783-4507-9a26-acfd5f145473'</span>
+
+<span class="c"># Latest 5 graded predictions, joined to their match, newest first</span>
+curl -s <span class="s">"https://qnbogoyoqbkewkdbhxuy.supabase.co/rest/v1/promo_predictions?\
+campaign_id=eq.$CAMPAIGN&amp;outcome=not.is.null&amp;\
+select=home_score,away_score,outcome,created_at,promo_matches(home_team,away_team,stage)&amp;\
+order=created_at.desc&amp;limit=5"</span> \
+  -H <span class="s">"apikey: $APIKEY"</span> \
+  -H <span class="s">"Authorization: Bearer $BI_TOKEN"</span></pre>
+    </div>
+    <div class="tabpane" id="py-rest">
+      <button class="copy">Copy</button>
+<pre><span class="c"># pip install requests</span>
+<span class="k">import</span> os, requests
+
+BASE = <span class="s">"https://qnbogoyoqbkewkdbhxuy.supabase.co/rest/v1"</span>
+H = {
+  <span class="s">"apikey"</span>: <span class="s">"sb_publishable_xUbuU4kDebUd56ShNNVTMQ_2vT31YdN"</span>,
+  <span class="s">"Authorization"</span>: <span class="s">f"Bearer {os.environ['BI_TOKEN']}"</span>,
+}
+CAMPAIGN = <span class="s">"bf987a45-9783-4507-9a26-acfd5f145473"</span>
+
+r = requests.get(<span class="s">f"{BASE}/promo_leaderboard_cache"</span>, headers=H, params={
+  <span class="s">"campaign_id"</span>: <span class="s">f"eq.{CAMPAIGN}"</span>,
+  <span class="s">"select"</span>: <span class="s">"rank,nickname,tier,total_points"</span>,
+  <span class="s">"order"</span>: <span class="s">"rank.asc"</span>,
+  <span class="s">"limit"</span>: <span class="s">"10"</span>,
+})
+r.raise_for_status()
+<span class="k">for</span> row <span class="k">in</span> r.json():
+    <span class="k">print</span>(row[<span class="s">"rank"</span>], row[<span class="s">"nickname"</span>], row[<span class="s">"total_points"</span>])</pre>
+    </div>
+    <div class="tabpane" id="js-rest">
+      <button class="copy">Copy</button>
+<pre><span class="c">// Node 18+ has global fetch. Or: npm install @supabase/supabase-js</span>
+<span class="k">const</span> BASE = <span class="s">"https://qnbogoyoqbkewkdbhxuy.supabase.co/rest/v1"</span>;
+<span class="k">const</span> CAMPAIGN = <span class="s">"bf987a45-9783-4507-9a26-acfd5f145473"</span>;
+
+<span class="k">const</span> qs = <span class="k">new</span> URLSearchParams({
+  campaign_id: <span class="s">`eq.${CAMPAIGN}`</span>,
+  select: <span class="s">"rank,nickname,tier,total_points"</span>,
+  order: <span class="s">"rank.asc"</span>,
+  limit: <span class="s">"10"</span>,
+});
+
+<span class="k">const</span> res = <span class="k">await</span> fetch(<span class="s">`${BASE}/promo_leaderboard_cache?${qs}`</span>, {
+  headers: {
+    apikey: <span class="s">"sb_publishable_xUbuU4kDebUd56ShNNVTMQ_2vT31YdN"</span>,
+    Authorization: <span class="s">`Bearer ${process.env.BI_TOKEN}`</span>,
+  },
+});
+console.log(<span class="k">await</span> res.json());</pre>
+    </div>
+  </div>
+  <details>
+    <summary>How the REST token is minted (for the admin issuing it)</summary>
+    <p style="font-size:13.5px;color:var(--mut)">The bearer token is a JWT signed with the
+    project's JWT secret (Supabase dashboard → Settings → API → JWT Secret), carrying the claim
+    <code>{"role":"bi_readonly"}</code> plus an <code>exp</code>. The <code>authenticator</code>
+    role has been granted <code>bi_readonly</code>, so PostgREST can assume it; the role's grants
+    (and PII masking) then apply identically to the Postgres path. Mint, e.g., in Node:</p>
+<pre><span class="c">// npm install jsonwebtoken</span>
+<span class="k">import</span> jwt <span class="k">from</span> <span class="s">"jsonwebtoken"</span>;
+<span class="k">const</span> token = jwt.sign(
+  { role: <span class="s">"bi_readonly"</span>, exp: Math.floor(Date.now()/<span class="n">1000</span>) + <span class="n">60*60*24*180</span> },
+  process.env.SUPABASE_JWT_SECRET   <span class="c">// from the dashboard</span>
+);
+console.log(token);</pre>
+  </details>
+</section>
+
+<!-- ================= DICTIONARY ================= -->
+<section id="dictionary">
+  <h2>Data dictionary</h2>
+  <p>Every object your account can read. <span class="pk">green</span> = primary key,
+  <span class="fk">amber</span> = foreign key. All <code>*_utc</code> / <code>*_at</code> columns
+  are <code>timestamptz</code> in UTC.</p>
+
+  <h3>promo_players_bi <span class="pill">view · ~929 rows</span></h3>
+  <p>One row per registered player (phone masked out). The spine everything joins to.</p>
+  <table><thead><tr><th>Column</th><th>Type</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td><code class="pk">id</code></td><td>uuid</td><td>Player id — referenced by every player_id below</td></tr>
+    <tr><td><code>nickname</code></td><td>text</td><td>Display name on leaderboard</td></tr>
+    <tr><td><code>created_at</code></td><td>timestamptz</td><td>Registration time (cohort date)</td></tr>
+    <tr><td><code>terms_accepted_at</code></td><td>timestamptz</td><td>When T&amp;Cs were accepted</td></tr>
+    <tr><td><code>whatsapp_consent_at</code></td><td>timestamptz</td><td>WhatsApp opt-in time (null = no consent)</td></tr>
+    <tr><td><code>komo_welcomed_at</code></td><td>timestamptz</td><td>Legacy; effectively unused</td></tr>
+    <tr><td><code>activation_tour_completed_at</code></td><td>timestamptz</td><td>Finished the onboarding tour</td></tr>
+    <tr><td><code>activation_tour_outcome</code></td><td>text</td><td>Tour result label</td></tr>
+    <tr><td><code>origin_source</code></td><td>text</td><td>Acquisition channel (shirt, flyer, tv, …); often null</td></tr>
+    <tr><td><code>origin_branch</code></td><td>text</td><td>Branch that acquired the player</td></tr>
+  </tbody></table>
+
+  <h3>promo_matches <span class="pill">136 rows</span></h3>
+  <p>The tournament fixtures and their scores. <b>Use this, not <code>promo_fixtures</code></b>
+  (legacy/empty).</p>
+  <table><thead><tr><th>Column</th><th>Type</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td><code class="pk">id</code></td><td>uuid</td><td>Match id — referenced by <code>promo_predictions.match_id</code></td></tr>
+    <tr><td><code>stage</code></td><td>text</td><td>Group Stage - 1/2/3, Round of 32/16, Quarter-finals, Semi-finals, Final, 3rd Place Final</td></tr>
+    <tr><td><code>home_team</code> / <code>away_team</code></td><td>text</td><td>Team names</td></tr>
+    <tr><td><code>home_country_code</code> / <code>away_country_code</code></td><td>text</td><td>ISO codes for flags</td></tr>
+    <tr><td><code>kickoff_utc</code></td><td>timestamptz</td><td>Kickoff. Predictions lock at kickoff − 5 min</td></tr>
+    <tr><td><code>live_home_score</code> / <code>live_away_score</code></td><td>int</td><td>In-play score (null when not live)</td></tr>
+    <tr><td><code>final_home_score</code> / <code>final_away_score</code></td><td>int</td><td>Full-time score (null until finished) — presence ⇒ "finished"</td></tr>
+    <tr><td><code>live_minute</code></td><td>int</td><td>Current match minute when live</td></tr>
+    <tr><td><code>last_live_sync_at</code></td><td>timestamptz</td><td>Freshness of the live data</td></tr>
+    <tr><td><code>broadcasts_in_venues</code>, <code>marquee_highlight</code></td><td>bool</td><td>Merchandising flags</td></tr>
+    <tr><td><code>competition_phase</code>, <code>round_code</code>, <code>round_order</code></td><td>text/int</td><td>Structured stage ordering</td></tr>
+  </tbody></table>
+
+  <h3>promo_predictions <span class="pill">~2,530 rows</span></h3>
+  <table><thead><tr><th>Column</th><th>Type</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td><code class="pk">id</code></td><td>uuid</td><td>Prediction id</td></tr>
+    <tr><td><code class="fk">player_id</code></td><td>uuid</td><td>→ promo_players_bi.id</td></tr>
+    <tr><td><code class="fk">match_id</code></td><td>uuid</td><td>→ promo_matches.id</td></tr>
+    <tr><td><code>home_score</code> / <code>away_score</code></td><td>int</td><td>Predicted scoreline</td></tr>
+    <tr><td><code>outcome</code></td><td>text</td><td><code>correct</code> / <code>incorrect</code> / null (ungraded, match not finished)</td></tr>
+    <tr><td><code>created_at</code> / <code>updated_at</code></td><td>timestamptz</td><td>Submitted / last edited (editable until lock)</td></tr>
+  </tbody></table>
+
+  <h3>promo_ledger <span class="pill">~4,380 rows · the economy</span></h3>
+  <table><thead><tr><th>Column</th><th>Type</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td><code class="pk">id</code></td><td>uuid</td><td>Ledger entry id</td></tr>
+    <tr><td><code class="fk">player_id</code></td><td>uuid</td><td>→ promo_players_bi.id</td></tr>
+    <tr><td><code>points</code></td><td>int</td><td>Points for this event (the authoritative amount)</td></tr>
+    <tr><td><code>reason</code></td><td>text</td><td>Event type — see <a href="#economy">Points economy</a></td></tr>
+    <tr><td><code>pending</code></td><td>bool</td><td>true = provisional, exclude from confirmed balances</td></tr>
+    <tr><td><code>ref_id</code></td><td>text</td><td>Source entity (e.g. match/prediction id)</td></tr>
+    <tr><td><code>branch_id</code></td><td>text</td><td>Branch, for branch-attributed rewards</td></tr>
+    <tr><td><code>idempotency_key</code></td><td>text</td><td>Dedupe guard — each event booked once</td></tr>
+    <tr><td><code>actor</code> / <code>note</code></td><td>text</td><td>Who/why (manual adjustments)</td></tr>
+    <tr><td><code>created_at</code></td><td>timestamptz</td><td>When booked</td></tr>
+  </tbody></table>
+
+  <details>
+    <summary>More tables — achievements, leaderboard, sessions, branch stats, perks, WhatsApp, codes, config</summary>
+
+    <h3>promo_player_achievements <span class="pill">~349 rows</span></h3>
+    <table><thead><tr><th>Column</th><th>Type</th><th>Meaning</th></tr></thead><tbody>
+      <tr><td><code class="fk">player_id</code></td><td>uuid</td><td>→ promo_players_bi.id</td></tr>
+      <tr><td><code>achievement_id</code></td><td>text</td><td>Achievement key (defined in campaign config)</td></tr>
+      <tr><td><code>points_awarded</code></td><td>int</td><td>Points granted on unlock</td></tr>
+      <tr><td><code>unlocked_at</code></td><td>timestamptz</td><td>When unlocked</td></tr>
+    </tbody></table>
+
+    <h3>promo_leaderboard_cache <span class="pill">~777 rows · snapshot</span></h3>
+    <table><thead><tr><th>Column</th><th>Type</th><th>Meaning</th></tr></thead><tbody>
+      <tr><td><code class="fk">player_id</code></td><td>uuid</td><td>→ promo_players_bi.id</td></tr>
+      <tr><td><code>nickname</code></td><td>text</td><td>Denormalized name</td></tr>
+      <tr><td><code>total_points</code></td><td>int</td><td>Points at snapshot time</td></tr>
+      <tr><td><code>rank</code></td><td>int</td><td>Leaderboard position</td></tr>
+      <tr><td><code>tier</code></td><td>text</td><td>bench / starter / striker / top_scorer / champion</td></tr>
+      <tr><td><code>refreshed_at</code></td><td>timestamptz</td><td>Snapshot time (this lags the ledger)</td></tr>
+    </tbody></table>
+
+    <h3>promo_branch_daily_stats <span class="pill">24 rows · per branch/day KPI</span></h3>
+    <table><thead><tr><th>Column</th><th>Type</th><th>Meaning</th></tr></thead><tbody>
+      <tr><td><code>business_date</code></td><td>date</td><td>The day</td></tr>
+      <tr><td><code>branch_id</code> / <code>branch_name</code></td><td>text</td><td>Branch</td></tr>
+      <tr><td><code>mains_served</code></td><td>int</td><td>Main dishes served (denominator)</td></tr>
+      <tr><td><code>new_joins</code></td><td>int</td><td>New player registrations attributed to branch</td></tr>
+      <tr><td><code>redemptions</code></td><td>int</td><td>Perks redeemed</td></tr>
+      <tr><td><code>already_registered</code></td><td>int</td><td>Scans of players already enrolled</td></tr>
+      <tr><td><code>acquisition</code> / <code>redemption</code></td><td>float</td><td>Derived KPI rates</td></tr>
+    </tbody></table>
+
+    <h3>promo_player_sessions <span class="pill">~790 rows</span></h3>
+    <p>One row per player per day they were active — your raw material for DAU / retention.
+    Columns: <code>player_id</code>, <code>campaign_id</code>, <code>session_date</code>,
+    <code>created_at</code>.</p>
+
+    <h3>promo_perk_fulfillments <span class="pill">redemptions</span></h3>
+    <p><code>player_id</code>, <code>perk_id</code>, <code>branch_id</code>,
+    <code>fulfilled_at</code>, <code>fulfilled_date</code> — when a player redeemed a perk at a branch.</p>
+
+    <h3>promo_wa_deliveries <span class="pill">WhatsApp log</span></h3>
+    <p><code>player_id</code>, <code>template_name</code>, <code>cohort_label</code>,
+    <code>status</code>, <code>error_msg</code>, <code>sent_at</code>, <code>d99_unique_id</code>
+    — outbound WhatsApp message log (campaign comms funnel).</p>
+
+    <h3>promo_branch_venue_codes <span class="pill">daily codes</span></h3>
+    <p><code>branch_id</code>, <code>code</code>, <code>code_type</code>, <code>valid_date</code>
+    — the day's venue verification codes per branch.</p>
+
+    <h3>promo_qr_scan_log_bi <span class="pill">view</span></h3>
+    <p><code>branch_id</code>, <code>player_id</code>, <code>tier</code>, <code>scanned_at</code>
+    (phone &amp; staff token removed) — staff QR scans of players at venues.</p>
+
+    <h3>promo_otp_audit_bi <span class="pill">view</span></h3>
+    <p><code>action</code>, <code>created_at</code> (phone removed) — counts for the
+    OTP/verification funnel.</p>
+
+    <h3>promo_campaigns <span class="pill">config · 2 rows</span> &nbsp; promo_campaign_audit</h3>
+    <p>Campaign configuration — points values, tiers (jsonb), achievement templates, prediction
+    window, branches (jsonb), feature flags, display timezone. <b>Filter to
+    <code>id = 'bf987a45-…'</code></b>. <code>promo_campaign_audit</code> holds config-change
+    snapshots.</p>
+
+    <h3>promo_stats_cache <span class="pill">internal cache</span></h3>
+    <p><code>cache_key</code>, <code>payload</code> (jsonb), <code>refreshed_at</code> — the
+    server-side cache behind <code>getPromoReporting</code>. Usually ignore; recompute from base
+    tables for trustworthy numbers.</p>
+  </details>
+</section>
+
+<!-- ================= RELATIONSHIPS ================= -->
+<section id="relationships">
+  <h2>Relationships &amp; join keys</h2>
+  <div class="codewrap"><pre>
+                         promo_campaigns (id = bf987a45-…)
+                                  │ campaign_id (filter everywhere)
+                                  ▼
+  promo_players_bi.id ───┬──&lt; promo_predictions.player_id ──&gt; promo_matches.id
+                         ├──&lt; promo_ledger.player_id
+                         ├──&lt; promo_player_achievements.player_id
+                         ├──&lt; promo_leaderboard_cache.player_id
+                         ├──&lt; promo_player_sessions.player_id
+                         ├──&lt; promo_perk_fulfillments.player_id
+                         ├──&lt; promo_qr_scan_log_bi.player_id
+                         └──&lt; promo_wa_deliveries.player_id
+
+  branch_id (text)  ── appears on ledger / branch_daily_stats / perk_fulfillments /
+                       venue_codes / qr_scan_log. Maps to the ERP branch registry's
+                       tabit_branch_id (that ERP table is NOT exposed to BI).</pre></div>
+  <ul>
+    <li><b>Player is the hub.</b> Almost everything fans out from <code>player_id</code>.</li>
+    <li><b>Predictions bridge players and matches</b> — join <code>promo_predictions</code> to
+    <code>promo_matches</code> on <code>match_id</code> for stage / team / result context.</li>
+    <li><b>campaign_id</b> is on every multi-tenant table — always pin it.</li>
+    <li><b>branch_id</b> is free text; branch <i>names</i> are most reliably found on
+    <code>promo_branch_daily_stats</code>.</li>
+  </ul>
+</section>
+
+<!-- ================= ENUMS ================= -->
+<section id="enums">
+  <h2>Enumerations (live values)</h2>
+  <div class="grid c2">
+    <div class="card"><h4>ledger.reason</h4>
+      <span class="chip">prediction_participation</span><span class="chip">prediction_outcome</span>
+      <span class="chip">prediction_bullseye</span><span class="chip">komo_existing_member_bonus</span>
+      <span class="chip">venue_visit</span><span class="chip">table_booking</span><span class="chip">delivery</span></div>
+    <div class="card"><h4>predictions.outcome</h4>
+      <span class="chip">correct</span><span class="chip">incorrect</span><span class="chip">null = ungraded</span></div>
+    <div class="card"><h4>leaderboard tier</h4>
+      <span class="chip">bench</span><span class="chip">starter</span><span class="chip">striker</span>
+      <span class="chip">top_scorer</span><span class="chip">champion</span></div>
+    <div class="card"><h4>players.origin_source</h4>
+      <span class="chip">shirt</span><span class="chip">flyer</span><span class="chip">shmanman-banner</span>
+      <span class="chip">kappa</span><span class="chip">television</span><span class="chip">website-banner</span>
+      <span class="chip">sponsored</span><span class="chip">instagram</span><span class="chip">facebook</span>
+      <span class="chip">whatsapp</span><span class="chip">(often null)</span></div>
+    <div class="card"><h4>match.stage</h4>
+      <span class="chip">Group Stage - 1/2/3</span><span class="chip">Round of 32</span>
+      <span class="chip">Round of 16</span><span class="chip">Quarter-finals</span>
+      <span class="chip">Semi-finals</span><span class="chip">3rd Place Final</span><span class="chip">Final</span></div>
+  </div>
+</section>
+
+<!-- ================= GOTCHAS ================= -->
+<section id="gotchas">
+  <h2>Gotchas — read before you trust a number</h2>
+  <div class="note danger"><b>1. The decoy campaign row.</b> <code>promo_campaigns</code> has
+  <b>two</b> rows. The real one is <code>bf987a45-9783-4507-9a26-acfd5f145473</code> (8 branches,
+  5 tiers). A second decoy row <code>f746d606-…</code> exists. An unfiltered
+  <code>limit 1</code> can grab the wrong one. <b>Always pin the campaign id.</b></div>
+  <div class="note warn"><b>2. REST 1,000-row cap.</b> PostgREST never returns more than 1,000
+  rows. Aggregate in SQL or use the Postgres connection for full extracts.</div>
+  <div class="note warn"><b>3. Status is time-derived.</b> No <code>status</code> column on
+  matches — derive from <code>kickoff_utc</code>, the 5-min lock offset, and presence of
+  <code>final_*</code> scores.</div>
+  <div class="note warn"><b>4. Caches lag.</b> <code>promo_leaderboard_cache</code> and
+  <code>promo_stats_cache</code> are periodic snapshots. For exact, current points, aggregate
+  <code>promo_ledger</code> yourself (it's the source of truth).</div>
+  <div class="note warn"><b>5. <code>pending</code> points.</b> Exclude
+  <code>pending = true</code> ledger rows from confirmed balances.</div>
+  <div class="note"><b>6. Attribution is partial.</b> <code>origin_source</code> is null for the
+  majority of players — treat channel mix as "of those tagged."</div>
+  <div class="note"><b>7. UTC everywhere.</b> All timestamps are UTC; convert to
+  <code>Asia/Jerusalem</code> for business-day reporting:
+  <code>created_at AT TIME ZONE 'Asia/Jerusalem'</code>.</div>
+  <div class="note"><b>8. Dev data.</b> This is the Bizflow-<b>dev</b> database — it contains test
+  players and may be reset. Don't treat it as production-grade truth or expose it publicly.</div>
+</section>
+
+<!-- ================= QUERIES ================= -->
+<section id="queries">
+  <h2>Suggested queries — start here</h2>
+  <p>Copy-paste SQL (Postgres path). Every query pins the campaign. Swap in
+  <code>:c := 'bf987a45-9783-4507-9a26-acfd5f145473'</code> or inline the id.</p>
+
+  <h3>1 · KPI snapshot — the one-screen overview</h3>
+  <div class="codewrap"><button class="copy">Copy</button><pre><span class="k">with</span> c <span class="k">as</span> (<span class="k">select</span> <span class="s">'bf987a45-9783-4507-9a26-acfd5f145473'</span>::uuid id)
+<span class="k">select</span>
+  (<span class="k">select</span> count(*) <span class="k">from</span> promo_players_bi)                                          <span class="k">as</span> players,
+  (<span class="k">select</span> count(*) <span class="k">from</span> promo_predictions p, c <span class="k">where</span> p.campaign_id=c.id)         <span class="k">as</span> predictions,
+  (<span class="k">select</span> count(<span class="k">distinct</span> player_id) <span class="k">from</span> promo_predictions p, c <span class="k">where</span> p.campaign_id=c.id) <span class="k">as</span> predictors,
+  (<span class="k">select</span> coalesce(sum(points),0) <span class="k">from</span> promo_ledger l, c <span class="k">where</span> l.campaign_id=c.id <span class="k">and</span> <span class="k">not</span> pending) <span class="k">as</span> points_awarded,
+  (<span class="k">select</span> round(100.0*count(*) filter (<span class="k">where</span> outcome=<span class="s">'correct'</span>)/nullif(count(*) filter (<span class="k">where</span> outcome <span class="k">is</span> <span class="k">not</span> <span class="k">null</span>),0),1)
+     <span class="k">from</span> promo_predictions p, c <span class="k">where</span> p.campaign_id=c.id)                       <span class="k">as</span> pct_correct;</pre></div>
+
+  <h3>2 · Engagement funnel — registered → predicted → won → redeemed</h3>
+  <div class="codewrap"><button class="copy">Copy</button><pre><span class="k">select</span>
+  count(<span class="k">distinct</span> pl.id)                                                  <span class="k">as</span> registered,
+  count(<span class="k">distinct</span> pr.player_id)                                           <span class="k">as</span> made_a_prediction,
+  count(<span class="k">distinct</span> pr.player_id) filter (<span class="k">where</span> pr.outcome=<span class="s">'correct'</span>)        <span class="k">as</span> won_at_least_once,
+  count(<span class="k">distinct</span> pf.player_id)                                           <span class="k">as</span> redeemed_a_perk
+<span class="k">from</span> promo_players_bi pl
+<span class="k">left</span> <span class="k">join</span> promo_predictions     pr <span class="k">on</span> pr.player_id=pl.id
+<span class="k">left</span> <span class="k">join</span> promo_perk_fulfillments pf <span class="k">on</span> pf.player_id=pl.id;</pre></div>
+
+  <h3>3 · Points awarded by reason (where the economy spends)</h3>
+  <div class="codewrap"><button class="copy">Copy</button><pre><span class="k">select</span> reason, count(*) <span class="k">as</span> events, sum(points) <span class="k">as</span> total_points,
+       round(avg(points),1) <span class="k">as</span> avg_points
+<span class="k">from</span> promo_ledger
+<span class="k">where</span> campaign_id=<span class="s">'bf987a45-9783-4507-9a26-acfd5f145473'</span> <span class="k">and</span> <span class="k">not</span> pending
+<span class="k">group</span> <span class="k">by</span> reason <span class="k">order</span> <span class="k">by</span> total_points <span class="k">desc</span>;</pre></div>
+
+  <h3>4 · Daily registrations &amp; new-player points (local time)</h3>
+  <div class="codewrap"><button class="copy">Copy</button><pre><span class="k">select</span> (created_at <span class="k">at</span> <span class="k">time</span> <span class="k">zone</span> <span class="s">'Asia/Jerusalem'</span>)::date <span class="k">as</span> day,
+       count(*) <span class="k">as</span> signups
+<span class="k">from</span> promo_players_bi
+<span class="k">group</span> <span class="k">by</span> <span class="m">1</span> <span class="k">order</span> <span class="k">by</span> <span class="m">1</span>;</pre></div>
+
+  <h3>5 · Leaderboard top 20 (recompute from the ledger — exact, not cached)</h3>
+  <div class="codewrap"><button class="copy">Copy</button><pre><span class="k">select</span> p.nickname,
+       sum(l.points) <span class="k">as</span> points,
+       rank() over (<span class="k">order</span> <span class="k">by</span> sum(l.points) <span class="k">desc</span>) <span class="k">as</span> rnk
+<span class="k">from</span> promo_ledger l
+<span class="k">join</span> promo_players_bi p <span class="k">on</span> p.id=l.player_id
+<span class="k">where</span> l.campaign_id=<span class="s">'bf987a45-9783-4507-9a26-acfd5f145473'</span> <span class="k">and</span> <span class="k">not</span> l.pending
+<span class="k">group</span> <span class="k">by</span> p.nickname
+<span class="k">order</span> <span class="k">by</span> points <span class="k">desc</span> <span class="k">limit</span> <span class="m">20</span>;</pre></div>
+
+  <h3>6 · Prediction accuracy by match stage (which rounds are "hard")</h3>
+  <div class="codewrap"><button class="copy">Copy</button><pre><span class="k">select</span> m.stage,
+       count(*) filter (<span class="k">where</span> pr.outcome <span class="k">is</span> <span class="k">not</span> <span class="k">null</span>)        <span class="k">as</span> graded,
+       round(100.0*count(*) filter (<span class="k">where</span> pr.outcome=<span class="s">'correct'</span>)
+             /nullif(count(*) filter (<span class="k">where</span> pr.outcome <span class="k">is</span> <span class="k">not</span> <span class="k">null</span>),0),1) <span class="k">as</span> pct_correct
+<span class="k">from</span> promo_predictions pr
+<span class="k">join</span> promo_matches m <span class="k">on</span> m.id=pr.match_id
+<span class="k">where</span> pr.campaign_id=<span class="s">'bf987a45-9783-4507-9a26-acfd5f145473'</span>
+<span class="k">group</span> <span class="k">by</span> m.stage <span class="k">order</span> <span class="k">by</span> pct_correct <span class="k">desc</span> nulls last;</pre></div>
+
+  <h3>7 · Acquisition channel mix (of tagged players)</h3>
+  <div class="codewrap"><button class="copy">Copy</button><pre><span class="k">select</span> coalesce(origin_source,<span class="s">'(untagged)'</span>) <span class="k">as</span> source,
+       count(*) <span class="k">as</span> players,
+       round(100.0*count(*)/sum(count(*)) over (),1) <span class="k">as</span> pct
+<span class="k">from</span> promo_players_bi
+<span class="k">group</span> <span class="k">by</span> <span class="m">1</span> <span class="k">order</span> <span class="k">by</span> players <span class="k">desc</span>;</pre></div>
+
+  <h3>8 · Branch performance — acquisition vs redemption</h3>
+  <div class="codewrap"><button class="copy">Copy</button><pre><span class="k">select</span> branch_name,
+       sum(new_joins)        <span class="k">as</span> joins,
+       sum(redemptions)      <span class="k">as</span> redemptions,
+       sum(mains_served)     <span class="k">as</span> mains,
+       round(100.0*sum(new_joins)/nullif(sum(mains_served),0),1) <span class="k">as</span> join_per_100_mains
+<span class="k">from</span> promo_branch_daily_stats
+<span class="k">where</span> campaign_id=<span class="s">'bf987a45-9783-4507-9a26-acfd5f145473'</span>
+<span class="k">group</span> <span class="k">by</span> branch_name <span class="k">order</span> <span class="k">by</span> joins <span class="k">desc</span>;</pre></div>
+
+  <h3>9 · Retention — return-day cohort (sessions after signup)</h3>
+  <div class="codewrap"><button class="copy">Copy</button><pre><span class="k">with</span> first_seen <span class="k">as</span> (
+  <span class="k">select</span> player_id, min(session_date) <span class="k">as</span> d0 <span class="k">from</span> promo_player_sessions <span class="k">group</span> <span class="k">by</span> player_id)
+<span class="k">select</span> (s.session_date - f.d0) <span class="k">as</span> day_offset,
+       count(<span class="k">distinct</span> s.player_id) <span class="k">as</span> active_players
+<span class="k">from</span> promo_player_sessions s <span class="k">join</span> first_seen f <span class="k">using</span> (player_id)
+<span class="k">group</span> <span class="k">by</span> <span class="m">1</span> <span class="k">order</span> <span class="k">by</span> <span class="m">1</span>;</pre></div>
+
+  <h3>10 · Power users — predictions, hit-rate &amp; points in one row</h3>
+  <div class="codewrap"><button class="copy">Copy</button><pre><span class="k">select</span> p.nickname,
+       count(pr.*)                                    <span class="k">as</span> predictions,
+       count(*) filter (<span class="k">where</span> pr.outcome=<span class="s">'correct'</span>)   <span class="k">as</span> correct,
+       coalesce(sum(l.points) filter (<span class="k">where</span> <span class="k">not</span> l.pending),0) <span class="k">as</span> points
+<span class="k">from</span> promo_players_bi p
+<span class="k">left</span> <span class="k">join</span> promo_predictions pr <span class="k">on</span> pr.player_id=p.id
+<span class="k">left</span> <span class="k">join</span> promo_ledger      l  <span class="k">on</span> l.player_id=p.id
+<span class="k">group</span> <span class="k">by</span> p.nickname
+<span class="k">having</span> count(pr.*) &gt; <span class="m">0</span>
+<span class="k">order</span> <span class="k">by</span> points <span class="k">desc</span> <span class="k">limit</span> <span class="m">50</span>;</pre></div>
+
+  <div class="note good"><b>Tip:</b> wrap any of these as a database <i>view</i> in your BI tool's
+  modeling layer so dashboards stay readable. None of them touch PII — all are safe to schedule.</div>
+</section>
+
+<section id="support">
+  <h2>Support</h2>
+  <div class="kv">
+    <div>Data owner</div><div class="v">Gal — Gal@tidhar.org.il</div>
+    <div>Credential delivery</div><div class="v">password + REST token sent privately (not on this page)</div>
+    <div>Rotation / revoke</div><div class="v">ask the data owner — the role can be rotated or dropped instantly</div>
+    <div>Schema questions</div><div class="v">campaign config &amp; rules live in the bizflow-erp CMS</div>
+  </div>
+  <footer>
+    Humondial Promo — BI Data Access Guide · PostgreSQL 17 · Supabase Bizflow-dev
+    (<code>qnbogoyoqbkewkdbhxuy</code>, eu-west-2) · read-only role <code>bi_readonly</code>,
+    promo scope only, PII masked. Internal use. Do not redistribute the credentials.
+  </footer>
+</section>
+</main>
+</div>
+
+<script>
+// tab switching (scoped per code block)
+document.querySelectorAll('.tabs').forEach(function(tabs){
+  var wrap = tabs.parentElement;
+  tabs.querySelectorAll('button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      tabs.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+      wrap.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      wrap.querySelector('#'+btn.dataset.tab).classList.add('active');
+    });
+  });
+});
+// copy buttons
+document.querySelectorAll('.copy').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var txt = btn.dataset.copy;
+    if(!txt){ var pre = btn.parentElement.querySelector('pre'); txt = pre ? pre.innerText : ''; }
+    navigator.clipboard.writeText(txt).then(function(){
+      var old = btn.textContent; btn.textContent='Copied'; setTimeout(()=>btn.textContent=old,1200);
+    });
+  });
+});
+</script>
+</body>
+</html>
