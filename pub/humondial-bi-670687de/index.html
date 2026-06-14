@@ -159,7 +159,7 @@
     <div>Username</div><div class="v">bi_readonly</div>
     <div>Password</div><div class="v secret">&lt;DELIVERED SEPARATELY&gt;</div>
     <div>Direct host</div><div class="v">db.qnbogoyoqbkewkdbhxuy.supabase.co : 5432</div>
-    <div>Pooler host (IPv4)</div><div class="v">aws-0-eu-west-2.pooler.supabase.com : 5432 (session) / 6543 (txn)</div>
+    <div>Pooler host (IPv4)</div><div class="v">aws-1-eu-west-2.pooler.supabase.com : 5432 (session) / 6543 (txn)</div>
     <div>Pooler username</div><div class="v">bi_readonly.qnbogoyoqbkewkdbhxuy</div>
     <div>REST base</div><div class="v">https://qnbogoyoqbkewkdbhxuy.supabase.co/rest/v1/</div>
     <div>Campaign id</div><div class="v">bf987a45-9783-4507-9a26-acfd5f145473</div>
@@ -318,13 +318,13 @@
 
   <h4>Connection string (libpq / SQLAlchemy / JDBC URL)</h4>
   <div class="codewrap">
-    <button class="copy" data-copy="postgresql://bi_readonly.qnbogoyoqbkewkdbhxuy:<PASSWORD>@aws-0-eu-west-2.pooler.supabase.com:5432/postgres?sslmode=require">Copy</button>
-    <pre>postgresql://bi_readonly.qnbogoyoqbkewkdbhxuy:<span class="n">&lt;PASSWORD&gt;</span>@aws-0-eu-west-2.pooler.supabase.com:5432/postgres?sslmode=require</pre>
+    <button class="copy" data-copy="postgresql://bi_readonly.qnbogoyoqbkewkdbhxuy:<PASSWORD>@aws-1-eu-west-2.pooler.supabase.com:5432/postgres?sslmode=require">Copy</button>
+    <pre>postgresql://bi_readonly.qnbogoyoqbkewkdbhxuy:<span class="n">&lt;PASSWORD&gt;</span>@aws-1-eu-west-2.pooler.supabase.com:5432/postgres?sslmode=require</pre>
   </div>
   <div class="note warn"><b>Two host shapes, don't mix them up.</b> On the <b>pooler</b> the
   username carries the project ref: <code>bi_readonly.qnbogoyoqbkewkdbhxuy</code>. On the
   <b>direct</b> host it's just <code>bi_readonly</code>. <code>sslmode=require</code> is mandatory.
-  If <code>aws-0-…</code> ever fails to resolve, copy the exact pooler host from the Supabase
+  If the pooler host ever fails to resolve, copy the exact host from the Supabase
   dashboard → Settings → Database → Connection pooling.</div>
 
   <div class="codewrap">
@@ -343,7 +343,7 @@
 PWD = os.environ[<span class="s">"BI_PWD"</span>]
 URL = (
   <span class="s">f"postgresql+psycopg://bi_readonly.qnbogoyoqbkewkdbhxuy:{PWD}"</span>
-  <span class="s">"@aws-0-eu-west-2.pooler.supabase.com:5432/postgres?sslmode=require"</span>
+  <span class="s">"@aws-1-eu-west-2.pooler.supabase.com:5432/postgres?sslmode=require"</span>
 )
 engine = create_engine(URL, pool_pre_ping=<span class="k">True</span>)
 
@@ -365,7 +365,7 @@ df = pd.read_sql(
 <span class="k">import</span> pg <span class="k">from</span> <span class="s">"pg"</span>;
 
 <span class="k">const</span> client = <span class="k">new</span> pg.Client({
-  host: <span class="s">"aws-0-eu-west-2.pooler.supabase.com"</span>,
+  host: <span class="s">"aws-1-eu-west-2.pooler.supabase.com"</span>,
   port: <span class="n">5432</span>,
   database: <span class="s">"postgres"</span>,
   user: <span class="s">"bi_readonly.qnbogoyoqbkewkdbhxuy"</span>,
@@ -390,7 +390,7 @@ console.table(rows);
 <pre><span class="c"># macOS/Linux. Keep the password out of shell history via PGPASSWORD.</span>
 <span class="k">export</span> PGPASSWORD=<span class="s">'&lt;PASSWORD&gt;'</span>
 
-psql <span class="s">"host=aws-0-eu-west-2.pooler.supabase.com port=5432 dbname=postgres \
+psql <span class="s">"host=aws-1-eu-west-2.pooler.supabase.com port=5432 dbname=postgres \
   user=bi_readonly.qnbogoyoqbkewkdbhxuy sslmode=require"</span> \
   -c <span class="s">"select tier, count(*) from promo_leaderboard_cache
        where campaign_id='bf987a45-9783-4507-9a26-acfd5f145473'
@@ -398,7 +398,7 @@ psql <span class="s">"host=aws-0-eu-west-2.pooler.supabase.com port=5432 dbname=
     </div>
   </div>
   <div class="note good"><b>BI tool setup (Power BI / Tableau / Metabase):</b> choose the generic
-  <b>PostgreSQL</b> connector, host <code>aws-0-eu-west-2.pooler.supabase.com</code>, port
+  <b>PostgreSQL</b> connector, host <code>aws-1-eu-west-2.pooler.supabase.com</code>, port
   <code>5432</code>, database <code>postgres</code>, user
   <code>bi_readonly.qnbogoyoqbkewkdbhxuy</code>, SSL <b>required</b>. Import the
   <code>public</code> schema and you'll see the <code>promo_*</code> objects you're allowed to read.</div>
